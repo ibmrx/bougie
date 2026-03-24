@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Italy Application - Bougie Immigration</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,7 +22,6 @@
             color: #2c2b28;
         }
 
-        /* Header */
         .header {
             background-color: #dcdad5;
             padding: 1rem 5%;
@@ -39,6 +38,7 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .logo {
@@ -77,14 +77,12 @@
             color: #9b8e6e;
         }
 
-        /* Main Container */
         .container {
             max-width: 900px;
             margin: 2rem auto;
             padding: 0 1.5rem 3rem;
         }
 
-        /* Progress Steps */
         .progress-steps {
             display: flex;
             justify-content: space-between;
@@ -93,6 +91,7 @@
             padding: 1.5rem;
             border-radius: 16px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
         }
 
         .step {
@@ -126,7 +125,7 @@
         }
 
         .step-label {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 500;
             color: #6b6a66;
         }
@@ -136,13 +135,11 @@
             font-weight: 600;
         }
 
-        /* Form Cards */
         .form-card {
             background: #ffffff;
             border-radius: 24px;
             padding: 2rem;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            margin-bottom: 1.5rem;
         }
 
         .form-title {
@@ -168,6 +165,7 @@
             font-weight: 500;
             margin-bottom: 0.5rem;
             color: #2c2b28;
+            font-size: 0.9rem;
         }
 
         .form-group label .required {
@@ -202,11 +200,10 @@
             gap: 1rem;
         }
 
-        /* File Upload */
         .file-upload {
             border: 2px dashed #dcdad5;
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 1rem;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -219,28 +216,29 @@
         }
 
         .file-upload i {
-            font-size: 2rem;
+            font-size: 1.5rem;
             color: #9b8e6e;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
         }
 
         .file-upload p {
             color: #6b6a66;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
         }
 
         .file-list {
-            margin-top: 1rem;
+            margin-top: 0.5rem;
         }
 
         .file-item {
             background-color: #f4eddb;
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 0.75rem;
             border-radius: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 0.5rem;
+            font-size: 0.85rem;
         }
 
         .file-item button {
@@ -248,12 +246,11 @@
             border: none;
             color: #e74c3c;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
-        /* Checkbox Group */
         .checkbox-group {
-            margin: 1.5rem 0;
+            margin: 1rem 0;
             padding: 1rem;
             background-color: #faf9f5;
             border-radius: 12px;
@@ -264,15 +261,17 @@
             align-items: flex-start;
             gap: 0.75rem;
             cursor: pointer;
+            font-weight: normal;
+            margin: 0;
         }
 
         .checkbox-group input {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             margin-top: 0.125rem;
+            cursor: pointer;
         }
 
-        /* Payment Options */
         .payment-options {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -302,14 +301,9 @@
 
         .payment-option h4 {
             margin-bottom: 0.25rem;
+            font-size: 1rem;
         }
 
-        .payment-option p {
-            font-size: 0.8rem;
-            color: #6b6a66;
-        }
-
-        /* Buttons */
         .button-group {
             display: flex;
             justify-content: space-between;
@@ -318,14 +312,14 @@
         }
 
         .btn {
-            padding: 0.875rem 1.75rem;
+            padding: 0.75rem 1.5rem;
             border-radius: 50px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             border: none;
             font-family: inherit;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
         .btn-primary {
@@ -333,9 +327,14 @@
             color: #f4eddb;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             background-color: #4a4945;
             transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .btn-secondary {
@@ -347,18 +346,6 @@
             background-color: #c0bcb4;
         }
 
-        .btn-outline {
-            background-color: transparent;
-            border: 2px solid #2c2b28;
-            color: #2c2b28;
-        }
-
-        .btn-outline:hover {
-            background-color: #2c2b28;
-            color: #f4eddb;
-        }
-
-        /* Warning Box */
         .warning-box {
             background-color: #fef5e7;
             border-left: 4px solid #f39c12;
@@ -367,12 +354,6 @@
             margin-bottom: 1.5rem;
         }
 
-        .warning-box i {
-            color: #f39c12;
-            margin-right: 0.5rem;
-        }
-
-        /* Signature Canvas */
         .signature-area {
             border: 2px solid #dcdad5;
             border-radius: 12px;
@@ -386,20 +367,9 @@
             width: 100%;
             height: 150px;
             background-color: #ffffff;
+            cursor: crosshair;
         }
 
-        .signature-buttons {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .small-btn {
-            padding: 0.5rem 1rem;
-            font-size: 0.8rem;
-        }
-
-        /* Bank Details */
         .bank-details {
             background-color: #f4eddb;
             padding: 1rem;
@@ -407,12 +377,91 @@
             margin: 1rem 0;
         }
 
-        /* Hidden */
         .hidden {
             display: none;
         }
 
-        /* Responsive */
+        .error-text {
+            color: #e74c3c;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        .input-error {
+            border-color: #e74c3c !important;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #dcdad5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #dcdad5;
+            text-align: right;
+        }
+
+        .success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .success-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .success-card i {
+            font-size: 4rem;
+            color: #27ae60;
+            margin-bottom: 1rem;
+        }
+
         @media (max-width: 768px) {
             .form-row {
                 grid-template-columns: 1fr;
@@ -422,7 +471,7 @@
             }
             .progress-steps {
                 flex-direction: column;
-                gap: 1rem;
+                gap: 0.75rem;
             }
             .step {
                 display: flex;
@@ -432,6 +481,9 @@
             .step-number {
                 margin: 0;
             }
+            .form-card {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
@@ -439,7 +491,7 @@
     <header class="header">
         <div class="header-container">
             <div class="logo">
-                <img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Bougie Immigration Logo" onerror="this.src='https://placehold.co/50x50/dcdad5/2c2b28?text=BI'">
+                <img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Bougie Immigration Logo">
                 <div class="logo-text">Bougie <span>Immigration</span></div>
             </div>
             <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Home</a>
@@ -448,26 +500,11 @@
 
     <div class="container">
         <div class="progress-steps">
-            <div class="step active" data-step="1">
-                <div class="step-number">1</div>
-                <div class="step-label">Confirmation</div>
-            </div>
-            <div class="step" data-step="2">
-                <div class="step-number">2</div>
-                <div class="step-label">Personal Info</div>
-            </div>
-            <div class="step" data-step="3">
-                <div class="step-number">3</div>
-                <div class="step-label">Documents</div>
-            </div>
-            <div class="step" data-step="4">
-                <div class="step-number">4</div>
-                <div class="step-label">Payment</div>
-            </div>
-            <div class="step" data-step="5">
-                <div class="step-number">5</div>
-                <div class="step-label">Signature</div>
-            </div>
+            <div class="step active" data-step="1"><div class="step-number">1</div><div class="step-label">Confirmation</div></div>
+            <div class="step" data-step="2"><div class="step-number">2</div><div class="step-label">Personal Info</div></div>
+            <div class="step" data-step="3"><div class="step-number">3</div><div class="step-label">Documents</div></div>
+            <div class="step" data-step="4"><div class="step-number">4</div><div class="step-label">Payment</div></div>
+            <div class="step" data-step="5"><div class="step-number">5</div><div class="step-label">Signature</div></div>
         </div>
 
         <!-- Step 1: Confirmation -->
@@ -475,397 +512,304 @@
             <h2 class="form-title">Italy Study Application</h2>
             <div class="warning-box">
                 <i class="fas fa-exclamation-triangle"></i>
-                <strong>Important:</strong> All documents must be certified by the Ministry of Education and Foreign Affairs. Submission is final and cannot be modified once submitted.
+                <strong>Important:</strong> All documents must be certified by the Ministry of Education and Foreign Affairs. Submission is final and cannot be modified.
             </div>
             <div class="checkbox-group">
-                <label>
-                    <input type="checkbox" id="confirmCertified">
-                    <span>I confirm that all information provided is correct and all documents are certified by the Ministry of Education and Foreign Affairs as required.</span>
-                </label>
+                <label><input type="checkbox" id="confirmCertified"> <span>I confirm that all information provided is correct and all documents are certified by the Ministry of Education and Foreign Affairs as required.</span></label>
             </div>
             <div class="checkbox-group">
-                <label>
-                    <input type="checkbox" id="confirmFinal">
-                    <span>I understand that this submission is final and I cannot go back or modify my application after submission.</span>
-                </label>
+                <label><input type="checkbox" id="confirmFinal"> <span>I understand that this submission is final and I cannot go back or modify my application after submission.</span></label>
             </div>
             <div class="button-group">
                 <button id="startApplicationBtn" class="btn btn-primary" disabled>Start Application</button>
             </div>
         </div>
 
-        <!-- Step 2: Applicant Information -->
+        <!-- Step 2: Personal Information -->
         <div id="step2" class="form-card hidden">
             <h2 class="form-title">Applicant Information</h2>
             <div class="form-subtitle">Please provide your personal details</div>
-            
             <div class="form-row">
-                <div class="form-group">
-                    <label>First Name <span class="required">*</span></label>
-                    <input type="text" id="firstName" placeholder="Enter your first name">
-                </div>
-                <div class="form-group">
-                    <label>Last Name <span class="required">*</span></label>
-                    <input type="text" id="lastName" placeholder="Enter your last name">
-                </div>
+                <div class="form-group"><label>First Name <span class="required">*</span></label><input type="text" id="firstName" placeholder="Enter your first name"></div>
+                <div class="form-group"><label>Last Name <span class="required">*</span></label><input type="text" id="lastName" placeholder="Enter your last name"></div>
             </div>
-
             <div class="form-row">
-                <div class="form-group">
-                    <label>Birth Date <span class="required">*</span></label>
-                    <input type="date" id="birthDate">
-                </div>
-                <div class="form-group">
-                    <label>Role <span class="required">*</span></label>
-                    <input type="text" id="role" value="Student" readonly style="background-color: #f4eddb;">
-                </div>
+                <div class="form-group"><label>Birth Date <span class="required">*</span></label><input type="date" id="birthDate"></div>
+                <div class="form-group"><label>Role</label><input type="text" value="Student" readonly style="background:#f4eddb"></div>
             </div>
-
             <div class="form-row">
-                <div class="form-group">
-                    <label>BAC Date of Completion <span class="required">*</span></label>
-                    <input type="month" id="bacDate">
-                </div>
-                <div class="form-group">
-                    <label>Year of Studies <span class="required">*</span></label>
-                    <select id="yearOfStudies">
-                        <option value="">Select</option>
-                        <option value="Bachelor">Bachelor</option>
-                        <option value="Master">Master</option>
-                    </select>
-                </div>
+                <div class="form-group"><label>Baccalaureate Date of Completion <span class="required">*</span></label><input type="month" id="bacDate"></div>
+                <div class="form-group"><label>Applying Degree <span class="required">*</span></label><select id="applyingDegree"><option value="">Select</option><option value="Bachelor">Bachelor</option><option value="Master">Master</option></select></div>
             </div>
-
             <div class="form-row">
-                <div class="form-group">
-                    <label>Phone Number <span class="required">*</span></label>
-                    <input type="tel" id="phone" placeholder="+213 XX XX XX XX XX">
-                </div>
-                <div class="form-group">
-                    <label>Email <span class="required">*</span></label>
-                    <input type="email" id="email" placeholder="you@example.com">
-                </div>
+                <div class="form-group"><label>Phone Number <span class="required">*</span></label><input type="tel" id="phone" placeholder="+213 XX XX XX XX XX"></div>
+                <div class="form-group"><label>Email <span class="required">*</span></label><input type="email" id="email" placeholder="you@example.com"></div>
             </div>
-
-            <div class="form-group">
-                <label>Selected Courses <span class="required">*</span></label>
-                <textarea id="courses" rows="3" placeholder="List the courses you are applying for..."></textarea>
-            </div>
-
-            <div class="button-group">
-                <button class="btn btn-secondary prevBtn">Previous</button>
-                <button class="btn btn-primary nextBtn">Next: Documents</button>
-            </div>
+            <div class="form-group"><label>Selected Courses <span class="required">*</span></label><textarea id="courses" rows="3" placeholder="List the courses you are applying for..."></textarea></div>
+            <div class="button-group"><button class="btn btn-secondary prevBtn">Previous</button><button class="btn btn-primary nextBtn">Next: Documents</button></div>
         </div>
 
-        <!-- Step 3: Document Upload -->
+        <!-- Step 3: Documents -->
         <div id="step3" class="form-card hidden">
             <h2 class="form-title">Document Upload</h2>
             <div class="form-subtitle">Upload all required documents (PDF or JPG, max 5MB each)</div>
-            
-            <div id="bachelorDocs">
-                <h3>Bachelor Required Documents</h3>
-                <div id="bachelorDocList"></div>
-            </div>
-            
-            <div id="masterDocs" class="hidden">
-                <h3>Master Additional Documents</h3>
-                <div id="masterDocList"></div>
-            </div>
-
-            <div class="button-group">
-                <button class="btn btn-secondary prevBtn">Previous</button>
-                <button class="btn btn-primary nextBtn">Next: Payment</button>
-            </div>
+            <div id="bachelorDocs"></div>
+            <div id="masterDocs" class="hidden"></div>
+            <div class="button-group"><button class="btn btn-secondary prevBtn">Previous</button><button class="btn btn-primary nextBtn">Next: Payment</button></div>
         </div>
 
         <!-- Step 4: Payment -->
         <div id="step4" class="form-card hidden">
             <h2 class="form-title">Payment Information</h2>
             <div class="form-subtitle">Total Service Fee: 35,000 DA</div>
-            
-            <div class="payment-options">
-                <div class="payment-option" data-payment="ccp">
-                    <i class="fas fa-university"></i>
-                    <h4>CCP</h4>
-                    <p>Account: 40253214 Clé 56</p>
-                </div>
-                <div class="payment-option" data-payment="baridimob">
-                    <i class="fas fa-mobile-alt"></i>
-                    <h4>Baridimob</h4>
-                    <p>Account: 00799999004025321435</p>
-                </div>
-            </div>
-
-            <div class="payment-action">
-                <div class="button-group">
-                    <button id="payNowBtn" class="btn btn-primary">Pay Now - Upload Receipt</button>
-                    <button id="payLaterBtn" class="btn btn-outline">Pay Later - Contact Agency</button>
-                </div>
-            </div>
-
-            <div id="receiptUpload" class="hidden">
-                <div class="file-upload" id="receiptUploadArea">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <p>Click to upload payment receipt (PDF/JPG, max 5MB)</p>
-                    <input type="file" id="receiptFile" accept=".pdf,.jpg,.jpeg" style="display: none;">
-                </div>
-            </div>
-
-            <div class="bank-details">
-                <h4>Bank Account Details</h4>
-                <p><strong>CCP:</strong> 40253214 Clé 56</p>
-                <p><strong>Baridimob:</strong> 00799999004025321435</p>
-                <p class="warning-box" style="margin-top: 0.5rem;"><i class="fas fa-clock"></i> You have 3 days to complete payment, otherwise your application will be automatically refused.</p>
-            </div>
-
-            <div class="button-group">
-                <button class="btn btn-secondary prevBtn">Previous</button>
-                <button class="btn btn-primary nextBtn" id="paymentNextBtn" disabled>Next: Signature</button>
-            </div>
+            <div class="payment-options"><div class="payment-option" data-payment="ccp"><i class="fas fa-university"></i><h4>CCP</h4><p>Account: 40253214 Clé 56</p></div><div class="payment-option" data-payment="baridimob"><i class="fas fa-mobile-alt"></i><h4>Baridimob</h4><p>Account: 00799999004025321435</p></div></div>
+            <div class="payment-action"><div class="button-group"><button id="payNowBtn" class="btn btn-primary">Pay Now - Upload Receipt</button><button id="payLaterBtn" class="btn btn-secondary">Pay Later - Contact Agency</button></div></div>
+            <div id="receiptUpload" class="hidden"><div class="file-upload" id="receiptUploadArea"><i class="fas fa-cloud-upload-alt"></i><p>Click to upload payment receipt</p><input type="file" id="receiptFile" accept=".pdf,.jpg,.jpeg" style="display:none"></div></div>
+            <div class="bank-details"><h4>Bank Account Details</h4><p><strong>CCP:</strong> 40253214 Clé 56</p><p><strong>Baridimob:</strong> 00799999004025321435</p><div class="warning-box" style="margin-top:0.5rem"><i class="fas fa-clock"></i> You have 3 days to complete payment, otherwise your application will be automatically refused.</div></div>
+            <div class="button-group"><button class="btn btn-secondary prevBtn">Previous</button><button class="btn btn-primary nextBtn" id="paymentNextBtn" disabled>Next: Signature</button></div>
         </div>
 
-        <!-- Step 5: Signature & Submit -->
+        <!-- Step 5: Signature -->
         <div id="step5" class="form-card hidden">
             <h2 class="form-title">Contract & Digital Signature</h2>
             <div class="form-subtitle">Please review and sign the contract</div>
-            
-            <div class="checkbox-group">
-                <label>
-                    <input type="checkbox" id="privacyPolicy">
-                    <span>I have read and agree to the <a href="#" id="viewContract" style="color: #9b8e6e;">Privacy Policy and Contract</a></span>
-                </label>
-            </div>
-
-            <div class="signature-area">
-                <label>Digital Signature <span class="required">*</span></label>
-                <canvas id="signatureCanvas" width="500" height="150" style="width:100%; height:150px; background:#fff; border:1px solid #dcdad5; border-radius:8px;"></canvas>
-                <div class="signature-buttons">
-                    <button id="clearSignature" class="btn btn-secondary small-btn">Clear</button>
-                </div>
-                <p class="small" style="color:#6b6a66; margin-top:0.5rem;">Sign by drawing with your mouse or finger</p>
-            </div>
-
-            <div class="button-group">
-                <button class="btn btn-secondary prevBtn">Previous</button>
-                <button id="submitApplication" class="btn btn-primary" disabled>Submit Application</button>
-            </div>
+            <div class="checkbox-group"><label><input type="checkbox" id="privacyPolicy"> <span>I have read and agree to the <a href="#" id="viewContract" style="color:#9b8e6e">Privacy Policy and Contract</a></span></label></div>
+            <div class="signature-area"><label>Digital Signature <span class="required">*</span></label><canvas id="signatureCanvas" width="500" height="150"></canvas><div class="signature-buttons" style="margin-top:0.5rem"><button id="clearSignature" class="btn btn-secondary" style="padding:0.5rem 1rem">Clear Signature</button></div><p style="font-size:0.75rem; color:#6b6a66; margin-top:0.5rem">Draw your signature with mouse or finger</p></div>
+            <div class="button-group"><button class="btn btn-secondary prevBtn">Previous</button><button id="submitApplication" class="btn btn-primary" disabled>Submit Application</button></div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Contract Modal -->
+    <div id="contractModal" class="modal-overlay">
+        <div class="modal-content"><div class="modal-header"><h3>Contract Agreement</h3><button id="closeModalBtn" style="background:none;border:none;font-size:1.5rem;cursor:pointer">&times;</button></div><div class="modal-body"><p><strong>Objet du contrat :</strong> Le bureau Bougie Immigration s'engage a accompagner l'etudiant dans :</p><ul><li>La recherche de trois (03) universites en Italie</li><li>La preparation et la soumission de la demande d'admission aupres de ces universites</li><li>La recherche d'opportunites de bourses d'etudes et, si possible, la soumission d'une demande</li></ul><p><strong>Paiement :</strong></p><ul><li>Prix total du service d'admission : 35 000 DA</li><li>Ce montant est a regler integralement et a l'avance afin de permettre le traitement du dossier dans les meilleurs delais</li><li>Les frais d'admission exiges par les universites sont a la charge exclusive de l'etudiant et ne sont pas inclus dans les honoraires du present contrat</li><li>Aucun remboursement ne sera effectue, que ce soit en cas d'annulation par l'etudiant ou en cas de refus d'admission par les universites</li></ul></div><div class="modal-footer"><button id="acceptContractBtn" class="btn btn-primary">I Understand</button></div></div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="success-overlay"><div class="success-card"><i class="fas fa-check-circle"></i><h3>Application Submitted Successfully!</h3><p id="successAppNumber"></p><p>A confirmation email has been sent to your email address.</p><p>You have 3 days to complete payment.</p><button id="successOkBtn" class="btn btn-primary" style="margin-top:1rem">OK</button></div></div>
+
     <script>
-        // Signature canvas setup
-        const canvas = document.getElementById('signatureCanvas');
-        let ctx = canvas.getContext('2d');
-        let drawing = false;
-        
+        // State
+        let currentStep = 1;
+        let uploadedDocs = {};
+        let paymentMethod = null;
+        let paymentStatus = null;
+        let signatureData = null;
+        let canvas, ctx, drawing = false;
+
+        // DOM Elements
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        const step4 = document.getElementById('step4');
+        const step5 = document.getElementById('step5');
+        const steps = [null, step1, step2, step3, step4, step5];
+
+        // Initialize Signature Canvas
         function initCanvas() {
-            canvas.width = canvas.offsetWidth;
-            canvas.height = 150;
+            canvas = document.getElementById('signatureCanvas');
+            if (!canvas) return;
             ctx = canvas.getContext('2d');
-            ctx.strokeStyle = '#2c2b28';
-            ctx.lineWidth = 2;
-            ctx.lineCap = 'round';
-            
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                const width = container.clientWidth - 32;
+                canvas.width = width;
+                canvas.height = 150;
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = '#2c2b28';
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+                if (signatureData) {
+                    const img = new Image();
+                    img.onload = () => ctx.drawImage(img, 0, 0);
+                    img.src = signatureData;
+                }
+            }
+            function startDrawing(e) { drawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); }
+            function draw(e) { if (!drawing) return; e.preventDefault(); const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); }
+            function stopDrawing() { drawing = false; signatureData = canvas.toDataURL(); }
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                let clientX, clientY;
+                if (e.touches) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
+                else { clientX = e.clientX; clientY = e.clientY; }
+                return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+            }
             canvas.addEventListener('mousedown', startDrawing);
             canvas.addEventListener('mousemove', draw);
             canvas.addEventListener('mouseup', stopDrawing);
             canvas.addEventListener('mouseleave', stopDrawing);
-            canvas.addEventListener('touchstart', startDrawingTouch);
-            canvas.addEventListener('touchmove', drawTouch);
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('touchmove', draw);
             canvas.addEventListener('touchend', stopDrawing);
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            document.getElementById('clearSignature')?.addEventListener('click', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height); signatureData = null; });
         }
-        
-        function startDrawing(e) {
-            drawing = true;
-            ctx.beginPath();
-            const pos = getMousePos(e);
-            ctx.moveTo(pos.x, pos.y);
+
+        // Document Upload Setup
+        const bachelorDocs = [
+            { id: 'passport', name: 'Passport' },
+            { id: 'photo', name: 'ID Photo' },
+            { id: 'cv', name: 'CV' },
+            { id: 'bacCertOriginal', name: 'Baccalaureate Certificate (certified original)' },
+            { id: 'bacCertTranslated', name: 'Baccalaureate Certificate (certified translated)' },
+            { id: 'bacTranscriptOriginal', name: 'Baccalaureate Transcript (certified original)' },
+            { id: 'bacTranscriptTranslated', name: 'Baccalaureate Transcript (certified translated)' },
+            { id: 'englishProof', name: 'English Proof (IELTS/TOEFL)' }
+        ];
+        const masterDocs = [
+            ...bachelorDocs,
+            { id: 'bachelorCertOriginal', name: 'Bachelor Certificate (certified original)' },
+            { id: 'bachelorCertTranslated', name: 'Bachelor Certificate (certified translated)' },
+            { id: 'bachelorTranscript', name: 'Bachelor Transcript - 3 years (certified original & translated)' }
+        ];
+
+        function createUploadSection(containerId, docs) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            docs.forEach(doc => {
+                const div = document.createElement('div');
+                div.className = 'form-group';
+                div.innerHTML = `<label>${doc.name} <span class="required">*</span></label><div class="file-upload" data-id="${doc.id}"><i class="fas fa-cloud-upload-alt"></i><p>Click to upload</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none"></div><div class="file-list" id="list-${doc.id}"></div>`;
+                container.appendChild(div);
+            });
+            attachUploadHandlers();
         }
-        
-        function draw(e) {
-            if (!drawing) return;
-            const pos = getMousePos(e);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
+
+        function attachUploadHandlers() {
+            document.querySelectorAll('.file-upload').forEach(upload => {
+                const input = upload.querySelector('input');
+                const docId = upload.getAttribute('data-id');
+                upload.addEventListener('click', () => input.click());
+                input.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    if (file.size > 5 * 1024 * 1024) { alert('File exceeds 5MB limit'); input.value = ''; return; }
+                    if (!['application/pdf','image/jpeg','image/jpg'].includes(file.type)) { alert('Only PDF and JPG files allowed'); input.value = ''; return; }
+                    uploadedDocs[docId] = file;
+                    const fileList = upload.nextElementSibling;
+                    fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0,30)}</span><button onclick="removeDoc('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
+                    upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File uploaded</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
+                    const newInput = upload.querySelector('input');
+                    if (newInput) newInput.addEventListener('change', arguments.callee);
+                });
+            });
         }
-        
-        function stopDrawing() {
-            drawing = false;
+
+        window.removeDoc = function(docId, btn) {
+            delete uploadedDocs[docId];
+            btn.closest('.file-item')?.remove();
+            const upload = document.querySelector(`.file-upload[data-id="${docId}"]`);
+            if (upload) upload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i><p>Click to upload</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
+        };
+
+        // Validation Functions
+        function validateStep1() {
+            const cert = document.getElementById('confirmCertified')?.checked;
+            const final = document.getElementById('confirmFinal')?.checked;
+            document.getElementById('startApplicationBtn').disabled = !(cert && final);
+            return cert && final;
         }
-        
-        function startDrawingTouch(e) {
-            e.preventDefault();
-            drawing = true;
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
+        function validateStep2() {
+            let valid = true;
+            const fields = ['firstName','lastName','birthDate','bacDate','applyingDegree','phone','email','courses'];
+            fields.forEach(id => { const el = document.getElementById(id); if (el && !el.value.trim()) valid = false; });
+            const email = document.getElementById('email')?.value;
+            if (email && !/^[^\s@]+@([^\s@]+\.)+[^\s@]+$/.test(email)) valid = false;
+            const phone = document.getElementById('phone')?.value;
+            if (phone && !/^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{3,4}[-\s\.]?[0-9]{3,4}$/.test(phone)) valid = false;
+            if (!valid) alert('Please fill all required fields correctly.');
+            return valid;
         }
-        
-        function drawTouch(e) {
-            e.preventDefault();
-            if (!drawing) return;
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            ctx.lineTo(x, y);
-            ctx.stroke();
+        function validateStep3() {
+            const degree = document.getElementById('applyingDegree')?.value;
+            const requiredDocs = degree === 'Master' ? masterDocs : bachelorDocs;
+            const missing = requiredDocs.filter(doc => !uploadedDocs[doc.id]);
+            if (missing.length) { alert(`Please upload: ${missing.map(d => d.name).join(', ')}`); return false; }
+            return true;
         }
-        
-        function getMousePos(e) {
-            const rect = canvas.getBoundingClientRect();
-            return {
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top
-            };
+        function validateStep4() {
+            if (!paymentMethod) { alert('Please select a payment method.'); return false; }
+            if (paymentStatus === 'paid_pending') {
+                const receipt = document.getElementById('receiptFile')?.files[0];
+                if (!receipt) { alert('Please upload payment receipt.'); return false; }
+            }
+            return true;
         }
-        
-        document.getElementById('clearSignature').addEventListener('click', () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        });
-        
-        initCanvas();
-        window.addEventListener('resize', () => {
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            canvas.width = canvas.offsetWidth;
-            canvas.height = 150;
-            ctx.putImageData(imageData, 0, 0);
-        });
-        
-        // View Contract Modal
-        document.getElementById('viewContract').addEventListener('click', (e) => {
-            e.preventDefault();
-            alert("CONTRACT:\n\nObjet du contrat: Le bureau Bougie Immigration s'engage a accompagner l'etudiant dans:\n- La recherche de trois (03) universites en Italie\n- La preparation et la soumission de la demande d'admission aupres de ces universites\n- La recherche d'opportunites de bourses d'etudes\n\nPaiement:\n- Prix total du service d'admission: 35 000 DA\n- Ce montant est a regler integralement et a l'avance\n- Les frais d'admission exiges par les universites sont a la charge exclusive de l'etudiant\n- Aucun remboursement ne sera effectue en cas d'annulation ou de refus d'admission");
-        });
-        
-        // Enable submit when privacy policy checked
-        document.getElementById('privacyPolicy').addEventListener('change', (e) => {
-            document.getElementById('submitApplication').disabled = !e.target.checked;
-        });
-        
-        // Step navigation logic
-        let currentStep = 1;
-        
-        function updateSteps() {
-            for(let i = 1; i <= 5; i++) {
+        function validateStep5() {
+            if (!document.getElementById('privacyPolicy')?.checked) { alert('Please agree to the Privacy Policy and Contract.'); return false; }
+            if (!signatureData) { alert('Please provide your digital signature.'); return false; }
+            return true;
+        }
+
+        // Navigation
+        function updateStepDisplay() {
+            for (let i = 1; i <= 5; i++) {
                 const stepEl = document.querySelector(`.step[data-step="${i}"]`);
-                const formEl = document.getElementById(`step${i}`);
-                if(i === currentStep) {
-                    stepEl.classList.add('active');
-                    stepEl.classList.remove('completed');
-                    formEl.classList.remove('hidden');
-                } else if(i < currentStep) {
-                    stepEl.classList.add('completed');
-                    stepEl.classList.remove('active');
-                    formEl.classList.add('hidden');
-                } else {
-                    stepEl.classList.remove('active', 'completed');
-                    formEl.classList.add('hidden');
-                }
+                if (i === currentStep) { stepEl.classList.add('active'); stepEl.classList.remove('completed'); steps[i].classList.remove('hidden'); }
+                else if (i < currentStep) { stepEl.classList.add('completed'); stepEl.classList.remove('active'); steps[i].classList.add('hidden'); }
+                else { stepEl.classList.remove('active', 'completed'); steps[i].classList.add('hidden'); }
             }
         }
-        
-        document.querySelectorAll('.nextBtn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if(currentStep < 5) {
-                    currentStep++;
-                    updateSteps();
-                }
-            });
-        });
-        
-        document.querySelectorAll('.prevBtn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if(currentStep > 1) {
-                    currentStep--;
-                    updateSteps();
-                }
-            });
-        });
-        
-        // Step 1 confirmation
-        const confirmCertified = document.getElementById('confirmCertified');
-        const confirmFinal = document.getElementById('confirmFinal');
-        const startBtn = document.getElementById('startApplicationBtn');
-        
-        function checkConfirmations() {
-            startBtn.disabled = !(confirmCertified.checked && confirmFinal.checked);
+        function nextStep() {
+            let valid = true;
+            if (currentStep === 1) valid = validateStep1();
+            else if (currentStep === 2) valid = validateStep2();
+            else if (currentStep === 3) valid = validateStep3();
+            else if (currentStep === 4) valid = validateStep4();
+            if (valid && currentStep < 5) { currentStep++; updateStepDisplay(); }
         }
-        
-        confirmCertified.addEventListener('change', checkConfirmations);
-        confirmFinal.addEventListener('change', checkConfirmations);
-        
-        startBtn.addEventListener('click', () => {
-            currentStep = 2;
-            updateSteps();
-        });
-        
-        // Year of studies toggle for documents
-        const yearOfStudies = document.getElementById('yearOfStudies');
-        const masterDocsDiv = document.getElementById('masterDocs');
-        
-        yearOfStudies.addEventListener('change', () => {
-            if(yearOfStudies.value === 'Master') {
-                masterDocsDiv.classList.remove('hidden');
-            } else {
-                masterDocsDiv.classList.add('hidden');
-            }
-        });
-        
-        // Payment options
-        let paymentMethod = null;
-        document.querySelectorAll('.payment-option').forEach(opt => {
-            opt.addEventListener('click', () => {
-                document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
-                opt.classList.add('selected');
-                paymentMethod = opt.getAttribute('data-payment');
+        function prevStep() { if (currentStep > 1) { currentStep--; updateStepDisplay(); } }
+
+        // Payment Handlers
+        function setupPayment() {
+            document.querySelectorAll('.payment-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    paymentMethod = opt.getAttribute('data-payment');
+                });
             });
+            document.getElementById('payNowBtn')?.addEventListener('click', () => { paymentStatus = 'paid_pending'; document.getElementById('receiptUpload').classList.remove('hidden'); document.getElementById('paymentNextBtn').disabled = false; });
+            document.getElementById('payLaterBtn')?.addEventListener('click', () => { paymentStatus = 'pending'; document.getElementById('receiptUpload').classList.add('hidden'); document.getElementById('paymentNextBtn').disabled = false; });
+            document.getElementById('receiptUploadArea')?.addEventListener('click', () => document.getElementById('receiptFile')?.click());
+        }
+
+        // Submit
+        function submitApplication() {
+            if (!validateStep5()) return;
+            const appNumber = 'IT-' + new Date().getFullYear() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+            document.getElementById('successAppNumber').innerHTML = `<strong>Application Number: ${appNumber}</strong>`;
+            document.getElementById('successModal').style.display = 'flex';
+        }
+
+        // Event Listeners
+        document.getElementById('startApplicationBtn')?.addEventListener('click', () => { currentStep = 2; updateStepDisplay(); });
+        document.querySelectorAll('.nextBtn').forEach(btn => btn.addEventListener('click', nextStep));
+        document.querySelectorAll('.prevBtn').forEach(btn => btn.addEventListener('click', prevStep));
+        document.getElementById('submitApplication')?.addEventListener('click', submitApplication);
+        document.getElementById('privacyPolicy')?.addEventListener('change', (e) => { document.getElementById('submitApplication').disabled = !e.target.checked; });
+        document.getElementById('viewContract')?.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('contractModal').style.display = 'flex'; });
+        document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('contractModal').style.display = 'none');
+        document.getElementById('acceptContractBtn')?.addEventListener('click', () => document.getElementById('contractModal').style.display = 'none');
+        document.getElementById('successOkBtn')?.addEventListener('click', () => window.location.href = 'index.html');
+        document.getElementById('confirmCertified')?.addEventListener('change', validateStep1);
+        document.getElementById('confirmFinal')?.addEventListener('change', validateStep1);
+        document.getElementById('applyingDegree')?.addEventListener('change', (e) => {
+            const masterDiv = document.getElementById('masterDocs');
+            if (e.target.value === 'Master') { masterDiv.classList.remove('hidden'); createUploadSection('masterDocs', masterDocs); }
+            else { masterDiv.classList.add('hidden'); createUploadSection('bachelorDocs', bachelorDocs); }
         });
-        
-        const payNowBtn = document.getElementById('payNowBtn');
-        const payLaterBtn = document.getElementById('payLaterBtn');
-        const receiptUploadDiv = document.getElementById('receiptUpload');
-        const paymentNextBtn = document.getElementById('paymentNextBtn');
-        let paymentStatus = null;
-        
-        payNowBtn.addEventListener('click', () => {
-            receiptUploadDiv.classList.remove('hidden');
-            paymentStatus = 'paid_pending';
-            paymentNextBtn.disabled = false;
-        });
-        
-        payLaterBtn.addEventListener('click', () => {
-            receiptUploadDiv.classList.add('hidden');
-            paymentStatus = 'pending';
-            paymentNextBtn.disabled = false;
-        });
-        
-        // Receipt upload
-        const receiptUploadArea = document.getElementById('receiptUploadArea');
-        const receiptFile = document.getElementById('receiptFile');
-        
-        receiptUploadArea.addEventListener('click', () => {
-            receiptFile.click();
-        });
-        
-        receiptFile.addEventListener('change', (e) => {
-            if(e.target.files.length > 0) {
-                receiptUploadArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded successfully</p>';
-            }
-        });
-        
-        // Submit application
-        document.getElementById('submitApplication').addEventListener('click', () => {
-            alert("Application submitted! Your application number will be sent to your email within a few minutes.\n\nPlease check your inbox.");
-            window.location.href = 'index.html';
-        });
-        
-        updateSteps();
+
+        // Initialize
+        createUploadSection('bachelorDocs', bachelorDocs);
+        initCanvas();
+        setupPayment();
+        updateStepDisplay();
     </script>
 </body>
 </html>
