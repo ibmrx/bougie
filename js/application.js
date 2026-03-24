@@ -622,19 +622,28 @@ function setupFormListeners() {
  */
 function updateDocumentRequirements() {
     const applyingDegree = document.getElementById('degree')?.value;
-    const masterDocsDiv = document.getElementById('masterDocs');
+    const bachelorDiv = document.getElementById('bachelorDocs');
+    const masterDiv = document.getElementById('masterDocs');
     
     if (applyingDegree === 'Master') {
-        if (masterDocsDiv) {
-            masterDocsDiv.classList.remove('hidden');
-            // Create the master document upload boxes
+        // Hide bachelor section
+        if (bachelorDiv) {
+            bachelorDiv.classList.add('hidden');
+        }
+        // Show and populate master section
+        if (masterDiv) {
+            masterDiv.classList.remove('hidden');
             const masterDocsList = applicationData.documentRequirements.master;
             createUploadSection('masterDocs', masterDocsList);
         }
     } else {
-        if (masterDocsDiv) {
-            masterDocsDiv.classList.add('hidden');
-            // Recreate bachelor docs (in case user switches back)
+        // Hide master section
+        if (masterDiv) {
+            masterDiv.classList.add('hidden');
+        }
+        // Show and populate bachelor section
+        if (bachelorDiv) {
+            bachelorDiv.classList.remove('hidden');
             const bachelorDocsList = applicationData.documentRequirements.bachelor;
             createUploadSection('bachelorDocs', bachelorDocsList);
         }
