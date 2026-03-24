@@ -109,6 +109,17 @@ function initApplicationForm(destination) {
     
     // Initial validation for step 1
     validateStep1();
+
+    // Start button handler
+const startBtn = document.getElementById('startBtn');
+if (startBtn) {
+    startBtn.addEventListener('click', () => {
+        if (validateStep1()) {
+            currentStep = 2;
+            updateStepDisplay();
+        }
+    });
+}
     
     // Initialize Supabase Storage
     if (window.SupabaseStorage) {
@@ -245,18 +256,6 @@ function initSignatureCanvas() {
     }
 }
 
-
-/** qlawi
-*/
-const startBtn = document.getElementById('startBtn');
-if (startBtn) {
-    startBtn.addEventListener('click', () => {
-        if (validateStep1()) {
-            currentStep = 2;
-            updateStepDisplay();
-        }
-    });
-}
 
 /**
  * Setup step navigation
