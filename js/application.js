@@ -1,7 +1,6 @@
 /**
  * Bougie Immigration - Application Form Handler
- * Manages multi-step application forms for Italy and Campus France
- * Handles form validation, document uploads, and submission
+ * Manages multi-step application forms with Supabase integration
  */
 
 // Global state
@@ -13,55 +12,7 @@ let selectedPaymentMethod = null;
 let applicationData = {};
 let signatureData = null;
 let canvas, ctx, drawing = false;
-
-// Document requirements based on destination and study level
-const DOCUMENT_REQUIREMENTS = {
-    italy: {
-        bachelor: [
-            { id: 'passport', name: 'Passport', required: true },
-            { id: 'photo', name: 'ID Photo', required: true },
-            { id: 'cv', name: 'CV', required: true },
-            { id: 'bacCertOriginal', name: 'Baccalaureate Certificate (certified original)', required: true },
-            { id: 'bacCertTranslated', name: 'Baccalaureate Certificate (certified translated)', required: true },
-            { id: 'bacTranscriptOriginal', name: 'Baccalaureate Transcript (certified original)', required: true },
-            { id: 'bacTranscriptTranslated', name: 'Baccalaureate Transcript (certified translated)', required: true },
-            { id: 'englishProof', name: 'English Proof (IELTS/TOEFL)', required: true }
-        ],
-        master: [
-            { id: 'passport', name: 'Passport', required: true },
-            { id: 'photo', name: 'ID Photo', required: true },
-            { id: 'cv', name: 'CV', required: true },
-            { id: 'bacCertOriginal', name: 'Baccalaureate Certificate (certified original)', required: true },
-            { id: 'bacCertTranslated', name: 'Baccalaureate Certificate (certified translated)', required: true },
-            { id: 'bacTranscriptOriginal', name: 'Baccalaureate Transcript (certified original)', required: true },
-            { id: 'bacTranscriptTranslated', name: 'Baccalaureate Transcript (certified translated)', required: true },
-            { id: 'bachelorCertOriginal', name: 'Bachelor Certificate (certified original)', required: true },
-            { id: 'bachelorCertTranslated', name: 'Bachelor Certificate (certified translated)', required: true },
-            { id: 'bachelorTranscript', name: 'Bachelor Transcript - 3 years (certified original & translated)', required: true },
-            { id: 'englishProof', name: 'English Proof (IELTS/TOEFL)', required: true }
-        ]
-    },
-    campus: {
-        bachelor: [
-            { id: 'passport', name: 'Passport (French translation)', required: true },
-            { id: 'photo', name: 'ID Photo', required: true },
-            { id: 'cv', name: 'CV (French)', required: true },
-            { id: 'bacCert', name: 'Baccalaureate Certificate (French translation)', required: true },
-            { id: 'bacTranscript', name: 'Baccalaureate Transcript (French translation)', required: true },
-            { id: 'tcfResults', name: 'TCF Test Results', required: true }
-        ],
-        master: [
-            { id: 'passport', name: 'Passport (French translation)', required: true },
-            { id: 'photo', name: 'ID Photo', required: true },
-            { id: 'cv', name: 'CV (French)', required: true },
-            { id: 'bacCert', name: 'Baccalaureate Certificate (French translation)', required: true },
-            { id: 'bacTranscript', name: 'Baccalaureate Transcript (French translation)', required: true },
-            { id: 'bachelorCert', name: 'Bachelor Certificate (French translation)', required: true },
-            { id: 'bachelorTranscript', name: 'Bachelor Transcript - 3 years (French translation)', required: true },
-            { id: 'tcfResults', name: 'TCF Test Results', required: true }
-        ]
-    }
-};
+let isSubmitting = false;
 
 // File validation
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -73,7 +24,6 @@ const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg'];
  */
 function initApplicationForm(destination) {
     applicationData.destination = destination;
-    applicationData.documentRequirements = DOCUMENT_REQUIREMENTS[destination];
     
     // Setup step navigation
     setupStepNavigation();
@@ -128,7 +78,6 @@ function setupPrivacyPolicyModal() {
         });
     }
     
-    // Close modal when clicking outside
     if (contractModal) {
         contractModal.addEventListener('click', (e) => {
             if (e.target === contractModal) {
@@ -150,10 +99,10 @@ function initSignatureCanvas() {
     function resizeCanvas() {
         const container = canvas.parentElement;
         const width = container.clientWidth - 32;
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         canvas.width = width;
         canvas.height = 150;
-        ctx.putImageData(imageData, 0, 0);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.strokeStyle = '#2c2b28';
         ctx.lineWidth = 2;
         ctx.lineCap = 'round';
@@ -161,9 +110,6 @@ function initSignatureCanvas() {
             const img = new Image();
             img.onload = () => ctx.drawImage(img, 0, 0);
             img.src = signatureData;
-        } else {
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
     }
     
@@ -220,7 +166,6 @@ function initSignatureCanvas() {
     window.addEventListener('resize', resizeCanvas);
     setTimeout(resizeCanvas, 100);
     
-    // Clear signature button
     const clearBtn = document.getElementById('clearSignature');
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
@@ -288,7 +233,6 @@ function validateStep1() {
     if (confirmCertified && confirmFinal) {
         isValid = confirmCertified.checked && confirmFinal.checked;
         
-        // For Campus France, also check TCF confirmation
         if (applicationData.destination === 'campus') {
             const confirmTcf = document.getElementById('confirmTcf');
             if (confirmTcf) {
@@ -323,7 +267,6 @@ function validateStep2() {
         }
     }
     
-    // Email validation
     const emailField = document.getElementById('email');
     if (emailField && emailField.value.trim()) {
         const email = emailField.value.trim();
@@ -336,7 +279,6 @@ function validateStep2() {
         }
     }
     
-    // Phone validation
     const phoneField = document.getElementById('phone');
     if (phoneField && phoneField.value.trim()) {
         const phone = phoneField.value.trim();
@@ -349,7 +291,6 @@ function validateStep2() {
         }
     }
     
-    // For Campus France, validate TCF status
     if (applicationData.destination === 'campus') {
         const tcfStatus = document.getElementById('tcfStatus');
         if (tcfStatus && !tcfStatus.value) {
@@ -375,17 +316,17 @@ function validateStep2() {
  */
 function validateStep3() {
     const degree = document.getElementById('applyingDegree')?.value;
-    const docList = applicationData.documentRequirements[degree === 'Master' ? 'master' : 'bachelor'];
     const missingDocs = [];
     
-    for (const doc of docList) {
-        if (doc.required && !uploadedDocuments[doc.id]) {
-            missingDocs.push(doc.name);
+    // Check all uploaded documents based on requirements
+    for (const [docId, file] of Object.entries(uploadedDocuments)) {
+        if (!file) {
+            missingDocs.push(docId);
         }
     }
     
     if (missingDocs.length > 0) {
-        showError(`Please upload the following required documents:\n${missingDocs.join('\n')}`);
+        showError(`Please upload all required documents.`);
         return false;
     }
     
@@ -418,6 +359,8 @@ function validateStep4() {
             showError('Receipt must be PDF or JPG format.');
             return false;
         }
+        
+        applicationData.receiptFile = receiptFile;
     }
     
     return true;
@@ -491,7 +434,6 @@ function updateStepDisplay() {
         }
     }
     
-    // Scroll to top
     const container = document.querySelector('.container');
     if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -500,7 +442,6 @@ function updateStepDisplay() {
  * Setup form field listeners
  */
 function setupFormListeners() {
-    // Applying degree change
     const applyingDegree = document.getElementById('applyingDegree');
     if (applyingDegree) {
         applyingDegree.addEventListener('change', () => {
@@ -508,7 +449,6 @@ function setupFormListeners() {
         });
     }
     
-    // Real-time validation for step 1
     const confirmCertified = document.getElementById('confirmCertified');
     const confirmFinal = document.getElementById('confirmFinal');
     const confirmTcf = document.getElementById('confirmTcf');
@@ -517,7 +457,6 @@ function setupFormListeners() {
     if (confirmFinal) confirmFinal.addEventListener('change', validateStep1);
     if (confirmTcf) confirmTcf.addEventListener('change', validateStep1);
     
-    // Privacy policy enables submit
     const privacyPolicy = document.getElementById('privacyPolicy');
     const submitBtn = document.getElementById('submitApplication');
     if (privacyPolicy && submitBtn) {
@@ -526,7 +465,6 @@ function setupFormListeners() {
         });
     }
     
-    // Clear error on input
     const inputs = document.querySelectorAll('input, select, textarea');
     inputs.forEach(input => {
         input.addEventListener('input', () => {
@@ -553,7 +491,6 @@ function updateDocumentRequirements() {
  * Setup document upload handlers
  */
 function setupDocumentUploads() {
-    // Attach handlers to existing file uploads
     attachUploadHandlers();
 }
 
@@ -583,10 +520,9 @@ function attachUploadHandlers() {
                 
                 uploadedDocuments[docId] = file;
                 
-                // Update UI
                 const fileList = upload.nextElementSibling;
                 if (fileList && fileList.classList.contains('file-list')) {
-                    fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0, 30)}</span><button onclick="removeDocument('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
+                    fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0, 30)}</span><button onclick="window.removeDocument('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
                 }
                 
                 upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File uploaded: ${file.name.substring(0, 25)}</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
@@ -620,7 +556,7 @@ window.removeDocument = function(docId, button) {
                 if (file && validateFile(file)) {
                     uploadedDocuments[docId] = file;
                     const fileList = upload.nextElementSibling;
-                    if (fileList) fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0, 30)}</span><button onclick="removeDocument('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
+                    if (fileList) fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0, 30)}</span><button onclick="window.removeDocument('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
                     upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File uploaded</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
                 }
             });
@@ -699,7 +635,6 @@ function setupPaymentHandlers() {
  * Load destination-specific content
  */
 function loadDestinationContent(destination) {
-    // Update form titles and labels
     const bacLabel = document.querySelector('label[for="bacDate"]');
     if (bacLabel) {
         bacLabel.innerHTML = 'Baccalaureate Date of Completion <span class="required">*</span>';
@@ -712,59 +647,93 @@ function loadDestinationContent(destination) {
 }
 
 /**
- * Submit application
+ * Submit application to Supabase
  */
 async function submitApplication() {
     if (!validateStep5()) return;
+    if (isSubmitting) return;
     
+    isSubmitting = true;
     const submitBtn = document.getElementById('submitApplication');
+    
     if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
     }
     
     try {
-        const appNumber = generateApplicationNumber(applicationData.destination);
-        applicationData.applicationNumber = appNumber;
+        // Save all application data
+        applicationData.paymentMethod = selectedPaymentMethod;
+        applicationData.paymentStatus = paymentStatus;
         applicationData.signature = signatureData;
         
-        // In production, send to Supabase
-        console.log('Application Data:', applicationData);
+        // Upload documents to Supabase Storage
+        const appNumber = window.SupabaseClient?.generateApplicationNumber(applicationData.destination);
+        applicationData.applicationNumber = appNumber;
         
-        // Show success modal
-        const successModal = document.getElementById('successModal');
-        const successAppNumber = document.getElementById('successAppNumber');
-        if (successModal && successAppNumber) {
-            successAppNumber.innerHTML = `<strong>Application Number: ${appNumber}</strong>`;
-            successModal.style.display = 'flex';
+        showError('Submitting application and uploading documents...');
+        
+        // Upload all documents
+        const documentUrls = {};
+        for (const [docType, file] of Object.entries(uploadedDocuments)) {
+            if (file && file instanceof File) {
+                try {
+                    const url = await window.SupabaseClient.uploadFile(file, appNumber, docType);
+                    documentUrls[docType] = url;
+                } catch (err) {
+                    console.error(`Failed to upload ${docType}:`, err);
+                }
+            }
         }
         
-        // Redirect on OK
-        const successOkBtn = document.getElementById('successOkBtn');
-        if (successOkBtn) {
-            successOkBtn.onclick = () => {
-                window.location.href = 'index.html';
-            };
+        // Upload receipt if exists
+        let receiptUrl = null;
+        if (applicationData.receiptFile) {
+            try {
+                receiptUrl = await window.SupabaseClient.uploadFile(applicationData.receiptFile, appNumber, 'payment_receipt');
+            } catch (err) {
+                console.error('Failed to upload receipt:', err);
+            }
+        }
+        
+        applicationData.documentUrls = documentUrls;
+        applicationData.receiptUrl = receiptUrl;
+        
+        // Create application in database
+        const result = await window.SupabaseClient.createApplication(applicationData);
+        
+        if (result) {
+            // Send confirmation email
+            await window.SupabaseClient.sendConfirmationEmail(result);
+            
+            // Show success modal
+            const successModal = document.getElementById('successModal');
+            const successAppNumber = document.getElementById('successAppNumber');
+            if (successModal && successAppNumber) {
+                successAppNumber.innerHTML = `<strong>Application Number: ${result.application_number}</strong><br>A confirmation email has been sent to ${applicationData.email}`;
+                successModal.style.display = 'flex';
+            }
+            
+            const successOkBtn = document.getElementById('successOkBtn');
+            if (successOkBtn) {
+                successOkBtn.onclick = () => {
+                    window.location.href = 'index.html';
+                };
+            }
+        } else {
+            throw new Error('Failed to create application');
         }
         
     } catch (error) {
         console.error('Submission error:', error);
-        showError('Failed to submit application. Please try again or contact support.');
+        showError('Failed to submit application: ' + error.message);
         if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerHTML = 'Submit Application';
         }
+    } finally {
+        isSubmitting = false;
     }
-}
-
-/**
- * Generate application number
- */
-function generateApplicationNumber(destination) {
-    const prefix = destination === 'italy' ? 'IT' : 'CF';
-    const year = new Date().getFullYear();
-    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-    return `${prefix}-${year}-${random}`;
 }
 
 /**
@@ -777,7 +746,7 @@ function showError(message) {
 // Export for global access
 window.initApplicationForm = initApplicationForm;
 window.submitApplication = submitApplication;
-window.removeDocument = removeDocument;
+window.removeDocument = window.removeDocument;
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
