@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f4eddb 0%, #e8e0ce 100%); min-height: 100vh; color: #2c2b28; }
@@ -64,7 +65,6 @@
         .signature-area { border: 2px solid #dcdad5; border-radius: 12px; padding: 1rem; margin-top: 1rem; }
         canvas { border: 1px solid #dcdad5; border-radius: 8px; width: 100%; height: 150px; background: #fff; cursor: crosshair; }
         .bank-details { background: #f4eddb; padding: 1rem; border-radius: 12px; margin: 1rem 0; }
-        .google-drive-status { margin: 1rem 0; }
         .hidden { display: none; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; justify-content: center; align-items: center; }
         .modal-content { background: white; border-radius: 24px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
@@ -141,10 +141,6 @@
         <div id="step3" class="form-card hidden">
             <h2 class="form-title">Document Upload</h2>
             <div class="form-subtitle">PDF or JPG, max 5MB each - French translation required</div>
-            
-            <!-- Google Drive Connection Status -->
-            <div id="googleDriveStatus" class="google-drive-status"></div>
-            
             <div id="bachelorDocs"></div>
             <div id="masterDocs" class="hidden"></div>
             <div class="button-group"><button class="btn btn-secondary prevBtn">Previous</button><button class="btn btn-primary nextBtn">Next</button></div>
@@ -214,8 +210,23 @@
         </div>
     </div>
 
-    <script src="js/google-drive.js"></script>
     <script>
+        // ==================== SUPABASE CONFIGURATION ====================
+        const SUPABASE_URL = 'https://qpprzcckolmdyabnmgol.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwcHJ6Y2Nrb2xtZHlhYm5tZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjA5MTYsImV4cCI6MjA4OTkzNjkxNn0.Pp9fTdklyomxmG6wsb8FBzyhLXaXEx983ofdaiPG_So';
+        
+        let supabase = null;
+        
+        function initSupabase() {
+            if (typeof supabaseJs !== 'undefined') {
+                supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } else if (typeof supabase !== 'undefined') {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+            return supabase;
+        }
+        initSupabase();
+
         // ==================== STATE ====================
         let currentStep = 1;
         let selectedFiles = {};
@@ -255,32 +266,6 @@
         confirmFinal.addEventListener('change', validateStep1);
         validateStep1();
 
-        // ==================== GOOGLE DRIVE STATUS UPDATE ====================
-        function updateGoogleDriveStatusUI() {
-            const statusDiv = document.getElementById('googleDriveStatus');
-            if (!statusDiv) return;
-            
-            if (window.GoogleDrive && window.GoogleDrive.isSignedIn && window.GoogleDrive.isSignedIn()) {
-                statusDiv.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 10px; background: #e8f5e9; padding: 10px 15px; border-radius: 8px;">
-                        <i class="fas fa-check-circle" style="color: #27ae60;"></i>
-                        <span style="flex: 1;">✓ Connected to Google Drive - Your documents will be stored securely</span>
-                        <button onclick="window.GoogleDrive.signOut()" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.8rem;">Disconnect</button>
-                    </div>
-                `;
-            } else {
-                statusDiv.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 10px; background: #faf9f5; padding: 10px 15px; border-radius: 8px; border: 1px solid #dcdad5;">
-                        <i class="fab fa-google" style="color: #4285F4; font-size: 1.2rem;"></i>
-                        <span style="flex: 1;">Connect Google Drive to upload your documents securely</span>
-                        <button onclick="window.GoogleDrive && window.GoogleDrive.signIn()" class="btn btn-primary" style="padding: 5px 12px; font-size: 0.8rem;">
-                            <i class="fab fa-google"></i> Connect Google Drive
-                        </button>
-                    </div>
-                `;
-            }
-        }
-
         // ==================== DOCUMENT UPLOAD UI ====================
         function createUploadSection(containerId, docs) {
             const container = document.getElementById(containerId);
@@ -294,7 +279,7 @@
                     <div class="file-upload" data-id="${doc.id}">
                         <i class="fas fa-cloud-upload-alt"></i>
                         <p>Click to upload</p>
-                        <input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">
+                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none">
                     </div>
                     <div class="file-list" id="list-${doc.id}"></div>
                 `;
@@ -314,13 +299,13 @@
                     const file = e.target.files[0];
                     if (!file) return;
                     if (file.size > 5 * 1024 * 1024) { alert('File exceeds 5MB limit'); input.value = ''; return; }
-                    if (!['application/pdf','image/jpeg','image/jpg'].includes(file.type)) { alert('Only PDF and JPG files are allowed'); input.value = ''; return; }
+                    if (!['application/pdf','image/jpeg','image/jpg','image/png'].includes(file.type)) { alert('Only PDF, JPG, or PNG files are allowed'); input.value = ''; return; }
                     
                     selectedFiles[docId] = file;
                     
                     const fileList = upload.nextElementSibling;
                     fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0,30)}</span><button onclick="removeDoc('${docId}')"><i class="fas fa-trash"></i></button></div>`;
-                    upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File ready for upload</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
+                    upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File ready: ${file.name.substring(0,25)}</p><input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none">`;
                     const newInput = upload.querySelector('input');
                     if (newInput) newInput.setAttribute('data-attached', 'true');
                 });
@@ -331,7 +316,7 @@
             delete selectedFiles[docId];
             const upload = document.querySelector(`.file-upload[data-id="${docId}"]`);
             if (upload) {
-                upload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i><p>Click to upload</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
+                upload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i><p>Click to upload</p><input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none">`;
                 const fileList = upload.nextElementSibling;
                 if (fileList) fileList.innerHTML = '';
             }
@@ -442,10 +427,6 @@
             const missing = required.filter(d => !selectedFiles[d.id]);
             if (missing.length) {
                 alert(`Please upload: ${missing.map(d => d.name).join(', ')}`);
-                return false;
-            }
-            if (!window.GoogleDrive || !window.GoogleDrive.isSignedIn()) {
-                alert('Please connect to Google Drive first to upload your documents.');
                 return false;
             }
             return true;
@@ -563,7 +544,57 @@
             }
         };
 
-        // ==================== SEND EMAIL VIA RESEND ====================
+        // ==================== SUPABASE STORAGE UPLOAD ====================
+        async function uploadToSupabase(file, applicationNumber, docType) {
+            if (!supabase) {
+                throw new Error('Supabase not initialized');
+            }
+            
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${applicationNumber}/${docType}_${Date.now()}.${fileExt}`;
+            
+            const { data, error } = await supabase.storage
+                .from('documents')
+                .upload(fileName, file);
+            
+            if (error) throw error;
+            
+            const { data: urlData } = supabase.storage
+                .from('documents')
+                .getPublicUrl(fileName);
+            
+            return urlData.publicUrl;
+        }
+
+        async function uploadAllDocuments(applicationNumber) {
+            const results = {};
+            const filesToUpload = Object.entries(selectedFiles);
+            
+            for (const [docId, file] of filesToUpload) {
+                try {
+                    const url = await uploadToSupabase(file, applicationNumber, docId);
+                    results[docId] = url;
+                    console.log(`Uploaded ${docId}: ${url}`);
+                } catch (error) {
+                    console.error(`Failed to upload ${docId}:`, error);
+                    results[docId] = { error: error.message };
+                }
+            }
+            
+            const receiptFile = document.getElementById('receiptFile').files[0];
+            if (receiptFile && paymentStatus === 'paid_pending') {
+                try {
+                    const url = await uploadToSupabase(receiptFile, applicationNumber, 'payment_receipt');
+                    results['payment_receipt'] = url;
+                } catch (error) {
+                    results['payment_receipt'] = { error: error.message };
+                }
+            }
+            
+            return results;
+        }
+
+        // ==================== SEND EMAIL ====================
         async function sendEmail(to, subject, html) {
             const RESEND_API_KEY = 're_UGbnfq94_KrG2rVQMhkbiGSkTGH9P62iR';
             try {
@@ -580,37 +611,11 @@
                         html: html
                     })
                 });
-                const result = await response.json();
-                console.log('Email sent:', result);
-                return result;
+                return await response.json();
             } catch (error) {
                 console.error('Email error:', error);
                 return null;
             }
-        }
-
-        // ==================== UPLOAD TO GOOGLE DRIVE ====================
-        async function uploadToGoogleDrive(applicationNumber) {
-            const filesToUpload = [];
-            for (const [docId, file] of Object.entries(selectedFiles)) {
-                filesToUpload.push({ file: file, documentType: docId });
-            }
-            
-            const receiptFile = document.getElementById('receiptFile').files[0];
-            if (receiptFile && paymentStatus === 'paid_pending') {
-                filesToUpload.push({ file: receiptFile, documentType: 'payment_receipt' });
-            }
-            
-            if (filesToUpload.length === 0) return {};
-            
-            const results = await window.GoogleDrive.uploadMultiple(
-                filesToUpload,
-                applicationNumber,
-                (completed, total, docType, result) => {
-                    console.log(`Uploaded ${docType}: ${completed}/${total}`);
-                }
-            );
-            return results;
         }
 
         // ==================== SUBMIT APPLICATION ====================
@@ -623,10 +628,10 @@
             
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading to Google Drive...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading documents...';
             
             try {
-                const uploadResults = await uploadToGoogleDrive(appNumber);
+                const uploadResults = await uploadAllDocuments(appNumber);
                 
                 const application = {
                     id: Date.now().toString(),
@@ -674,7 +679,7 @@
                 
             } catch (error) {
                 console.error('Submission error:', error);
-                alert('Failed to upload documents to Google Drive. Please make sure you are connected and try again.');
+                alert('Failed to upload documents. Please try again.');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Submit Application';
             }
@@ -686,24 +691,6 @@
         createUploadSection('bachelorDocs', bachelorDocs);
         initCanvas();
         updateSteps();
-        
-        // Monitor Google Drive status
-        setInterval(() => {
-            if (window.GoogleDrive) {
-                updateGoogleDriveStatusUI();
-            }
-        }, 1000);
-        
-        updateGoogleDriveStatusUI();
-        
-        // Expose sign-in function globally
-        window.connectGoogleDrive = function() {
-            if (window.GoogleDrive) {
-                window.GoogleDrive.signIn();
-            } else {
-                alert('Google Drive is loading, please wait...');
-            }
-        };
     </script>
 </body>
 </html>
