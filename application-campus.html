@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus France Application - Bougie Immigration</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f4eddb 0%, #e8e0ce 100%);
+            min-height: 100vh;
+            color: #2c2b28;
+        }
+
+        .header {
+            background-color: #dcdad5;
+            padding: 1rem 5%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo img {
+            height: 50px;
+            width: auto;
+        }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c2b28;
+        }
+
+        .logo-text span {
+            font-weight: 400;
+            color: #6b6a66;
+        }
+
+        .back-link {
+            color: #2c2b28;
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: #9b8e6e;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.5rem 3rem;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            background: #ffffff;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .step {
+            text-align: center;
+            flex: 1;
+            position: relative;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background-color: #dcdad5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-weight: 700;
+            color: #2c2b28;
+            transition: all 0.3s ease;
+        }
+
+        .step.active .step-number {
+            background-color: #2c2b28;
+            color: #f4eddb;
+        }
+
+        .step.completed .step-number {
+            background-color: #9b8e6e;
+            color: #ffffff;
+        }
+
+        .step-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #6b6a66;
+        }
+
+        .step.active .step-label {
+            color: #2c2b28;
+            font-weight: 600;
+        }
+
+        .form-card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #2c2b28;
+        }
+
+        .form-subtitle {
+            color: #6b6a66;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #dcdad5;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #2c2b28;
+        }
+
+        .form-group label .required {
+            color: #e74c3c;
+            margin-left: 0.25rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #dcdad5;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: #ffffff;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #9b8e6e;
+            box-shadow: 0 0 0 3px rgba(155, 142, 110, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .file-upload {
+            border: 2px dashed #dcdad5;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: #faf9f5;
+        }
+
+        .file-upload:hover {
+            border-color: #9b8e6e;
+            background-color: #f4eddb;
+        }
+
+        .file-upload i {
+            font-size: 2rem;
+            color: #9b8e6e;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-upload p {
+            color: #6b6a66;
+            font-size: 0.9rem;
+        }
+
+        .file-list {
+            margin-top: 1rem;
+        }
+
+        .file-item {
+            background-color: #f4eddb;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-item button {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .checkbox-group {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background-color: #faf9f5;
+            border-radius: 12px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            cursor: pointer;
+        }
+
+        .checkbox-group input {
+            width: 20px;
+            height: 20px;
+            margin-top: 0.125rem;
+        }
+
+        .payment-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .payment-option {
+            border: 2px solid #dcdad5;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-option.selected {
+            border-color: #2c2b28;
+            background-color: #f4eddb;
+        }
+
+        .payment-option i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #9b8e6e;
+        }
+
+        .payment-option h4 {
+            margin-bottom: 0.25rem;
+        }
+
+        .payment-option p {
+            font-size: 0.8rem;
+            color: #6b6a66;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            padding: 0.875rem 1.75rem;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: #2c2b28;
+            color: #f4eddb;
+        }
+
+        .btn-primary:hover {
+            background-color: #4a4945;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: #dcdad5;
+            color: #2c2b28;
+        }
+
+        .btn-secondary:hover {
+            background-color: #c0bcb4;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid #2c2b28;
+            color: #2c2b28;
+        }
+
+        .btn-outline:hover {
+            background-color: #2c2b28;
+            color: #f4eddb;
+        }
+
+        .warning-box {
+            background-color: #fef5e7;
+            border-left: 4px solid #f39c12;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-box {
+            background-color: #e8f0fe;
+            border-left: 4px solid #3498db;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-box i {
+            color: #3498db;
+            margin-right: 0.5rem;
+        }
+
+        .signature-area {
+            border: 2px solid #dcdad5;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        canvas {
+            border: 1px solid #dcdad5;
+            border-radius: 8px;
+            width: 100%;
+            height: 150px;
+            background-color: #ffffff;
+        }
+
+        .signature-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .small-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        .bank-details {
+            background-color: #f4eddb;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+        }
+
+        .tcf-requirement {
+            background-color: #e8f5e9;
+            border-left: 4px solid #27ae60;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .tcf-requirement i {
+            color: #27ae60;
+            margin-right: 0.5rem;
+        }
+
+        .language-badge {
+            display: inline-block;
+            background-color: #9b8e6e;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .payment-options {
+                grid-template-columns: 1fr;
+            }
+            .progress-steps {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .step {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+            .step-number {
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Bougie Immigration Logo" onerror="this.src='https://placehold.co/50x50/dcdad5/2c2b28?text=BI'">
+                <div class="logo-text">Bougie <span>Immigration</span></div>
+            </div>
+            <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Home</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="progress-steps">
+            <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">Confirmation</div>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">Personal Info</div>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-label">Documents</div>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-number">4</div>
+                <div class="step-label">Payment</div>
+            </div>
+            <div class="step" data-step="5">
+                <div class="step-number">5</div>
+                <div class="step-label">Signature</div>
+            </div>
+        </div>
+
+        <!-- Step 1: Confirmation -->
+        <div id="step1" class="form-card">
+            <h2 class="form-title">Campus France Application <span class="language-badge">French Translation Required</span></h2>
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i>
+                <strong>Campus France Program:</strong> Official French government program for international students. All documents must be translated to French.
+            </div>
+            <div class="tcf-requirement">
+                <i class="fas fa-language"></i>
+                <strong>TCF Language Test Required:</strong> TCF (Test de Connaissance du Français) is mandatory for all Campus France applications. Please ensure you have taken or will take the TCF exam.
+            </div>
+            <div class="warning-box">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Note:</strong> Documents do NOT require certification by the Ministry of Education and Foreign Affairs. However, all documents must be translated to French.
+            </div>
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="confirmCorrect">
+                    <span>I confirm that all information provided is correct and all documents will be submitted in French translation as required.</span>
+                </label>
+            </div>
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="confirmTcf">
+                    <span>I confirm that I have taken or will take the TCF (Test de Connaissance du Français) language test.</span>
+                </label>
+            </div>
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="confirmFinal">
+                    <span>I understand that this submission is final and I cannot go back or modify my application after submission.</span>
+                </label>
+            </div>
+            <div class="button-group">
+                <button id="startApplicationBtn" class="btn btn-primary" disabled>Start Application</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Applicant Information -->
+        <div id="step2" class="form-card hidden">
+            <h2 class="form-title">Applicant Information</h2>
+            <div class="form-subtitle">Please provide your personal details</div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First Name <span class="required">*</span></label>
+                    <input type="text" id="firstName" placeholder="Enter your first name">
+                </div>
+                <div class="form-group">
+                    <label>Last Name <span class="required">*</span></label>
+                    <input type="text" id="lastName" placeholder="Enter your last name">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Birth Date <span class="required">*</span></label>
+                    <input type="date" id="birthDate">
+                </div>
+                <div class="form-group">
+                    <label>Role <span class="required">*</span></label>
+                    <input type="text" id="role" value="Student" readonly style="background-color: #f4eddb;">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>BAC Date of Completion <span class="required">*</span></label>
+                    <input type="month" id="bacDate">
+                </div>
+                <div class="form-group">
+                    <label>Year of Studies <span class="required">*</span></label>
+                    <select id="yearOfStudies">
+                        <option value="">Select</option>
+                        <option value="Bachelor">Bachelor</option>
+                        <option value="Master">Master</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Phone Number <span class="required">*</span></label>
+                    <input type="tel" id="phone" placeholder="+213 XX XX XX XX XX">
+                </div>
+                <div class="form-group">
+                    <label>Email <span class="required">*</span></label>
+                    <input type="email" id="email" placeholder="you@example.com">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Selected Courses <span class="required">*</span></label>
+                <textarea id="courses" rows="3" placeholder="List the courses you are applying for..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>TCF Test Information <span class="required">*</span></label>
+                <select id="tcfStatus">
+                    <option value="">Select TCF status</option>
+                    <option value="taken">I have already taken the TCF test</option>
+                    <option value="scheduled">I have scheduled the TCF test</option>
+                    <option value="will_take">I will take the TCF test soon</option>
+                </select>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary prevBtn">Previous</button>
+                <button class="btn btn-primary nextBtn">Next: Documents</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Document Upload -->
+        <div id="step3" class="form-card hidden">
+            <h2 class="form-title">Document Upload</h2>
+            <div class="form-subtitle">Upload all required documents (PDF or JPG, max 5MB each) - French translation required</div>
+            
+            <div class="info-box">
+                <i class="fas fa-language"></i>
+                <strong>Translation Requirement:</strong> All documents must be translated to French. You can upload both original and French translation versions.
+            </div>
+            
+            <div id="bachelorDocs">
+                <h3>Bachelor Required Documents</h3>
+                <div id="bachelorDocList"></div>
+            </div>
+            
+            <div id="masterDocs" class="hidden">
+                <h3>Master Additional Documents</h3>
+                <div id="masterDocList"></div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary prevBtn">Previous</button>
+                <button class="btn btn-primary nextBtn">Next: Payment</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Payment -->
+        <div id="step4" class="form-card hidden">
+            <h2 class="form-title">Payment Information</h2>
+            <div class="form-subtitle">Total Service Fee: 35,000 DA</div>
+            
+            <div class="payment-options">
+                <div class="payment-option" data-payment="ccp">
+                    <i class="fas fa-university"></i>
+                    <h4>CCP</h4>
+                    <p>Account: 40253214 Clé 56</p>
+                </div>
+                <div class="payment-option" data-payment="baridimob">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h4>Baridimob</h4>
+                    <p>Account: 00799999004025321435</p>
+                </div>
+            </div>
+
+            <div class="payment-action">
+                <div class="button-group">
+                    <button id="payNowBtn" class="btn btn-primary">Pay Now - Upload Receipt</button>
+                    <button id="payLaterBtn" class="btn btn-outline">Pay Later - Contact Agency</button>
+                </div>
+            </div>
+
+            <div id="receiptUpload" class="hidden">
+                <div class="file-upload" id="receiptUploadArea">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Click to upload payment receipt (PDF/JPG, max 5MB)</p>
+                    <input type="file" id="receiptFile" accept=".pdf,.jpg,.jpeg" style="display: none;">
+                </div>
+            </div>
+
+            <div class="bank-details">
+                <h4>Bank Account Details</h4>
+                <p><strong>CCP:</strong> 40253214 Clé 56</p>
+                <p><strong>Baridimob:</strong> 00799999004025321435</p>
+                <p class="warning-box" style="margin-top: 0.5rem;"><i class="fas fa-clock"></i> You have 3 days to complete payment, otherwise your application will be automatically refused.</p>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary prevBtn">Previous</button>
+                <button class="btn btn-primary nextBtn" id="paymentNextBtn" disabled>Next: Signature</button>
+            </div>
+        </div>
+
+        <!-- Step 5: Signature & Submit -->
+        <div id="step5" class="form-card hidden">
+            <h2 class="form-title">Contract & Digital Signature</h2>
+            <div class="form-subtitle">Please review and sign the contract</div>
+            
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="privacyPolicy">
+                    <span>I have read and agree to the <a href="#" id="viewContract" style="color: #9b8e6e;">Privacy Policy and Contract</a></span>
+                </label>
+            </div>
+
+            <div class="signature-area">
+                <label>Digital Signature <span class="required">*</span></label>
+                <canvas id="signatureCanvas" width="500" height="150" style="width:100%; height:150px; background:#fff; border:1px solid #dcdad5; border-radius:8px;"></canvas>
+                <div class="signature-buttons">
+                    <button id="clearSignature" class="btn btn-secondary small-btn">Clear</button>
+                </div>
+                <p class="small" style="color:#6b6a66; margin-top:0.5rem;">Sign by drawing with your mouse or finger</p>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary prevBtn">Previous</button>
+                <button id="submitApplication" class="btn btn-primary" disabled>Submit Application</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Signature canvas setup
+        const canvas = document.getElementById('signatureCanvas');
+        let ctx = canvas.getContext('2d');
+        let drawing = false;
+        
+        function initCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 150;
+            ctx = canvas.getContext('2d');
+            ctx.strokeStyle = '#2c2b28';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
+            canvas.addEventListener('touchstart', startDrawingTouch);
+            canvas.addEventListener('touchmove', drawTouch);
+            canvas.addEventListener('touchend', stopDrawing);
+        }
+        
+        function startDrawing(e) {
+            drawing = true;
+            ctx.beginPath();
+            const pos = getMousePos(e);
+            ctx.moveTo(pos.x, pos.y);
+        }
+        
+        function draw(e) {
+            if (!drawing) return;
+            const pos = getMousePos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        }
+        
+        function stopDrawing() {
+            drawing = false;
+        }
+        
+        function startDrawingTouch(e) {
+            e.preventDefault();
+            drawing = true;
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+        
+        function drawTouch(e) {
+            e.preventDefault();
+            if (!drawing) return;
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+        
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+        
+        document.getElementById('clearSignature').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+        
+        initCanvas();
+        window.addEventListener('resize', () => {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 150;
+            ctx.putImageData(imageData, 0, 0);
+        });
+        
+        // View Contract Modal
+        document.getElementById('viewContract').addEventListener('click', (e) => {
+            e.preventDefault();
+            alert("CONTRACT:\n\nObjet du contrat: Le bureau Bougie Immigration s'engage a accompagner l'etudiant dans:\n- La recherche de trois (03) universites en France via Campus France\n- La preparation et la soumission de la demande d'admission aupres de ces universites\n- La recherche d'opportunites de bourses d'etudes\n\nPaiement:\n- Prix total du service d'admission: 35 000 DA\n- Ce montant est a regler integralement et a l'avance\n- Les frais d'admission exiges par les universites sont a la charge exclusive de l'etudiant\n- Aucun remboursement ne sera effectue en cas d'annulation ou de refus d'admission");
+        });
+        
+        // Enable submit when privacy policy checked
+        document.getElementById('privacyPolicy').addEventListener('change', (e) => {
+            document.getElementById('submitApplication').disabled = !e.target.checked;
+        });
+        
+        // Step navigation logic
+        let currentStep = 1;
+        
+        function updateSteps() {
+            for(let i = 1; i <= 5; i++) {
+                const stepEl = document.querySelector(`.step[data-step="${i}"]`);
+                const formEl = document.getElementById(`step${i}`);
+                if(i === currentStep) {
+                    stepEl.classList.add('active');
+                    stepEl.classList.remove('completed');
+                    formEl.classList.remove('hidden');
+                } else if(i < currentStep) {
+                    stepEl.classList.add('completed');
+                    stepEl.classList.remove('active');
+                    formEl.classList.add('hidden');
+                } else {
+                    stepEl.classList.remove('active', 'completed');
+                    formEl.classList.add('hidden');
+                }
+            }
+        }
+        
+        document.querySelectorAll('.nextBtn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if(currentStep < 5) {
+                    currentStep++;
+                    updateSteps();
+                }
+            });
+        });
+        
+        document.querySelectorAll('.prevBtn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if(currentStep > 1) {
+                    currentStep--;
+                    updateSteps();
+                }
+            });
+        });
+        
+        // Step 1 confirmation
+        const confirmCorrect = document.getElementById('confirmCorrect');
+        const confirmTcf = document.getElementById('confirmTcf');
+        const confirmFinal = document.getElementById('confirmFinal');
+        const startBtn = document.getElementById('startApplicationBtn');
+        
+        function checkConfirmations() {
+            startBtn.disabled = !(confirmCorrect.checked && confirmTcf.checked && confirmFinal.checked);
+        }
+        
+        confirmCorrect.addEventListener('change', checkConfirmations);
+        confirmTcf.addEventListener('change', checkConfirmations);
+        confirmFinal.addEventListener('change', checkConfirmations);
+        
+        startBtn.addEventListener('click', () => {
+            currentStep = 2;
+            updateSteps();
+        });
+        
+        // Year of studies toggle for documents
+        const yearOfStudies = document.getElementById('yearOfStudies');
+        const masterDocsDiv = document.getElementById('masterDocs');
+        
+        yearOfStudies.addEventListener('change', () => {
+            if(yearOfStudies.value === 'Master') {
+                masterDocsDiv.classList.remove('hidden');
+            } else {
+                masterDocsDiv.classList.add('hidden');
+            }
+        });
+        
+        // Payment options
+        let paymentMethod = null;
+        document.querySelectorAll('.payment-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                paymentMethod = opt.getAttribute('data-payment');
+            });
+        });
+        
+        const payNowBtn = document.getElementById('payNowBtn');
+        const payLaterBtn = document.getElementById('payLaterBtn');
+        const receiptUploadDiv = document.getElementById('receiptUpload');
+        const paymentNextBtn = document.getElementById('paymentNextBtn');
+        let paymentStatus = null;
+        
+        payNowBtn.addEventListener('click', () => {
+            receiptUploadDiv.classList.remove('hidden');
+            paymentStatus = 'paid_pending';
+            paymentNextBtn.disabled = false;
+        });
+        
+        payLaterBtn.addEventListener('click', () => {
+            receiptUploadDiv.classList.add('hidden');
+            paymentStatus = 'pending';
+            paymentNextBtn.disabled = false;
+        });
+        
+        // Receipt upload
+        const receiptUploadArea = document.getElementById('receiptUploadArea');
+        const receiptFile = document.getElementById('receiptFile');
+        
+        receiptUploadArea.addEventListener('click', () => {
+            receiptFile.click();
+        });
+        
+        receiptFile.addEventListener('change', (e) => {
+            if(e.target.files.length > 0) {
+                const file = e.target.files[0];
+                if(file.size > 5 * 1024 * 1024) {
+                    alert('File size exceeds 5MB limit');
+                    receiptFile.value = '';
+                    return;
+                }
+                receiptUploadArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded successfully</p>';
+            }
+        });
+        
+        // Document upload setup
+        const bachelorDocuments = [
+            'Passport', 'ID Photo', 'CV', 'BAC Certificate (French translation)', 
+            'BAC Transcript (French translation)', 'TCF Test Results'
+        ];
+        
+        const masterAdditional = [
+            'Bachelor Certificate (French translation)', 
+            'Bachelor Transcript - 3 years (French translation)'
+        ];
+        
+        function createUploadSection(containerId, documents, isMaster = false) {
+            const container = document.getElementById(containerId);
+            if(!container) return;
+            
+            documents.forEach(doc => {
+                const docDiv = document.createElement('div');
+                docDiv.className = 'form-group';
+                docDiv.innerHTML = `
+                    <label>${doc} <span class="required">*</span></label>
+                    <div class="file-upload" data-doc="${doc}">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload ${doc}</p>
+                        <input type="file" accept=".pdf,.jpg,.jpeg" style="display: none;">
+                    </div>
+                    <div class="file-list" id="list-${doc.replace(/\s/g, '')}"></div>
+                `;
+                container.appendChild(docDiv);
+            });
+        }
+        
+        createUploadSection('bachelorDocList', bachelorDocuments);
+        createUploadSection('masterDocList', masterAdditional);
+        
+        // File upload handlers
+        setTimeout(() => {
+            document.querySelectorAll('.file-upload').forEach(upload => {
+                const input = upload.querySelector('input');
+                const fileList = upload.nextElementSibling;
+                
+                upload.addEventListener('click', () => {
+                    input.click();
+                });
+                
+                input.addEventListener('change', (e) => {
+                    if(e.target.files.length > 0) {
+                        const file = e.target.files[0];
+                        if(file.size > 5 * 1024 * 1024) {
+                            alert('File size exceeds 5MB limit');
+                            input.value = '';
+                            return;
+                        }
+                        const fileName = file.name;
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'file-item';
+                        fileItem.innerHTML = `
+                            <span><i class="fas fa-file"></i> ${fileName}</span>
+                            <button onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
+                        `;
+                        if(fileList) {
+                            fileList.innerHTML = '';
+                            fileList.appendChild(fileItem);
+                        }
+                        upload.innerHTML = '<i class="fas fa-check-circle"></i><p>File uploaded: ' + fileName.substring(0, 30) + '</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display: none;">';
+                        const newInput = upload.querySelector('input');
+                        if(newInput) {
+                            newInput.addEventListener('change', arguments.callee);
+                        }
+                    }
+                });
+            });
+        }, 100);
+        
+        // Submit application
+        document.getElementById('submitApplication').addEventListener('click', () => {
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const email = document.getElementById('email').value;
+            
+            if(!firstName || !lastName || !email) {
+                alert('Please complete all required fields before submitting.');
+                return;
+            }
+            
+            const applicationNumber = 'CF-' + new Date().getFullYear() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+            
+            alert(`Application submitted successfully!\n\nApplication Number: ${applicationNumber}\n\nA confirmation email has been sent to ${email} with your application details.\n\nYou have 3 days to complete payment, otherwise your application will be automatically refused.`);
+            
+            window.location.href = 'index.html';
+        });
+        
+        updateSteps();
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus France Application - Bougie Immigration</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f4eddb 0%, #e8e0ce 100%);
+            min-height: 100vh;
+            color: #2c2b28;
+        }
+
+        .header {
+            background-color: #dcdad5;
+            padding: 1rem 5%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo img {
+            height: 50px;
+            width: auto;
+        }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c2b28;
+        }
+
+        .logo-text span {
+            font-weight: 400;
+            color: #6b6a66;
+        }
+
+        .back-link {
+            color: #2c2b28;
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: #9b8e6e;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.5rem 3rem;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            background: #ffffff;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .step {
+            text-align: center;
+            flex: 1;
+            position: relative;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background-color: #dcdad5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-weight: 700;
+            color: #2c2b28;
+            transition: all 0.3s ease;
+        }
+
+        .step.active .step-number {
+            background-color: #2c2b28;
+            color: #f4eddb;
+        }
+
+        .step.completed .step-number {
+            background-color: #9b8e6e;
+            color: #ffffff;
+        }
+
+        .step-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #6b6a66;
+        }
+
+        .step.active .step-label {
+            color: #2c2b28;
+            font-weight: 600;
+        }
+
+        .form-card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #2c2b28;
+        }
+
+        .form-subtitle {
+            color: #6b6a66;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #dcdad5;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #2c2b28;
+        }
+
+        .form-group label .required {
+            color: #e74c3c;
+            margin-left: 0.25rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #dcdad5;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: #ffffff;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #9b8e6e;
+            box-shadow: 0 0 0 3px rgba(155, 142, 110, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .file-upload {
+            border: 2px dashed #dcdad5;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: #faf9f5;
+        }
+
+        .file-upload:hover {
+            border-color: #9b8e6e;
+            background-color: #f4eddb;
+        }
+
+        .file-upload i {
+            font-size: 2rem;
+            color: #9b8e6e;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-upload p {
+            color: #6b6a66;
+            font-size: 0.9rem;
+        }
+
+        .file-list {
+            margin-top: 1rem;
+        }
+
+        .file-item {
+            background-color: #f4eddb;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-item button {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .checkbox-group {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background-color: #faf9f5;
+            border-radius: 12px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            cursor: pointer;
+        }
+
+        .checkbox-group input {
+            width: 20px;
+            height: 20px;
+            margin-top: 0.125rem;
+        }
+
+        .payment-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .payment-option {
+            border: 2px solid #dcdad5;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-option.selected {
+            border-color: #2c2b28;
+            background-color: #f4eddb;
+        }
+
+        .payment-option i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #9b8e6e;
+        }
+
+        .payment-option h4 {
+            margin-bottom: 0.25rem;
+        }
+
+        .payment-option p {
+            font-size: 0.8rem;
+            color: #6b6a66;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            padding: 0.875rem 1.75rem;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: #2c2b28;
+            color: #f4eddb;
+        }
+
+        .btn-primary:hover {
+            background-color: #4a4945;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: #dcdad5;
+            color: #2c2b28;
+        }
+
+        .btn-secondary:hover {
+            background-color: #c0bcb4;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid #2c2b28;
+            color: #2c2b28;
+        }
+
+        .btn-outline:hover {
+            background-color: #2c2b28;
+            color: #f4eddb;
+        }
+
+        .warning-box {
+            background-color: #fef5e7;
+            border-left: 4px solid #f39c12;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-box {
+            background-color: #e8f0fe;
+            border-left: 4px solid #3498db;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-box i {
+            color: #3498db;
+            margin-right: 0.5rem;
+        }
+
+        .signature-area {
+            border: 2px solid #dcdad5;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        canvas {
+            border: 1px solid #dcdad5;
+            border-radius: 8px;
+            width: 100%;
+            height: 150px;
+            background-color: #ffffff;
+        }
+
+        .signature-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .small-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        .bank-details {
+            background-color: #f4eddb;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+        }
+
+        .tcf-requirement {
+            background-color: #e8f5e9;
+            border-left: 4px solid #27ae60;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .tcf-requirement i {
+            color: #27ae60;
+            margin-right: 0.5rem;
+        }
+
+        .language-badge {
+            display: inline-block;
+            background-color: #9b8e6e;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .payment-options {
+                grid-template-columns: 1fr;
+            }
+            .progress-steps {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .step {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+            .step-number {
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Bougie Immigration Logo" onerror="this.src='https://placehold.co/50x50/dcdad5/2c2b28?text=BI'">
+                <div class="logo-text">Bougie <span>Immigration</span></div>
+            </div>
+            <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Home</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="progress-steps">
+            <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">Confirmation</div>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">Personal Info</div>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-label">Documents</div>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-number">4</div>
+                <div class="step-label">Payment</div>
+            </div>
+            <div class="step" data-step="5">
+                <div class="step-number">5</div>
+                <div class="step-label">Signature</div>
+            </div>
+        </div>
+
+        <!-- Step 1: Confirmation -->
+        <div id="step1" class="form-card">
+            <h2 class="form-title">Campus France Application <span class="language-badge">French Translation Required</span></h2>
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i>
+                <strong>Campus France Program:</strong> Official French government program for international students. All documents must be translated to French.
+            </div>
+            <div class="tcf-requirement">
+                <i class="fas fa-language"></i>
+                <strong>TCF Language Test Required:</strong> TCF (Test de Connaissance du Français) is mandatory for all Campus France applications. Please ensure you have taken or will take the TCF exam.
+            </div>
+            <div class="warning-box">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Note:</strong> Documents do NOT require certification by the Ministry of Education and Foreign Affairs. However, all documents must be translated to French.
+            </div>
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="confirmCorrect">
+                    <span>I confirm that all information provided is correct and all documents will be submitted in French translation as required.</span>
+                </label>
+            </div>
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="confirmTcf">
+                    <span>I confirm that I have taken or will take the TCF (Test de Connaissance du Français) language test.</span>
+                </label>
+            </div>
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="confirmFinal">
+                    <span>I understand that this submission is final and I cannot go back or modify my application after submission.</span>
+                </label>
+            </div>
+            <div class="button-group">
+                <button id="startApplicationBtn" class="btn btn-primary" disabled>Start Application</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Applicant Information -->
+        <div id="step2" class="form-card hidden">
+            <h2 class="form-title">Applicant Information</h2>
+            <div class="form-subtitle">Please provide your personal details</div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First Name <span class="required">*</span></label>
+                    <input type="text" id="firstName" placeholder="Enter your first name">
+                </div>
+                <div class="form-group">
+                    <label>Last Name <span class="required">*</span></label>
+                    <input type="text" id="lastName" placeholder="Enter your last name">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Birth Date <span class="required">*</span></label>
+                    <input type="date" id="birthDate">
+                </div>
+                <div class="form-group">
+                    <label>Role <span class="required">*</span></label>
+                    <input type="text" id="role" value="Student" readonly style="background-color: #f4eddb;">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>BAC Date of Completion <span class="required">*</span></label>
+                    <input type="month" id="bacDate">
+                </div>
+                <div class="form-group">
+                    <label>Year of Studies <span class="required">*</span></label>
+                    <select id="yearOfStudies">
+                        <option value="">Select</option>
+                        <option value="Bachelor">Bachelor</option>
+                        <option value="Master">Master</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Phone Number <span class="required">*</span></label>
+                    <input type="tel" id="phone" placeholder="+213 XX XX XX XX XX">
+                </div>
+                <div class="form-group">
+                    <label>Email <span class="required">*</span></label>
+                    <input type="email" id="email" placeholder="you@example.com">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Selected Courses <span class="required">*</span></label>
+                <textarea id="courses" rows="3" placeholder="List the courses you are applying for..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>TCF Test Information <span class="required">*</span></label>
+                <select id="tcfStatus">
+                    <option value="">Select TCF status</option>
+                    <option value="taken">I have already taken the TCF test</option>
+                    <option value="scheduled">I have scheduled the TCF test</option>
+                    <option value="will_take">I will take the TCF test soon</option>
+                </select>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary prevBtn">Previous</button>
+                <button class="btn btn-primary nextBtn">Next: Documents</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Document Upload -->
+        <div id="step3" class="form-card hidden">
+            <h2 class="form-title">Document Upload</h2>
+            <div class="form-subtitle">Upload all required documents (PDF or JPG, max 5MB each) - French translation required</div>
+            
+            <div class="info-box">
+                <i class="fas fa-language"></i>
+                <strong>Translation Requirement:</strong> All documents must be translated to French. You can upload both original and French translation versions.
+            </div>
+            
+            <div id="bachelorDocs">
+                <h3>Bachelor Required Documents</h3>
+                <div id="bachelorDocList"></div>
+            </div>
+            
+            <div id="masterDocs" class="hidden">
+                <h3>Master Additional Documents</h3>
+                <div id="masterDocList"></div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary prevBtn">Previous</button>
+                <button class="btn btn-primary nextBtn">Next: Payment</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Payment -->
+        <div id="step4" class="form-card hidden">
+            <h2 class="form-title">Payment Information</h2>
+            <div class="form-subtitle">Total Service Fee: 35,000 DA</div>
+            
+            <div class="payment-options">
+                <div class="payment-option" data-payment="ccp">
+                    <i class="fas fa-university"></i>
+                    <h4>CCP</h4>
+                    <p>Account: 40253214 Clé 56</p>
+                </div>
+                <div class="payment-option" data-payment="baridimob">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h4>Baridimob</h4>
+                    <p>Account: 00799999004025321435</p>
+                </div>
+            </div>
+
+            <div class="payment-action">
+                <div class="button-group">
+                    <button id="payNowBtn" class="btn btn-primary">Pay Now - Upload Receipt</button>
+                    <button id="payLaterBtn" class="btn btn-outline">Pay Later - Contact Agency</button>
+                </div>
+            </div>
+
+            <div id="receiptUpload" class="hidden">
+                <div class="file-upload" id="receiptUploadArea">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Click to upload payment receipt (PDF/JPG, max 5MB)</p>
+                    <input type="file" id="receiptFile" accept=".pdf,.jpg,.jpeg" style="display: none;">
+                </div>
+            </div>
+
+            <div class="bank-details">
+                <h4>Bank Account Details</h4>
+                <p><strong>CCP:</strong> 40253214 Clé 56</p>
+                <p><strong>Baridimob:</strong> 00799999004025321435</p>
+                <p class="warning-box" style="margin-top: 0.5rem;"><i class="fas fa-clock"></i> You have 3 days to complete payment, otherwise your application will be automatically refused.</p>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary prevBtn">Previous</button>
+                <button class="btn btn-primary nextBtn" id="paymentNextBtn" disabled>Next: Signature</button>
+            </div>
+        </div>
+
+        <!-- Step 5: Signature & Submit -->
+        <div id="step5" class="form-card hidden">
+            <h2 class="form-title">Contract & Digital Signature</h2>
+            <div class="form-subtitle">Please review and sign the contract</div>
+            
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="privacyPolicy">
+                    <span>I have read and agree to the <a href="#" id="viewContract" style="color: #9b8e6e;">Privacy Policy and Contract</a></span>
+                </label>
+            </div>
+
+            <div class="signature-area">
+                <label>Digital Signature <span class="required">*</span></label>
+                <canvas id="signatureCanvas" width="500" height="150" style="width:100%; height:150px; background:#fff; border:1px solid #dcdad5; border-radius:8px;"></canvas>
+                <div class="signature-buttons">
+                    <button id="clearSignature" class="btn btn-secondary small-btn">Clear</button>
+                </div>
+                <p class="small" style="color:#6b6a66; margin-top:0.5rem;">Sign by drawing with your mouse or finger</p>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary prevBtn">Previous</button>
+                <button id="submitApplication" class="btn btn-primary" disabled>Submit Application</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Signature canvas setup
+        const canvas = document.getElementById('signatureCanvas');
+        let ctx = canvas.getContext('2d');
+        let drawing = false;
+        
+        function initCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 150;
+            ctx = canvas.getContext('2d');
+            ctx.strokeStyle = '#2c2b28';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
+            canvas.addEventListener('touchstart', startDrawingTouch);
+            canvas.addEventListener('touchmove', drawTouch);
+            canvas.addEventListener('touchend', stopDrawing);
+        }
+        
+        function startDrawing(e) {
+            drawing = true;
+            ctx.beginPath();
+            const pos = getMousePos(e);
+            ctx.moveTo(pos.x, pos.y);
+        }
+        
+        function draw(e) {
+            if (!drawing) return;
+            const pos = getMousePos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        }
+        
+        function stopDrawing() {
+            drawing = false;
+        }
+        
+        function startDrawingTouch(e) {
+            e.preventDefault();
+            drawing = true;
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+        
+        function drawTouch(e) {
+            e.preventDefault();
+            if (!drawing) return;
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+        
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+        
+        document.getElementById('clearSignature').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+        
+        initCanvas();
+        window.addEventListener('resize', () => {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 150;
+            ctx.putImageData(imageData, 0, 0);
+        });
+        
+        // View Contract Modal
+        document.getElementById('viewContract').addEventListener('click', (e) => {
+            e.preventDefault();
+            alert("CONTRACT:\n\nObjet du contrat: Le bureau Bougie Immigration s'engage a accompagner l'etudiant dans:\n- La recherche de trois (03) universites en France via Campus France\n- La preparation et la soumission de la demande d'admission aupres de ces universites\n- La recherche d'opportunites de bourses d'etudes\n\nPaiement:\n- Prix total du service d'admission: 35 000 DA\n- Ce montant est a regler integralement et a l'avance\n- Les frais d'admission exiges par les universites sont a la charge exclusive de l'etudiant\n- Aucun remboursement ne sera effectue en cas d'annulation ou de refus d'admission");
+        });
+        
+        // Enable submit when privacy policy checked
+        document.getElementById('privacyPolicy').addEventListener('change', (e) => {
+            document.getElementById('submitApplication').disabled = !e.target.checked;
+        });
+        
+        // Step navigation logic
+        let currentStep = 1;
+        
+        function updateSteps() {
+            for(let i = 1; i <= 5; i++) {
+                const stepEl = document.querySelector(`.step[data-step="${i}"]`);
+                const formEl = document.getElementById(`step${i}`);
+                if(i === currentStep) {
+                    stepEl.classList.add('active');
+                    stepEl.classList.remove('completed');
+                    formEl.classList.remove('hidden');
+                } else if(i < currentStep) {
+                    stepEl.classList.add('completed');
+                    stepEl.classList.remove('active');
+                    formEl.classList.add('hidden');
+                } else {
+                    stepEl.classList.remove('active', 'completed');
+                    formEl.classList.add('hidden');
+                }
+            }
+        }
+        
+        document.querySelectorAll('.nextBtn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if(currentStep < 5) {
+                    currentStep++;
+                    updateSteps();
+                }
+            });
+        });
+        
+        document.querySelectorAll('.prevBtn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if(currentStep > 1) {
+                    currentStep--;
+                    updateSteps();
+                }
+            });
+        });
+        
+        // Step 1 confirmation
+        const confirmCorrect = document.getElementById('confirmCorrect');
+        const confirmTcf = document.getElementById('confirmTcf');
+        const confirmFinal = document.getElementById('confirmFinal');
+        const startBtn = document.getElementById('startApplicationBtn');
+        
+        function checkConfirmations() {
+            startBtn.disabled = !(confirmCorrect.checked && confirmTcf.checked && confirmFinal.checked);
+        }
+        
+        confirmCorrect.addEventListener('change', checkConfirmations);
+        confirmTcf.addEventListener('change', checkConfirmations);
+        confirmFinal.addEventListener('change', checkConfirmations);
+        
+        startBtn.addEventListener('click', () => {
+            currentStep = 2;
+            updateSteps();
+        });
+        
+        // Year of studies toggle for documents
+        const yearOfStudies = document.getElementById('yearOfStudies');
+        const masterDocsDiv = document.getElementById('masterDocs');
+        
+        yearOfStudies.addEventListener('change', () => {
+            if(yearOfStudies.value === 'Master') {
+                masterDocsDiv.classList.remove('hidden');
+            } else {
+                masterDocsDiv.classList.add('hidden');
+            }
+        });
+        
+        // Payment options
+        let paymentMethod = null;
+        document.querySelectorAll('.payment-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                paymentMethod = opt.getAttribute('data-payment');
+            });
+        });
+        
+        const payNowBtn = document.getElementById('payNowBtn');
+        const payLaterBtn = document.getElementById('payLaterBtn');
+        const receiptUploadDiv = document.getElementById('receiptUpload');
+        const paymentNextBtn = document.getElementById('paymentNextBtn');
+        let paymentStatus = null;
+        
+        payNowBtn.addEventListener('click', () => {
+            receiptUploadDiv.classList.remove('hidden');
+            paymentStatus = 'paid_pending';
+            paymentNextBtn.disabled = false;
+        });
+        
+        payLaterBtn.addEventListener('click', () => {
+            receiptUploadDiv.classList.add('hidden');
+            paymentStatus = 'pending';
+            paymentNextBtn.disabled = false;
+        });
+        
+        // Receipt upload
+        const receiptUploadArea = document.getElementById('receiptUploadArea');
+        const receiptFile = document.getElementById('receiptFile');
+        
+        receiptUploadArea.addEventListener('click', () => {
+            receiptFile.click();
+        });
+        
+        receiptFile.addEventListener('change', (e) => {
+            if(e.target.files.length > 0) {
+                const file = e.target.files[0];
+                if(file.size > 5 * 1024 * 1024) {
+                    alert('File size exceeds 5MB limit');
+                    receiptFile.value = '';
+                    return;
+                }
+                receiptUploadArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded successfully</p>';
+            }
+        });
+        
+        // Document upload setup
+        const bachelorDocuments = [
+            'Passport', 'ID Photo', 'CV', 'BAC Certificate (French translation)', 
+            'BAC Transcript (French translation)', 'TCF Test Results'
+        ];
+        
+        const masterAdditional = [
+            'Bachelor Certificate (French translation)', 
+            'Bachelor Transcript - 3 years (French translation)'
+        ];
+        
+        function createUploadSection(containerId, documents, isMaster = false) {
+            const container = document.getElementById(containerId);
+            if(!container) return;
+            
+            documents.forEach(doc => {
+                const docDiv = document.createElement('div');
+                docDiv.className = 'form-group';
+                docDiv.innerHTML = `
+                    <label>${doc} <span class="required">*</span></label>
+                    <div class="file-upload" data-doc="${doc}">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload ${doc}</p>
+                        <input type="file" accept=".pdf,.jpg,.jpeg" style="display: none;">
+                    </div>
+                    <div class="file-list" id="list-${doc.replace(/\s/g, '')}"></div>
+                `;
+                container.appendChild(docDiv);
+            });
+        }
+        
+        createUploadSection('bachelorDocList', bachelorDocuments);
+        createUploadSection('masterDocList', masterAdditional);
+        
+        // File upload handlers
+        setTimeout(() => {
+            document.querySelectorAll('.file-upload').forEach(upload => {
+                const input = upload.querySelector('input');
+                const fileList = upload.nextElementSibling;
+                
+                upload.addEventListener('click', () => {
+                    input.click();
+                });
+                
+                input.addEventListener('change', (e) => {
+                    if(e.target.files.length > 0) {
+                        const file = e.target.files[0];
+                        if(file.size > 5 * 1024 * 1024) {
+                            alert('File size exceeds 5MB limit');
+                            input.value = '';
+                            return;
+                        }
+                        const fileName = file.name;
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'file-item';
+                        fileItem.innerHTML = `
+                            <span><i class="fas fa-file"></i> ${fileName}</span>
+                            <button onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
+                        `;
+                        if(fileList) {
+                            fileList.innerHTML = '';
+                            fileList.appendChild(fileItem);
+                        }
+                        upload.innerHTML = '<i class="fas fa-check-circle"></i><p>File uploaded: ' + fileName.substring(0, 30) + '</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display: none;">';
+                        const newInput = upload.querySelector('input');
+                        if(newInput) {
+                            newInput.addEventListener('change', arguments.callee);
+                        }
+                    }
+                });
+            });
+        }, 100);
+        
+        // Submit application
+        document.getElementById('submitApplication').addEventListener('click', () => {
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const email = document.getElementById('email').value;
+            
+            if(!firstName || !lastName || !email) {
+                alert('Please complete all required fields before submitting.');
+                return;
+            }
+            
+            const applicationNumber = 'CF-' + new Date().getFullYear() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+            
+            alert(`Application submitted successfully!\n\nApplication Number: ${applicationNumber}\n\nA confirmation email has been sent to ${email} with your application details.\n\nYou have 3 days to complete payment, otherwise your application will be automatically refused.`);
+            
+            window.location.href = 'index.html';
+        });
+        
+        updateSteps();
+    </script>
+</body>
+</html>
