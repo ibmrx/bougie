@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Confirmation - Bougie Immigration</title>
+    <style>
+        /* Email-safe styles - inline styles will be used in actual emails */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4eddb;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .email-header {
+            background: linear-gradient(135deg, #2c2b28 0%, #4a4945 100%);
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .logo {
+            margin-bottom: 20px;
+        }
+        
+        .logo img {
+            max-width: 80px;
+            height: auto;
+        }
+        
+        .logo-text {
+            color: #f4eddb;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        .logo-text span {
+            font-weight: 400;
+            color: #9b8e6e;
+        }
+        
+        .email-body {
+            padding: 40px 30px;
+        }
+        
+        .greeting {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c2b28;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            color: #6b6a66;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        
+        .application-card {
+            background-color: #faf9f5;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 4px solid #9b8e6e;
+        }
+        
+        .application-number {
+            font-family: monospace;
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c2b28;
+            background: #ffffff;
+            padding: 10px 15px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+        
+        .info-grid {
+            display: table;
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        .info-row {
+            display: table-row;
+        }
+        
+        .info-label {
+            display: table-cell;
+            padding: 8px 0;
+            font-weight: 600;
+            color: #2c2b28;
+            width: 140px;
+        }
+        
+        .info-value {
+            display: table-cell;
+            padding: 8px 0;
+            color: #6b6a66;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            background-color: #fef5e7;
+            color: #f39c12;
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .deadline-warning {
+            background-color: #fef5e7;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        
+        .deadline-warning strong {
+            color: #f39c12;
+        }
+        
+        .button {
+            display: inline-block;
+            background-color: #2c2b28;
+            color: #f4eddb;
+            text-decoration: none;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin: 20px 0;
+            transition: background-color 0.3s;
+        }
+        
+        .button:hover {
+            background-color: #4a4945;
+        }
+        
+        .payment-details {
+            background-color: #f4eddb;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .payment-details h4 {
+            color: #2c2b28;
+            margin-bottom: 10px;
+        }
+        
+        .payment-details p {
+            font-family: monospace;
+            font-size: 14px;
+            margin: 8px 0;
+            color: #2c2b28;
+        }
+        
+        .divider {
+            height: 1px;
+            background-color: #dcdad5;
+            margin: 25px 0;
+        }
+        
+        .footer {
+            background-color: #faf9f5;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #dcdad5;
+        }
+        
+        .footer p {
+            color: #9b8e6e;
+            font-size: 12px;
+            margin: 5px 0;
+        }
+        
+        .footer a {
+            color: #2c2b28;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            color: #9b8e6e;
+        }
+        
+        .social-links {
+            margin: 15px 0;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #9b8e6e;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 480px) {
+            .email-body {
+                padding: 25px 20px;
+            }
+            
+            .info-label {
+                display: block;
+                width: 100%;
+                padding-bottom: 0;
+            }
+            
+            .info-value {
+                display: block;
+                padding-top: 0;
+                padding-bottom: 12px;
+            }
+            
+            .info-row {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+            <div class="logo">
+                <img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Bougie Immigration" style="max-width: 70px; border-radius: 12px;">
+            </div>
+            <div class="logo-text">Bougie <span>Immigration</span></div>
+        </div>
+        
+        <!-- Body -->
+        <div class="email-body">
+            <div class="greeting">
+                Dear {{firstName}} {{lastName}},
+            </div>
+            
+            <div class="message">
+                Thank you for submitting your application to <strong>Bougie Immigration</strong>. We have successfully received your application and it is now being processed by our team.
+            </div>
+            
+            <!-- Application Card -->
+            <div class="application-card">
+                <strong>📋 Application Confirmation</strong>
+                <div>
+                    <div class="application-number">{{applicationNumber}}</div>
+                    <div class="status-badge" style="margin-top: 10px;">{{applicationStatus}}</div>
+                </div>
+            </div>
+            
+            <!-- Application Details -->
+            <div class="info-grid">
+                <div class="info-row">
+                    <div class="info-label">Destination</div>
+                    <div class="info-value">{{destination}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Program</div>
+                    <div class="info-value">{{yearOfStudies}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Submission Date</div>
+                    <div class="info-value">{{submissionDate}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Payment Status</div>
+                    <div class="info-value">{{paymentStatus}}</div>
+                </div>
+            </div>
+            
+            <!-- Payment Deadline Warning -->
+            <div class="deadline-warning">
+                <strong>⏰ Payment Deadline: {{paymentDeadline}}</strong><br>
+                You have <strong>3 days</strong> from the date of submission to complete your payment. If payment is not received by the deadline, your application will be automatically refused.
+            </div>
+            
+            <!-- Payment Details -->
+            <div class="payment-details">
+                <h4>💳 Payment Information</h4>
+                <p><strong>Service Fee:</strong> 35,000 DA</p>
+                <p><strong>CCP Account:</strong> 40253214 Clé 56</p>
+                <p><strong>Baridimob:</strong> 00799999004025321435</p>
+                <p style="font-size: 12px; margin-top: 10px;">After payment, please upload your receipt through the application status page or contact us directly.</p>
+            </div>
+            
+            <!-- Next Steps -->
+            <div class="message">
+                <strong>📌 Next Steps:</strong>
+                <ol style="margin-left: 20px; margin-top: 10px; color: #6b6a66;">
+                    <li>Complete payment within 3 days using the account details above</li>
+                    <li>Upload your payment receipt (if paying now)</li>
+                    <li>Our team will verify your documents and payment</li>
+                    <li>You will receive a status update via email within 5-7 business days</li>
+                    <li>Check your application status anytime using your application number</li>
+                </ol>
+            </div>
+            
+            <!-- Status Check Button -->
+            <div style="text-align: center;">
+                <a href="{{statusCheckUrl}}" class="button">Check Application Status</a>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <!-- Important Notes -->
+            <div class="message" style="font-size: 13px;">
+                <strong>📝 Important Notes:</strong>
+                <ul style="margin-left: 20px; margin-top: 8px;">
+                    <li>All documents submitted are subject to verification</li>
+                    <li>Please keep your application number for future reference</li>
+                    <li>For Italy applications: Documents must be certified by the Ministry of Education and Foreign Affairs</li>
+                    <li>For Campus France: TCF language test results are mandatory</li>
+                    <li>Contact us immediately if you notice any errors in your application</li>
+                </ul>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <!-- Contact Information -->
+            <div class="message" style="text-align: center;">
+                <strong>📞 Need Assistance?</strong><br>
+                Contact us at <a href="tel:0770614198" style="color: #9b8e6e;">07 70 61 41 98</a> or 
+                <a href="https://instagram.com/bougie_immigration06" style="color: #9b8e6e;">@bougie_immigration06</a>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="social-links">
+                <a href="https://instagram.com/bougie_immigration06">Instagram</a>
+                <a href="https://maps.app.goo.gl/hCJE9HYaREVqed4V7">Location</a>
+            </div>
+            <p>Bougie Immigration - Professional Study Immigration Services</p>
+            <p>This is an automated email. Please do not reply to this message.</p>
+            <p>&copy; {{currentYear}} Bougie Immigration. All rights reserved.</p>
+        </div>
+    </div>
+    
+    <script>
+        // This script is for demonstration purposes only
+        // In production, this template will be populated with actual data from the application
+        
+        function generateEmailPreview() {
+            // Demo data for preview
+            const demoData = {
+                firstName: 'Ahmed',
+                lastName: 'Benali',
+                applicationNumber: 'IT-2024-A3B5C7',
+                applicationStatus: 'Pending Review',
+                destination: 'Italy',
+                yearOfStudies: 'Master',
+                submissionDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                paymentStatus: 'Pending',
+                paymentDeadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                statusCheckUrl: 'https://bougieimmigration.com/status.html',
+                currentYear: new Date().getFullYear()
+            };
+            
+            // Replace placeholders with demo data
+            let html = document.querySelector('.email-container').outerHTML;
+            html = html.replace(/{{firstName}}/g, demoData.firstName);
+            html = html.replace(/{{lastName}}/g, demoData.lastName);
+            html = html.replace(/{{applicationNumber}}/g, demoData.applicationNumber);
+            html = html.replace(/{{applicationStatus}}/g, demoData.applicationStatus);
+            html = html.replace(/{{destination}}/g, demoData.destination);
+            html = html.replace(/{{yearOfStudies}}/g, demoData.yearOfStudies);
+            html = html.replace(/{{submissionDate}}/g, demoData.submissionDate);
+            html = html.replace(/{{paymentStatus}}/g, demoData.paymentStatus);
+            html = html.replace(/{{paymentDeadline}}/g, demoData.paymentDeadline);
+            html = html.replace(/{{statusCheckUrl}}/g, demoData.statusCheckUrl);
+            html = html.replace(/{{currentYear}}/g, demoData.currentYear);
+            
+            return html;
+        }
+        
+        // Display preview in console for testing
+        console.log('Email Template Preview:');
+        console.log(generateEmailPreview());
+        
+        // If viewing in browser, show a preview notice
+        if (typeof window !== 'undefined') {
+            const previewNotice = document.createElement('div');
+            previewNotice.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 20px;
+                right: 20px;
+                background: #2c2b28;
+                color: #f4eddb;
+                padding: 12px 20px;
+                border-radius: 12px;
+                text-align: center;
+                font-size: 14px;
+                z-index: 1000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            `;
+            previewNotice.innerHTML = `
+                <strong>📧 Email Template Preview</strong> - This is a demonstration of the application confirmation email that will be sent to applicants.
+                <button onclick="this.parentElement.remove()" style="background: #9b8e6e; border: none; color: white; padding: 4px 12px; border-radius: 20px; margin-left: 12px; cursor: pointer;">Close</button>
+            `;
+            document.body.appendChild(previewNotice);
+        }
+    </script>
+</body>
+</html>
