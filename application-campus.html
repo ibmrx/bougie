@@ -249,22 +249,30 @@
             { id: 'bachelorTranscript', name: 'Bachelor Transcript - 3 years (French translation)' }
         ];
 
-        // ==================== STEP 1 VALIDATION ====================
-        const confirmCorrect = document.getElementById('confirmCorrect');
-        const confirmTcf = document.getElementById('confirmTcf');
-        const confirmFinal = document.getElementById('confirmFinal');
-        const startBtn = document.getElementById('startBtn');
+      // ==================== STEP 1 VALIDATION ====================
+const confirmCorrect = document.getElementById('confirmCorrect');
+const confirmTcf = document.getElementById('confirmTcf');
+const confirmFinal = document.getElementById('confirmFinal');
+const startBtn = document.getElementById('startBtn');
 
-        function validateStep1() {
-            const allChecked = confirmCorrect.checked && confirmTcf.checked && confirmFinal.checked;
-            startBtn.disabled = !allChecked;
-            return allChecked;
-        }
+function validateStep1() {
+    const allChecked = confirmCorrect && confirmCorrect.checked && 
+                       confirmTcf && confirmTcf.checked && 
+                       confirmFinal && confirmFinal.checked;
+    if (startBtn) {
+        startBtn.disabled = !allChecked;
+    }
+    console.log('Step 1 validation - allChecked:', allChecked); // Debug log
+    return allChecked;
+}
 
-        confirmCorrect.addEventListener('change', validateStep1);
-        confirmTcf.addEventListener('change', validateStep1);
-        confirmFinal.addEventListener('change', validateStep1);
-        validateStep1();
+// Add event listeners with null checks
+if (confirmCorrect) confirmCorrect.addEventListener('change', validateStep1);
+if (confirmTcf) confirmTcf.addEventListener('change', validateStep1);
+if (confirmFinal) confirmFinal.addEventListener('change', validateStep1);
+
+// Run initial validation
+validateStep1();
 
         // ==================== DOCUMENT UPLOAD UI ====================
         function createUploadSection(containerId, docs) {
@@ -487,7 +495,8 @@
         document.querySelectorAll('.nextBtn').forEach(btn => {
             btn.addEventListener('click', () => {
                 let valid = true;
-                if (currentStep === 2) valid = validateStep2();
+                if (currentStep === 1) valid = validateStep1();
+                else if (currentStep === 2) valid = validateStep2();
                 else if (currentStep === 3) valid = validateStep3();
                 else if (currentStep === 4) valid = validateStep4();
                 if (valid && currentStep < 5) { currentStep++; updateSteps(); }
