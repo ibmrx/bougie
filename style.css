@@ -1,0 +1,35 @@
+:root {
+    --primary: #dcdad5;
+    --secondary: #f4eddb;
+    --dark: #2c2c2c;
+    --white: #ffffff;
+}
+
+body {
+    background-color: var(--secondary);
+    color: var(--dark);
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-primary {
+    background-color: var(--dark);
+    color: var(--white);
+    padding: 12px 24px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    background-color: #404040;
+}
+
+.card {
+    background: var(--white);
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.step-hidden { display: none; }
