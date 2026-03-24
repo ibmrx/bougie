@@ -8,7 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/google-drive.js"></script>
     <style>
+        /* Same styles as before */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f4eddb 0%, #e8e0ce 100%); min-height: 100vh; color: #2c2b28; }
         .header { background-color: #dcdad5; padding: 1rem 5%; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
@@ -71,6 +73,7 @@
         .success-card { background: white; border-radius: 24px; padding: 2rem; text-align: center; max-width: 400px; width: 90%; }
         .success-card i { font-size: 4rem; color: #27ae60; margin-bottom: 1rem; }
         .input-error { border-color: #e74c3c !important; }
+        .google-drive-status { margin: 1rem 0; padding: 0.75rem; border-radius: 8px; background: #faf9f5; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
         @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .payment-options { grid-template-columns: 1fr; } .progress-steps { flex-direction: column; gap: 0.75rem; } .step { display: flex; align-items: center; gap: 1rem; } .step-number { margin: 0; } }
     </style>
 </head>
@@ -111,6 +114,10 @@
         <div id="step3" class="form-card hidden">
             <h2 class="form-title">Document Upload</h2>
             <div class="form-subtitle">PDF or JPG, max 5MB each - Certified documents required</div>
+            
+            <!-- Google Drive Status -->
+            <div id="googleDriveStatus" class="google-drive-status"></div>
+            
             <div id="bachelorDocs"></div>
             <div id="masterDocs" class="hidden"></div>
             <div class="button-group"><button class="btn btn-secondary prevBtn">Previous</button><button class="btn btn-primary nextBtn">Next</button></div>
@@ -143,11 +150,12 @@
     <script>
         // ==================== STATE ====================
         let currentStep = 1;
-        let uploadedDocs = {};
+        let selectedFiles = {};
         let paymentMethod = null;
         let paymentStatus = null;
         let signatureData = null;
         let canvas, ctx, drawing = false;
+        let uploadedFileUrls = {};
 
         // ==================== DOCUMENT REQUIREMENTS ====================
         const bachelorDocs = [
@@ -181,6 +189,26 @@
         chkFinal.addEventListener('change', validateStep1);
         validateStep1();
 
+        // ==================== GOOGLE DRIVE INTEGRATION ====================
+        function updateGoogleDriveStatus() {
+            const statusDiv = document.getElementById('googleDriveStatus');
+            if (statusDiv) {
+                if (window.GoogleDrive && window.GoogleDrive.isSignedIn()) {
+                    statusDiv.innerHTML = `
+                        <i class="fas fa-check-circle" style="color: #27ae60;"></i>
+                        <span>Connected to Google Drive - Your documents will be stored securely</span>
+                        <button onclick="window.GoogleDrive.signOut()" class="btn btn-secondary" style="padding: 0.25rem 0.75rem;">Disconnect</button>
+                    `;
+                } else {
+                    statusDiv.innerHTML = `
+                        <i class="fab fa-google" style="color: #4285F4;"></i>
+                        <span>Connect Google Drive to upload your documents</span>
+                        <button onclick="window.GoogleDrive.signIn()" class="btn btn-primary" style="padding: 0.25rem 0.75rem;">Connect Google Drive</button>
+                    `;
+                }
+            }
+        }
+
         // ==================== DOCUMENT UPLOAD UI ====================
         function createUploadSection(containerId, docs) {
             const container = document.getElementById(containerId);
@@ -210,15 +238,12 @@
                     if (file.size > 5 * 1024 * 1024) { alert('Max 5MB'); input.value = ''; return; }
                     if (!['application/pdf','image/jpeg','image/jpg'].includes(file.type)) { alert('PDF or JPG only'); input.value = ''; return; }
                     
-                    const reader = new FileReader();
-                    reader.onload = function(evt) {
-                        uploadedDocs[docId] = evt.target.result;
-                    };
-                    reader.readAsDataURL(file);
+                    // Store file for later upload
+                    selectedFiles[docId] = file;
                     
                     const fileList = upload.nextElementSibling;
                     fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0,30)}</span><button onclick="removeDoc('${docId}')"><i class="fas fa-trash"></i></button></div>`;
-                    upload.innerHTML = `<i class="fas fa-check-circle"></i><p>Uploaded</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
+                    upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File ready for upload</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
                     const newInput = upload.querySelector('input');
                     if (newInput) newInput.setAttribute('data-attached', 'true');
                 });
@@ -226,7 +251,8 @@
         }
 
         window.removeDoc = function(docId) {
-            delete uploadedDocs[docId];
+            delete selectedFiles[docId];
+            delete uploadedFileUrls[docId];
             const upload = document.querySelector(`.file-upload[data-id="${docId}"]`);
             if (upload) {
                 upload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i><p>Click to upload</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
@@ -291,8 +317,13 @@
         function validateStep3() {
             const degree = document.getElementById('degree').value;
             const required = degree === 'Master' ? masterDocs : bachelorDocs;
-            const missing = required.filter(d => !uploadedDocs[d.id]);
-            if (missing.length) { alert(`Missing: ${missing.map(d=>d.name).join(', ')}`); return false; }
+            const missing = required.filter(d => !selectedFiles[d.id]);
+            if (missing.length) { alert(`Please select files for: ${missing.map(d=>d.name).join(', ')}`); return false; }
+            
+            if (!window.GoogleDrive || !window.GoogleDrive.isSignedIn()) {
+                alert('Please connect to Google Drive first to upload your documents.');
+                return false;
+            }
             return true;
         }
 
@@ -387,6 +418,36 @@
             }
         }
 
+        // ==================== UPLOAD TO GOOGLE DRIVE ====================
+        async function uploadToGoogleDrive(applicationNumber) {
+            const filesToUpload = [];
+            for (const [docId, file] of Object.entries(selectedFiles)) {
+                filesToUpload.push({
+                    file: file,
+                    documentType: docId
+                });
+            }
+            
+            // Also add receipt if uploaded
+            const receiptFile = document.getElementById('receiptFile').files[0];
+            if (receiptFile && paymentStatus === 'paid_pending') {
+                filesToUpload.push({
+                    file: receiptFile,
+                    documentType: 'payment_receipt'
+                });
+            }
+            
+            const results = await window.GoogleDrive.uploadMultiple(
+                filesToUpload,
+                applicationNumber,
+                (completed, total, docType, result) => {
+                    console.log(`Uploaded ${docType}: ${completed}/${total}`);
+                }
+            );
+            
+            return results;
+        }
+
         // ==================== SUBMIT ====================
         document.getElementById('submitBtn').onclick = async () => {
             if (!validateStep5()) return;
@@ -395,49 +456,67 @@
             const now = new Date();
             const deadline = new Date(now.getTime() + 3*24*60*60*1000);
             
-            const application = {
-                id: Date.now().toString(),
-                application_number: appNumber,
-                first_name: document.getElementById('firstName').value,
-                last_name: document.getElementById('lastName').value,
-                birth_date: document.getElementById('birthDate').value,
-                bac_date: document.getElementById('bacDate').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                year_of_study: document.getElementById('degree').value,
-                courses: document.getElementById('courses').value,
-                destination: 'italy',
-                application_status: 'pending',
-                payment_status: paymentStatus || 'pending',
-                payment_method: paymentMethod,
-                documents: uploadedDocs,
-                signature: signatureData,
-                created_at: now.toISOString(),
-                payment_deadline: deadline.toISOString()
-            };
+            // Show loading state
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading documents...';
             
-            let applications = JSON.parse(localStorage.getItem('bougie_applications') || '[]');
-            applications.push(application);
-            localStorage.setItem('bougie_applications', JSON.stringify(applications));
-            
-            const emailHtml = `
-                <!DOCTYPE html><html><body style="font-family:Arial;padding:20px">
-                <h2>Application Confirmation - Italy</h2>
-                <p>Dear ${application.first_name} ${application.last_name},</p>
-                <p>Your application has been submitted successfully.</p>
-                <p><strong>Application Number:</strong> ${appNumber}</p>
-                <p><strong>Destination:</strong> Italy</p>
-                <p><strong>Payment Deadline:</strong> ${deadline.toLocaleDateString()}</p>
-                <p>You have 3 days to complete payment.</p>
-                <p>Check status: <a href="https://bougie-immigration.com/status.html">Status Page</a></p>
-                <p>Thank you,<br>Bougie Immigration Team</p>
-                </body></html>
-            `;
-            
-            await sendEmail(application.email, 'Application Confirmation - Bougie Immigration', emailHtml);
-            
-            document.getElementById('successAppNumber').innerHTML = `<strong>Application Number: ${appNumber}</strong>`;
-            document.getElementById('successModal').style.display = 'flex';
+            try {
+                // Upload files to Google Drive
+                const uploadResults = await uploadToGoogleDrive(appNumber);
+                
+                const application = {
+                    id: Date.now().toString(),
+                    application_number: appNumber,
+                    first_name: document.getElementById('firstName').value,
+                    last_name: document.getElementById('lastName').value,
+                    birth_date: document.getElementById('birthDate').value,
+                    bac_date: document.getElementById('bacDate').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    year_of_study: document.getElementById('degree').value,
+                    courses: document.getElementById('courses').value,
+                    destination: 'italy',
+                    application_status: 'pending',
+                    payment_status: paymentStatus || 'pending',
+                    payment_method: paymentMethod,
+                    documents: uploadResults,
+                    signature: signatureData,
+                    created_at: now.toISOString(),
+                    payment_deadline: deadline.toISOString()
+                };
+                
+                // Save to localStorage
+                let applications = JSON.parse(localStorage.getItem('bougie_applications') || '[]');
+                applications.push(application);
+                localStorage.setItem('bougie_applications', JSON.stringify(applications));
+                
+                // Send confirmation email
+                const emailHtml = `
+                    <!DOCTYPE html><html><body style="font-family:Arial;padding:20px">
+                    <h2>Application Confirmation - Italy</h2>
+                    <p>Dear ${application.first_name} ${application.last_name},</p>
+                    <p>Your application has been submitted successfully.</p>
+                    <p><strong>Application Number:</strong> ${appNumber}</p>
+                    <p><strong>Destination:</strong> Italy</p>
+                    <p><strong>Payment Deadline:</strong> ${deadline.toLocaleDateString()}</p>
+                    <p>You have 3 days to complete payment.</p>
+                    <p>Check status: <a href="status.html">Status Page</a></p>
+                    <p>Thank you,<br>Bougie Immigration Team</p>
+                    </body></html>
+                `;
+                
+                await sendEmail(application.email, 'Application Confirmation - Bougie Immigration', emailHtml);
+                
+                document.getElementById('successAppNumber').innerHTML = `<strong>Application Number: ${appNumber}</strong>`;
+                document.getElementById('successModal').style.display = 'flex';
+                
+            } catch (error) {
+                console.error('Submission error:', error);
+                alert('Failed to upload documents to Google Drive. Please make sure you are connected and try again.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Submit Application';
+            }
         };
         
         document.getElementById('successOkBtn').onclick = () => window.location.href = 'index.html';
@@ -446,6 +525,20 @@
         createUploadSection('bachelorDocs', bachelorDocs);
         initCanvas();
         updateSteps();
+        
+        // Setup Google Drive status update
+        window.onGoogleDriveSignIn = function(signedIn) {
+            updateGoogleDriveStatus();
+        };
+        
+        // Check Google Drive status periodically
+        setInterval(() => {
+            if (window.GoogleDrive) {
+                updateGoogleDriveStatus();
+            }
+        }, 1000);
+        
+        updateGoogleDriveStatus();
     </script>
 </body>
 </html>
