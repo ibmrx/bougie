@@ -1,17 +1,51 @@
 /**
  * Bougie Immigration - Application Status Lookup
- * Allows users to check their application status using application number
+ * Connects to Supabase database to fetch real application data
  */
 
-// Status lookup state
-let statusState = {
-    currentApplication: null,
-    isLoading: false,
-    lastSearch: null
+// Supabase configuration
+const SUPABASE_URL = 'https://qpprzcckolmdyabnmgol.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwcHJ6Y2Nrb2xtZHlhYm5tZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjA5MTYsImV4cCI6MjA4OTkzNjkxNn0.Pp9fTdklyomxmG6wsb8FBzyhLXaXEx983ofdaiPG_So';
+
+let supabase = null;
+let currentApplication = null;
+let isLoading = false;
+
+// DOM Elements
+const elements = {
+    applicationNumber: null,
+    searchBtn: null,
+    loading: null,
+    errorMessage: null,
+    errorText: null,
+    resultContainer: null,
+    statusBadge: null,
+    statusText: null,
+    fullName: null,
+    birthDate: null,
+    email: null,
+    phone: null,
+    destination: null,
+    applyingDegree: null,
+    bacDate: null,
+    appNumber: null,
+    timelineItems: null
 };
 
-// DOM Elements cache
-let statusElements = {};
+/**
+ * Initialize Supabase client
+ */
+function initSupabase() {
+    if (typeof window.supabase !== 'undefined') {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else if (typeof supabaseJs !== 'undefined') {
+        supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else {
+        console.error('Supabase library not loaded');
+        return null;
+    }
+    return supabase;
+}
 
 /**
  * Initialize status lookup page
@@ -19,12 +53,13 @@ let statusElements = {};
 function initStatusLookup() {
     cacheElements();
     setupEventListeners();
+    initSupabase();
     
     // Check if there's an application number in URL query parameter
     const urlParams = new URLSearchParams(window.location.search);
     const appNumber = urlParams.get('app');
-    if (appNumber) {
-        document.getElementById('applicationNumber').value = appNumber;
+    if (appNumber && elements.applicationNumber) {
+        elements.applicationNumber.value = appNumber;
         searchApplication();
     }
 }
@@ -33,44 +68,42 @@ function initStatusLookup() {
  * Cache DOM elements
  */
 function cacheElements() {
-    statusElements = {
-        applicationNumber: document.getElementById('applicationNumber'),
-        searchBtn: document.getElementById('searchBtn'),
-        loading: document.getElementById('loading'),
-        errorMessage: document.getElementById('errorMessage'),
-        errorText: document.getElementById('errorText'),
-        resultContainer: document.getElementById('resultContainer'),
-        statusBadge: document.getElementById('statusBadge'),
-        statusText: document.getElementById('statusText'),
-        fullName: document.getElementById('fullName'),
-        birthDate: document.getElementById('birthDate'),
-        email: document.getElementById('email'),
-        phone: document.getElementById('phone'),
-        destination: document.getElementById('destination'),
-        yearOfStudies: document.getElementById('yearOfStudies'),
-        bacDate: document.getElementById('bacDate'),
-        appNumber: document.getElementById('appNumber'),
-        timelineItems: document.getElementById('timelineItems')
-    };
+    elements.applicationNumber = document.getElementById('applicationNumber');
+    elements.searchBtn = document.getElementById('searchBtn');
+    elements.loading = document.getElementById('loading');
+    elements.errorMessage = document.getElementById('errorMessage');
+    elements.errorText = document.getElementById('errorText');
+    elements.resultContainer = document.getElementById('resultContainer');
+    elements.statusBadge = document.getElementById('statusBadge');
+    elements.statusText = document.getElementById('statusText');
+    elements.fullName = document.getElementById('fullName');
+    elements.birthDate = document.getElementById('birthDate');
+    elements.email = document.getElementById('email');
+    elements.phone = document.getElementById('phone');
+    elements.destination = document.getElementById('destination');
+    elements.applyingDegree = document.getElementById('applyingDegree');
+    elements.bacDate = document.getElementById('bacDate');
+    elements.appNumber = document.getElementById('appNumber');
+    elements.timelineItems = document.getElementById('timelineItems');
 }
 
 /**
  * Setup event listeners
  */
 function setupEventListeners() {
-    if (statusElements.searchBtn) {
-        statusElements.searchBtn.addEventListener('click', searchApplication);
+    if (elements.searchBtn) {
+        elements.searchBtn.addEventListener('click', searchApplication);
     }
     
-    if (statusElements.applicationNumber) {
-        statusElements.applicationNumber.addEventListener('keypress', (e) => {
+    if (elements.applicationNumber) {
+        elements.applicationNumber.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 searchApplication();
             }
         });
         
         // Auto uppercase
-        statusElements.applicationNumber.addEventListener('input', (e) => {
+        elements.applicationNumber.addEventListener('input', (e) => {
             e.target.value = e.target.value.toUpperCase();
         });
     }
@@ -80,188 +113,81 @@ function setupEventListeners() {
  * Search for application by number
  */
 async function searchApplication() {
-    const appNumber = statusElements.applicationNumber?.value.trim().toUpperCase();
+    const appNumber = elements.applicationNumber?.value.trim().toUpperCase();
     
     if (!appNumber) {
         showError('Please enter an application number.');
         return;
     }
     
-    if (statusState.isLoading) return;
+    if (isLoading) return;
+    isLoading = true;
     
-    statusState.lastSearch = appNumber;
-    statusState.isLoading = true;
-    
-    // Show loading, hide previous results
     showLoading(true);
     hideResult();
     hideError();
     
     try {
-        // In production, this would fetch from Supabase
-        // const supabase = window.SupabaseClient?.getClient();
-        // let application = null;
-        // if (supabase) {
-        //     const { data, error } = await supabase
-        //         .from('applications')
-        //         .select('*')
-        //         .eq('application_number', appNumber)
-        //         .single();
-        //     if (!error) application = data;
-        // }
+        const client = initSupabase();
+        if (!client) {
+            throw new Error('Database connection failed');
+        }
         
-        // Demo data for now
-        const application = getDemoApplication(appNumber);
+        const { data, error } = await client
+            .from('applications')
+            .select('*')
+            .eq('application_number', appNumber)
+            .single();
         
-        if (application) {
-            displayApplication(application);
-            statusState.currentApplication = application;
-        } else {
+        if (error || !data) {
             showError(`Application number "${appNumber}" not found. Please check and try again.`);
+        } else {
+            displayApplication(data);
+            currentApplication = data;
         }
         
     } catch (error) {
         console.error('Error searching application:', error);
-        showError('An error occurred while searching. Please try again later.');
+        showError('Unable to connect to the database. Please try again later or contact support.');
     } finally {
-        statusState.isLoading = false;
+        isLoading = false;
         showLoading(false);
     }
 }
 
 /**
- * Get demo application data
- * @param {string} appNumber - Application number
- * @returns {Object|null} Application data or null if not found
- */
-function getDemoApplication(appNumber) {
-    const demoApplications = {
-        'IT-2024-A3B5C7': {
-            fullName: 'Ahmed Benali',
-            firstName: 'Ahmed',
-            lastName: 'Benali',
-            birthDate: '1998-05-15',
-            email: 'ahmed.benali@example.com',
-            phone: '+213 55 12 34 567',
-            destination: 'Italy',
-            yearOfStudies: 'Master',
-            bacDate: '2016-06',
-            applicationNumber: 'IT-2024-A3B5C7',
-            status: 'approved',
-            statusText: 'Approved',
-            submittedDate: '2024-01-15',
-            decisionDate: '2024-02-10',
-            paymentStatus: 'paid',
-            notes: 'Application approved. Visa appointment scheduled for March 2024.'
-        },
-        'IT-2024-D9E2F1': {
-            fullName: 'Fatima Zohra',
-            firstName: 'Fatima',
-            lastName: 'Zohra',
-            birthDate: '2000-03-22',
-            email: 'fatima.zohra@example.com',
-            phone: '+213 77 98 76 543',
-            destination: 'Italy',
-            yearOfStudies: 'Bachelor',
-            bacDate: '2018-06',
-            applicationNumber: 'IT-2024-D9E2F1',
-            status: 'pending',
-            statusText: 'Under Review',
-            submittedDate: '2024-02-20',
-            decisionDate: null,
-            paymentStatus: 'pending',
-            notes: 'Application received. Awaiting document verification.'
-        },
-        'CF-2024-G4H6I8': {
-            fullName: 'Karim Mansouri',
-            firstName: 'Karim',
-            lastName: 'Mansouri',
-            birthDate: '1999-11-10',
-            email: 'karim.mansouri@example.com',
-            phone: '+213 66 45 67 890',
-            destination: 'Campus France',
-            yearOfStudies: 'Master',
-            bacDate: '2017-06',
-            applicationNumber: 'CF-2024-G4H6I8',
-            status: 'rejected',
-            statusText: 'Rejected',
-            submittedDate: '2024-01-05',
-            decisionDate: '2024-01-28',
-            paymentStatus: 'paid',
-            notes: 'TCF score below minimum requirement. Please retake the test and submit new scores.'
-        },
-        'IT-2024-H7J9K1': {
-            fullName: 'Sofia Benyahia',
-            firstName: 'Sofia',
-            lastName: 'Benyahia',
-            birthDate: '2001-08-14',
-            email: 'sofia.benyahia@example.com',
-            phone: '+213 55 98 76 543',
-            destination: 'Italy',
-            yearOfStudies: 'Bachelor',
-            bacDate: '2019-06',
-            applicationNumber: 'IT-2024-H7J9K1',
-            status: 'pending',
-            statusText: 'Under Review',
-            submittedDate: '2024-02-25',
-            decisionDate: null,
-            paymentStatus: 'pending',
-            notes: 'Payment pending. 3 days remaining to complete payment.'
-        },
-        'CF-2024-L2M4N6': {
-            fullName: 'Yacine Boudiaf',
-            firstName: 'Yacine',
-            lastName: 'Boudiaf',
-            birthDate: '1997-02-28',
-            email: 'yacine.boudiaf@example.com',
-            phone: '+213 77 12 34 567',
-            destination: 'Campus France',
-            yearOfStudies: 'Master',
-            bacDate: '2015-06',
-            applicationNumber: 'CF-2024-L2M4N6',
-            status: 'approved',
-            statusText: 'Approved',
-            submittedDate: '2024-01-20',
-            decisionDate: '2024-02-15',
-            paymentStatus: 'paid',
-            notes: 'Application approved. Visa application process will begin shortly.'
-        }
-    };
-    
-    return demoApplications[appNumber] || null;
-}
-
-/**
  * Display application information
- * @param {Object} application - Application data
+ * @param {Object} application - Application data from database
  */
 function displayApplication(application) {
     // Set status badge
-    const statusClass = getStatusClass(application.status);
-    const statusIcon = getStatusIcon(application.status);
-    const statusText = getStatusText(application.status);
+    const statusClass = getStatusClass(application.application_status);
+    const statusIcon = getStatusIcon(application.application_status);
+    const statusText = getStatusText(application.application_status);
     
-    if (statusElements.statusBadge) {
-        statusElements.statusBadge.className = `status-badge ${statusClass}`;
-        statusElements.statusBadge.innerHTML = `<i class="fas ${statusIcon}"></i><span>${statusText}</span>`;
+    if (elements.statusBadge) {
+        elements.statusBadge.className = `status-badge ${statusClass}`;
+        elements.statusBadge.innerHTML = `<i class="fas ${statusIcon}"></i><span>${statusText}</span>`;
     }
     
     // Set personal information
-    if (statusElements.fullName) statusElements.fullName.textContent = application.fullName;
-    if (statusElements.birthDate) statusElements.birthDate.textContent = formatDate(application.birthDate);
-    if (statusElements.email) statusElements.email.textContent = application.email;
-    if (statusElements.phone) statusElements.phone.textContent = application.phone;
-    if (statusElements.destination) statusElements.destination.textContent = application.destination;
-    if (statusElements.yearOfStudies) statusElements.yearOfStudies.textContent = application.yearOfStudies;
-    if (statusElements.bacDate) statusElements.bacDate.textContent = formatMonthYear(application.bacDate);
-    if (statusElements.appNumber) statusElements.appNumber.textContent = application.applicationNumber;
+    if (elements.fullName) {
+        elements.fullName.textContent = `${application.first_name || ''} ${application.last_name || ''}`.trim() || 'Not provided';
+    }
+    if (elements.birthDate) elements.birthDate.textContent = formatDate(application.birth_date);
+    if (elements.email) elements.email.textContent = application.email || 'Not provided';
+    if (elements.phone) elements.phone.textContent = application.phone || 'Not provided';
+    if (elements.destination) elements.destination.textContent = getDestinationDisplay(application.destination);
+    if (elements.applyingDegree) elements.applyingDegree.textContent = application.year_of_study || 'Not specified';
+    if (elements.bacDate) elements.bacDate.textContent = formatMonthYear(application.bac_date);
+    if (elements.appNumber) elements.appNumber.textContent = application.application_number;
     
     // Build and display timeline
     buildTimeline(application);
     
     // Show result container with animation
-    if (statusElements.resultContainer) {
-        statusElements.resultContainer.classList.add('show');
+    if (elements.resultContainer) {
+        elements.resultContainer.classList.add('show');
     }
 }
 
@@ -270,79 +196,64 @@ function displayApplication(application) {
  * @param {Object} application - Application data
  */
 function buildTimeline(application) {
-    if (!statusElements.timelineItems) return;
+    if (!elements.timelineItems) return;
     
     const timelineItems = [];
     
     // Submission
     timelineItems.push({
         title: 'Application Submitted',
-        date: application.submittedDate,
+        date: application.created_at || application.submitted_at,
         icon: 'fa-file-alt',
-        description: `Your application was successfully submitted on ${formatDate(application.submittedDate)}`
+        description: `Your application was successfully submitted on ${formatDate(application.created_at || application.submitted_at)}`
     });
     
-    // Payment verification
-    if (application.paymentStatus === 'paid') {
+    // Payment status
+    if (application.payment_status === 'paid') {
         timelineItems.push({
             title: 'Payment Received',
-            date: application.submittedDate ? addDays(application.submittedDate, 1) : null,
+            date: application.payment_date || application.updated_at,
             icon: 'fa-credit-card',
             description: 'Payment has been verified and received.'
         });
-    } else if (application.paymentStatus === 'pending') {
-        const deadline = application.submittedDate ? addDays(application.submittedDate, 3) : null;
+    } else if (application.payment_status === 'pending') {
         timelineItems.push({
             title: 'Payment Pending',
-            date: deadline,
+            date: application.payment_deadline,
             icon: 'fa-clock',
-            description: `Payment required within 3 days of submission. Deadline: ${deadline ? formatDate(deadline) : 'N/A'}`
-        });
-    }
-    
-    // Document verification (if applicable)
-    if (application.status !== 'pending') {
-        timelineItems.push({
-            title: 'Document Verification',
-            date: application.decisionDate ? addDays(application.decisionDate, -5) : null,
-            icon: 'fa-file-alt',
-            description: 'Documents have been reviewed by our team.'
+            description: `Payment required within 3 days of submission. Deadline: ${formatDate(application.payment_deadline)}`
         });
     }
     
     // Decision
-    if (application.status === 'approved') {
+    if (application.application_status === 'approved') {
         timelineItems.push({
             title: 'Application Approved',
-            date: application.decisionDate,
+            date: application.decision_date,
             icon: 'fa-check-circle',
             description: 'Congratulations! Your application has been approved.'
         });
-        
         timelineItems.push({
             title: 'Next Steps',
             date: null,
             icon: 'fa-arrow-right',
             description: 'Visa application process will begin. You will receive further instructions via email.'
         });
-        
-    } else if (application.status === 'rejected') {
+    } else if (application.application_status === 'rejected') {
         timelineItems.push({
             title: 'Application Rejected',
-            date: application.decisionDate,
+            date: application.decision_date,
             icon: 'fa-times-circle',
             description: 'We regret to inform you that your application was not approved.'
         });
-        
-        if (application.notes) {
+        if (application.admin_notes) {
             timelineItems.push({
-                title: 'Reason for Rejection',
+                title: 'Reason for Decision',
                 date: null,
                 icon: 'fa-info-circle',
-                description: application.notes
+                description: application.admin_notes
             });
         }
-        
     } else {
         timelineItems.push({
             title: 'Under Review',
@@ -353,7 +264,7 @@ function buildTimeline(application) {
     }
     
     // Render timeline
-    statusElements.timelineItems.innerHTML = '';
+    elements.timelineItems.innerHTML = '';
     
     timelineItems.forEach((item, index) => {
         const timelineDiv = document.createElement('div');
@@ -369,37 +280,8 @@ function buildTimeline(application) {
                 <div class="timeline-description">${escapeHtml(item.description)}</div>
             </div>
         `;
-        statusElements.timelineItems.appendChild(timelineDiv);
+        elements.timelineItems.appendChild(timelineDiv);
     });
-    
-    // Add additional notes if available and not already shown
-    if (application.notes && application.status !== 'rejected') {
-        const notesDiv = document.createElement('div');
-        notesDiv.className = 'timeline-item';
-        notesDiv.style.backgroundColor = '#fef5e7';
-        notesDiv.innerHTML = `
-            <div class="timeline-icon">
-                <i class="fas fa-sticky-note"></i>
-            </div>
-            <div class="timeline-content">
-                <div class="timeline-title">Additional Information</div>
-                <div class="timeline-description">${escapeHtml(application.notes)}</div>
-            </div>
-        `;
-        statusElements.timelineItems.appendChild(notesDiv);
-    }
-}
-
-/**
- * Add days to a date string
- * @param {string} dateString - Date string
- * @param {number} days - Days to add
- * @returns {string} New date string
- */
-function addDays(dateString, days) {
-    const date = new Date(dateString);
-    date.setDate(date.getDate() + days);
-    return date.toISOString().split('T')[0];
 }
 
 /**
@@ -442,8 +324,19 @@ function getStatusText(status) {
 }
 
 /**
+ * Get destination display name
+ * @param {string} destination - Destination code
+ * @returns {string} Display name
+ */
+function getDestinationDisplay(destination) {
+    if (destination === 'italy') return 'Italy';
+    if (destination === 'campus_france') return 'Campus France';
+    return destination || 'Not specified';
+}
+
+/**
  * Format date for display
- * @param {string} dateString - Date string (YYYY-MM-DD)
+ * @param {string} dateString - Date string
  * @returns {string} Formatted date
  */
 function formatDate(dateString) {
@@ -486,8 +379,8 @@ function formatMonthYear(dateString) {
  * @param {boolean} show - Show/hide loading
  */
 function showLoading(show) {
-    if (statusElements.loading) {
-        statusElements.loading.classList.toggle('show', show);
+    if (elements.loading) {
+        elements.loading.classList.toggle('show', show);
     }
 }
 
@@ -495,8 +388,8 @@ function showLoading(show) {
  * Hide result container
  */
 function hideResult() {
-    if (statusElements.resultContainer) {
-        statusElements.resultContainer.classList.remove('show');
+    if (elements.resultContainer) {
+        elements.resultContainer.classList.remove('show');
     }
 }
 
@@ -505,9 +398,9 @@ function hideResult() {
  * @param {string} message - Error message
  */
 function showError(message) {
-    if (statusElements.errorMessage && statusElements.errorText) {
-        statusElements.errorText.textContent = message;
-        statusElements.errorMessage.classList.add('show');
+    if (elements.errorMessage && elements.errorText) {
+        elements.errorText.textContent = message;
+        elements.errorMessage.classList.add('show');
     }
 }
 
@@ -515,8 +408,8 @@ function showError(message) {
  * Hide error message
  */
 function hideError() {
-    if (statusElements.errorMessage) {
-        statusElements.errorMessage.classList.remove('show');
+    if (elements.errorMessage) {
+        elements.errorMessage.classList.remove('show');
     }
 }
 
@@ -533,38 +426,6 @@ function escapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
-}
-
-/**
- * Share application status (optional feature)
- * @param {string} appNumber - Application number
- */
-function shareStatus(appNumber) {
-    const url = `${window.location.origin}${window.location.pathname}?app=${appNumber}`;
-    
-    if (navigator.share) {
-        navigator.share({
-            title: 'Application Status - Bougie Immigration',
-            text: `Check my application status for Bougie Immigration. Application: ${appNumber}`,
-            url: url
-        }).catch(console.error);
-    } else {
-        // Fallback - copy to clipboard
-        navigator.clipboard.writeText(url).then(() => {
-            showNotification('Link copied to clipboard!');
-        }).catch(() => {
-            alert(`Share this link: ${url}`);
-        });
-    }
-}
-
-/**
- * Show notification (optional feature)
- * @param {string} message - Notification message
- */
-function showNotification(message) {
-    // Simple alert for now, could be enhanced
-    console.log(message);
 }
 
 // Initialize when DOM is ready
