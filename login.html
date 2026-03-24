@@ -26,7 +26,6 @@
             position: relative;
         }
 
-        /* Background Pattern */
         body::before {
             content: '';
             position: absolute;
@@ -46,7 +45,6 @@
             z-index: 1;
         }
 
-        /* Logo Section */
         .logo-section {
             text-align: center;
             margin-bottom: 2rem;
@@ -81,7 +79,6 @@
             font-size: 0.875rem;
         }
 
-        /* Login Card */
         .login-card {
             background: #ffffff;
             border-radius: 32px;
@@ -122,7 +119,6 @@
             color: #9b8e6e;
         }
 
-        /* Form Styles */
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -169,7 +165,6 @@
             color: #c0bcb4;
         }
 
-        /* Password Toggle */
         .password-toggle {
             position: absolute;
             right: 1rem;
@@ -187,41 +182,6 @@
             color: #2c2b28;
         }
 
-        /* Remember Me */
-        .remember-forgot {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            font-size: 0.875rem;
-        }
-
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
-            color: #6b6a66;
-        }
-
-        .checkbox-label input {
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-            accent-color: #9b8e6e;
-        }
-
-        .forgot-link {
-            color: #9b8e6e;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .forgot-link:hover {
-            color: #2c2b28;
-        }
-
-        /* Login Button */
         .login-btn {
             width: 100%;
             padding: 0.875rem;
@@ -240,17 +200,17 @@
             margin-bottom: 1.5rem;
         }
 
-        .login-btn:hover {
+        .login-btn:hover:not(:disabled) {
             background-color: #4a4945;
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
-        .login-btn:active {
-            transform: translateY(0);
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
-        /* Back Link */
         .back-link {
             text-align: center;
             margin-top: 1.5rem;
@@ -270,7 +230,6 @@
             color: #2c2b28;
         }
 
-        /* Error Message */
         .error-message {
             background-color: #fee;
             border-left: 4px solid #e74c3c;
@@ -292,7 +251,6 @@
             font-size: 1rem;
         }
 
-        /* Loading State */
         .login-btn.loading {
             pointer-events: none;
             opacity: 0.7;
@@ -311,7 +269,6 @@
             }
         }
 
-        /* Security Notice */
         .security-notice {
             margin-top: 1.5rem;
             padding-top: 1.5rem;
@@ -328,46 +285,6 @@
             font-size: 0.875rem;
         }
 
-        /* Demo Credentials */
-        .demo-credentials {
-            background-color: #f4eddb;
-            border-radius: 16px;
-            padding: 1rem;
-            margin-top: 1rem;
-            text-align: center;
-        }
-
-        .demo-credentials p {
-            font-size: 0.75rem;
-            color: #6b6a66;
-            margin-bottom: 0.5rem;
-        }
-
-        .credential-box {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .credential {
-            background-color: #ffffff;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-family: monospace;
-            font-size: 0.8rem;
-            color: #2c2b28;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .credential i {
-            color: #9b8e6e;
-            font-size: 0.7rem;
-        }
-
-        /* Responsive */
         @media (max-width: 480px) {
             .login-card {
                 padding: 1.5rem;
@@ -431,14 +348,6 @@
                     </div>
                 </div>
 
-                <div class="remember-forgot">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="rememberMe">
-                        <span>Remember me</span>
-                    </label>
-                    <a href="#" class="forgot-link" id="forgotPassword">Forgot password?</a>
-                </div>
-
                 <button type="submit" class="login-btn" id="loginBtn">
                     <i class="fas fa-sign-in-alt"></i>
                     <span>Login to Dashboard</span>
@@ -452,14 +361,6 @@
                 </a>
             </div>
 
-            <div class="demo-credentials">
-                <p><i class="fas fa-info-circle"></i> Demo Credentials (for testing)</p>
-                <div class="credential-box">
-                    <div class="credential"><i class="fas fa-user"></i> admin</div>
-                    <div class="credential"><i class="fas fa-key"></i> password123</div>
-                </div>
-            </div>
-
             <div class="security-notice">
                 <i class="fas fa-shield-alt"></i>
                 <span>Secure login • Access restricted to authorized personnel</span>
@@ -467,8 +368,26 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Get DOM elements
+        // Supabase configuration
+        const SUPABASE_URL = 'https://qpprzcckolmdyabnmgol.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwcHJ6Y2Nrb2xtZHlhYm5tZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjA5MTYsImV4cCI6MjA4OTkzNjkxNn0.Pp9fTdklyomxmG6wsb8FBzyhLXaXEx983ofdaiPG_So';
+        
+        let supabase = null;
+        let isSubmitting = false;
+
+        // Initialize Supabase
+        function initSupabase() {
+            if (typeof window.supabase !== 'undefined') {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } else if (typeof supabaseJs !== 'undefined') {
+                supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+            return supabase;
+        }
+
+        // DOM Elements
         const loginForm = document.getElementById('loginForm');
         const usernameInput = document.getElementById('username');
         const passwordInput = document.getElementById('password');
@@ -476,75 +395,19 @@
         const errorMessage = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
         const togglePassword = document.getElementById('togglePassword');
-        const rememberCheckbox = document.getElementById('rememberMe');
-        const forgotLink = document.getElementById('forgotPassword');
 
-        // Admin credentials (in production, this would be verified against a secure database)
-        const ADMIN_CREDENTIALS = {
-            username: 'admin',
-            password: 'password123'
-        };
-
-        // Check for saved credentials on page load
-        function loadSavedCredentials() {
-            const savedUsername = localStorage.getItem('admin_username');
-            const savedPassword = localStorage.getItem('admin_password');
-            const rememberMe = localStorage.getItem('admin_remember') === 'true';
-            
-            if (rememberMe && savedUsername) {
-                usernameInput.value = savedUsername;
-                if (savedPassword) {
-                    passwordInput.value = savedPassword;
-                }
-                rememberCheckbox.checked = true;
-            }
-        }
-
-        // Save credentials if "Remember me" is checked
-        function saveCredentials(username, password) {
-            if (rememberCheckbox.checked) {
-                localStorage.setItem('admin_username', username);
-                localStorage.setItem('admin_password', password);
-                localStorage.setItem('admin_remember', 'true');
-            } else {
-                localStorage.removeItem('admin_username');
-                localStorage.removeItem('admin_password');
-                localStorage.setItem('admin_remember', 'false');
-            }
-        }
-
-        // Clear any stored session (for logout)
-        function clearSession() {
-            // This would be called from admin.html logout
-            sessionStorage.removeItem('admin_logged_in');
-        }
-
-        // Check if user is already logged in (session)
-        function checkExistingSession() {
-            const loggedIn = sessionStorage.getItem('admin_logged_in');
-            if (loggedIn === 'true') {
-                // Redirect to admin dashboard
-                window.location.href = 'admin.html';
-            }
-        }
-
-        // Show error message
         function showError(message) {
             errorText.textContent = message;
             errorMessage.classList.add('show');
-            
-            // Auto-hide after 3 seconds
             setTimeout(() => {
                 errorMessage.classList.remove('show');
-            }, 3000);
+            }, 4000);
         }
 
-        // Hide error message
         function hideError() {
             errorMessage.classList.remove('show');
         }
 
-        // Set loading state
         function setLoading(isLoading) {
             if (isLoading) {
                 loginBtn.classList.add('loading');
@@ -557,10 +420,9 @@
             }
         }
 
-        // Validate form inputs
         function validateInputs() {
             const username = usernameInput.value.trim();
-            const password = passwordInput.value.trim();
+            const password = passwordInput.value;
             
             if (!username) {
                 showError('Please enter your username');
@@ -577,7 +439,6 @@
             return true;
         }
 
-        // Handle login
         async function handleLogin(event) {
             event.preventDefault();
             
@@ -587,138 +448,97 @@
                 return;
             }
             
+            if (isSubmitting) return;
+            isSubmitting = true;
+            
             setLoading(true);
             
-            // Simulate network delay for realistic experience
-            setTimeout(() => {
-                const username = usernameInput.value.trim();
-                const password = passwordInput.value;
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+            
+            try {
+                const client = initSupabase();
                 
-                // Check credentials
-                if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-                    // Successful login
-                    saveCredentials(username, password);
+                if (client) {
+                    // Query the admin_users table to verify credentials
+                    const { data, error } = await client
+                        .from('admin_users')
+                        .select('id, username, role')
+                        .eq('username', username)
+                        .eq('is_active', true)
+                        .single();
                     
-                    // Set session storage to maintain login state
-                    sessionStorage.setItem('admin_logged_in', 'true');
-                    sessionStorage.setItem('admin_username', username);
-                    sessionStorage.setItem('admin_login_time', new Date().toISOString());
-                    
-                    // Redirect to admin dashboard
-                    window.location.href = 'admin.html';
+                    if (error || !data) {
+                        showError('Invalid username or password');
+                        passwordInput.value = '';
+                        passwordInput.focus();
+                    } else {
+                        // Verify password (in production, use proper password verification)
+                        // For now, using a simple check - this should be replaced with proper password hashing
+                        const { data: authData, error: authError } = await client.rpc('verify_admin_password', {
+                            p_username: username,
+                            p_password: password
+                        });
+                        
+                        if (authError || !authData) {
+                            showError('Invalid username or password');
+                            passwordInput.value = '';
+                            passwordInput.focus();
+                        } else {
+                            // Successful login
+                            sessionStorage.setItem('admin_logged_in', 'true');
+                            sessionStorage.setItem('admin_username', username);
+                            sessionStorage.setItem('admin_role', data.role || 'admin');
+                            sessionStorage.setItem('admin_login_time', new Date().toISOString());
+                            
+                            window.location.href = 'admin.html';
+                        }
+                    }
                 } else {
-                    // Failed login
-                    setLoading(false);
-                    showError('Invalid username or password. Please try again.');
-                    
-                    // Clear password field for security
-                    passwordInput.value = '';
-                    passwordInput.focus();
-                    
-                    // Log failed attempt (for security monitoring)
-                    console.warn(`Failed login attempt for username: ${username} at ${new Date().toISOString()}`);
+                    // Fallback for demo - remove in production
+                    showError('Authentication service unavailable. Please contact system administrator.');
                 }
-            }, 800); // 800ms delay for realistic feel
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('Authentication failed. Please try again later.');
+                passwordInput.value = '';
+                passwordInput.focus();
+            } finally {
+                setLoading(false);
+                isSubmitting = false;
+            }
         }
 
-        // Toggle password visibility
         function togglePasswordVisibility() {
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
             togglePassword.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
         }
 
-        // Forgot password handler
-        function handleForgotPassword(event) {
-            event.preventDefault();
-            // In a real implementation, this would trigger a password reset email
-            alert('Please contact the system administrator to reset your password.\n\nDemo credentials: admin / password123');
-        }
-
-        // Prevent multiple rapid submissions
-        let isSubmitting = false;
-        
-        function handleSubmit(event) {
-            if (isSubmitting) return;
-            isSubmitting = true;
-            
-            handleLogin(event).finally(() => {
-                setTimeout(() => {
-                    isSubmitting = false;
-                }, 1000);
-            });
+        // Check if already logged in
+        function checkExistingSession() {
+            const loggedIn = sessionStorage.getItem('admin_logged_in');
+            if (loggedIn === 'true') {
+                window.location.href = 'admin.html';
+            }
         }
 
         // Event Listeners
-        loginForm.addEventListener('submit', handleSubmit);
+        loginForm.addEventListener('submit', handleLogin);
         togglePassword.addEventListener('click', togglePasswordVisibility);
-        forgotLink.addEventListener('click', handleForgotPassword);
         
-        // Clear error when typing
         usernameInput.addEventListener('input', hideError);
         passwordInput.addEventListener('input', hideError);
         
-        // Prevent XSS and injection attempts - sanitize input
+        // Prevent XSS
         usernameInput.addEventListener('input', function(e) {
             this.value = this.value.replace(/[<>]/g, '');
         });
         
-        // Check for existing session on page load
+        // Initialize
+        initSupabase();
         checkExistingSession();
-        
-        // Load saved credentials if any
-        loadSavedCredentials();
-        
-        // Add keypress event for enter key (already handled by form submit)
-        
-        // Add security logging (for demonstration)
-        console.log('Admin login page loaded - Secure area');
-        
-        // Rate limiting simulation (just for demo)
-        let loginAttempts = 0;
-        const maxAttempts = 5;
-        
-        function checkRateLimit() {
-            const now = Date.now();
-            const lastAttempt = sessionStorage.getItem('last_login_attempt');
-            
-            if (lastAttempt && (now - parseInt(lastAttempt)) < 60000) {
-                loginAttempts = parseInt(sessionStorage.getItem('login_attempts') || '0');
-                if (loginAttempts >= maxAttempts) {
-                    showError('Too many login attempts. Please wait 1 minute before trying again.');
-                    loginBtn.disabled = true;
-                    setTimeout(() => {
-                        loginBtn.disabled = false;
-                        loginAttempts = 0;
-                        sessionStorage.setItem('login_attempts', '0');
-                        hideError();
-                    }, 60000);
-                    return false;
-                }
-            } else {
-                loginAttempts = 0;
-                sessionStorage.setItem('login_attempts', '0');
-            }
-            return true;
-        }
-        
-        // Override handleLogin to include rate limiting
-        const originalHandleLogin = handleLogin;
-        window.handleLogin = async function(event) {
-            if (!checkRateLimit()) return;
-            
-            await originalHandleLogin(event);
-            
-            if (usernameInput.value.trim() !== ADMIN_CREDENTIALS.username || 
-                passwordInput.value !== ADMIN_CREDENTIALS.password) {
-                loginAttempts++;
-                sessionStorage.setItem('login_attempts', loginAttempts.toString());
-                sessionStorage.setItem('last_login_attempt', Date.now().toString());
-            }
-        };
-        
-        loginForm.removeEventListener('submit', handleSubmit);
-        loginForm.addEventListener('submit', window.handleLogin);
     </script>
 </body>
 </html>
