@@ -383,6 +383,9 @@
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             } else if (typeof supabaseJs !== 'undefined') {
                 supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } else {
+                console.error('Supabase library not loaded');
+                return null;
             }
             return supabase;
         }
@@ -458,45 +461,37 @@
             
             try {
                 const client = initSupabase();
+                if (!client) {
+                    throw new Error('Database connection failed');
+                }
                 
-                if (client) {
-                    // Query the admin_users table to verify credentials
-                    const { data, error } = await client
-                        .from('admin_users')
-                        .select('id, username, role')
-                        .eq('username', username)
-                        .eq('is_active', true)
-                        .single();
-                    
-                    if (error || !data) {
+                // Query admin_users table
+                const { data, error } = await client
+                    .from('admin_users')
+                    .select('id, username, role, password_hash')
+                    .eq('username', username)
+                    .eq('is_active', true)
+                    .single();
+                
+                if (error || !data) {
+                    showError('Invalid username or password');
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                } else {
+                    // Verify password (direct comparison - in production use proper hashing)
+                    if (data.password_hash === password) {
+                        // Successful login
+                        sessionStorage.setItem('admin_logged_in', 'true');
+                        sessionStorage.setItem('admin_username', username);
+                        sessionStorage.setItem('admin_role', data.role || 'admin');
+                        sessionStorage.setItem('admin_login_time', new Date().toISOString());
+                        
+                        window.location.href = 'admin.html';
+                    } else {
                         showError('Invalid username or password');
                         passwordInput.value = '';
                         passwordInput.focus();
-                    } else {
-                        // Verify password (in production, use proper password verification)
-                        // For now, using a simple check - this should be replaced with proper password hashing
-                        const { data: authData, error: authError } = await client.rpc('verify_admin_password', {
-                            p_username: username,
-                            p_password: password
-                        });
-                        
-                        if (authError || !authData) {
-                            showError('Invalid username or password');
-                            passwordInput.value = '';
-                            passwordInput.focus();
-                        } else {
-                            // Successful login
-                            sessionStorage.setItem('admin_logged_in', 'true');
-                            sessionStorage.setItem('admin_username', username);
-                            sessionStorage.setItem('admin_role', data.role || 'admin');
-                            sessionStorage.setItem('admin_login_time', new Date().toISOString());
-                            
-                            window.location.href = 'admin.html';
-                        }
                     }
-                } else {
-                    // Fallback for demo - remove in production
-                    showError('Authentication service unavailable. Please contact system administrator.');
                 }
                 
             } catch (error) {
@@ -539,6 +534,9 @@
         // Initialize
         initSupabase();
         checkExistingSession();
+        
+        // Add demo credentials hint for testing (remove in production)
+        console.log('Admin login ready. Use credentials from admin_users table.');
     </script>
 </body>
 </html>
