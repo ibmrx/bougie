@@ -568,9 +568,19 @@ function updateDocumentRequirements() {
     const masterDocsDiv = document.getElementById('masterDocs');
     
     if (applyingDegree === 'Master') {
-        if (masterDocsDiv) masterDocsDiv.classList.remove('hidden');
+        if (masterDocsDiv) {
+            masterDocsDiv.classList.remove('hidden');
+            // Create the master document upload boxes
+            const masterDocsList = applicationData.documentRequirements.master;
+            createUploadSection('masterDocs', masterDocsList);
+        }
     } else {
-        if (masterDocsDiv) masterDocsDiv.classList.add('hidden');
+        if (masterDocsDiv) {
+            masterDocsDiv.classList.add('hidden');
+            // Recreate bachelor docs (in case user switches back)
+            const bachelorDocsList = applicationData.documentRequirements.bachelor;
+            createUploadSection('bachelorDocs', bachelorDocsList);
+        }
     }
 }
 
