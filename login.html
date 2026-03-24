@@ -165,23 +165,6 @@
             color: #c0bcb4;
         }
 
-        .password-toggle {
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #9b8e6e;
-            font-size: 1rem;
-            transition: color 0.3s ease;
-        }
-
-        .password-toggle:hover {
-            color: #2c2b28;
-        }
-
         .login-btn {
             width: 100%;
             padding: 0.875rem;
@@ -261,12 +244,8 @@
         }
 
         @keyframes spin {
-            from {
-                transform: rotate(0deg);
-            }
-            to {
-                transform: rotate(360deg);
-            }
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         .security-notice {
@@ -308,7 +287,7 @@
     <div class="login-container">
         <div class="logo-section">
             <div class="logo">
-                <img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Bougie Immigration Logo" onerror="this.src='https://placehold.co/60x60/dcdad5/2c2b28?text=BI'">
+                <img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Bougie Immigration Logo">
                 <div class="logo-text">Bougie <span>Immigration</span></div>
             </div>
             <div class="tagline">Administrative Portal</div>
@@ -342,9 +321,6 @@
                     <div class="input-wrapper">
                         <i class="fas fa-key"></i>
                         <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                        <button type="button" class="password-toggle" id="togglePassword">
-                            <i class="fas fa-eye"></i>
-                        </button>
                     </div>
                 </div>
 
@@ -368,27 +344,10 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Supabase configuration
-        const SUPABASE_URL = 'https://qpprzcckolmdyabnmgol.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwcHJ6Y2Nrb2xtZHlhYm5tZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjA5MTYsImV4cCI6MjA4OTkzNjkxNn0.Pp9fTdklyomxmG6wsb8FBzyhLXaXEx983ofdaiPG_So';
-        
-        let supabase = null;
-        let isSubmitting = false;
-
-        // Initialize Supabase
-        function initSupabase() {
-            if (typeof window.supabase !== 'undefined') {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            } else if (typeof supabaseJs !== 'undefined') {
-                supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            } else {
-                console.error('Supabase library not loaded');
-                return null;
-            }
-            return supabase;
-        }
+        // Hardcoded admin credentials
+        const ADMIN_USERNAME = 'admin';
+        const ADMIN_PASSWORD = 'password123';
 
         // DOM Elements
         const loginForm = document.getElementById('loginForm');
@@ -397,14 +356,15 @@
         const loginBtn = document.getElementById('loginBtn');
         const errorMessage = document.getElementById('errorMessage');
         const errorText = document.getElementById('errorText');
-        const togglePassword = document.getElementById('togglePassword');
+        
+        let isSubmitting = false;
 
         function showError(message) {
             errorText.textContent = message;
             errorMessage.classList.add('show');
             setTimeout(() => {
                 errorMessage.classList.remove('show');
-            }, 4000);
+            }, 3000);
         }
 
         function hideError() {
@@ -414,7 +374,7 @@
         function setLoading(isLoading) {
             if (isLoading) {
                 loginBtn.classList.add('loading');
-                loginBtn.innerHTML = '<i class="fas fa-spinner"></i><span>Verifying...</span>';
+                loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Verifying...</span>';
                 loginBtn.disabled = true;
             } else {
                 loginBtn.classList.remove('loading');
@@ -423,92 +383,49 @@
             }
         }
 
-        function validateInputs() {
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            hideError();
+            
             const username = usernameInput.value.trim();
             const password = passwordInput.value;
             
             if (!username) {
                 showError('Please enter your username');
                 usernameInput.focus();
-                return false;
+                return;
             }
             
             if (!password) {
                 showError('Please enter your password');
                 passwordInput.focus();
-                return false;
-            }
-            
-            return true;
-        }
-
-        async function handleLogin(event) {
-            event.preventDefault();
-            
-            hideError();
-            
-            if (!validateInputs()) {
                 return;
             }
             
             if (isSubmitting) return;
             isSubmitting = true;
-            
             setLoading(true);
             
-            const username = usernameInput.value.trim();
-            const password = passwordInput.value;
-            
-            try {
-                const client = initSupabase();
-                if (!client) {
-                    throw new Error('Database connection failed');
-                }
-                
-                // Query admin_users table
-                const { data, error } = await client
-                    .from('admin_users')
-                    .select('id, username, role, password_hash')
-                    .eq('username', username)
-                    .eq('is_active', true)
-                    .single();
-                
-                if (error || !data) {
+            // Simulate a short delay for realism
+            setTimeout(() => {
+                if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                    // Successful login - store session
+                    sessionStorage.setItem('admin_logged_in', 'true');
+                    sessionStorage.setItem('admin_username', username);
+                    sessionStorage.setItem('admin_login_time', new Date().toISOString());
+                    
+                    // Redirect to admin dashboard
+                    window.location.href = 'admin.html';
+                } else {
+                    // Failed login
                     showError('Invalid username or password');
                     passwordInput.value = '';
                     passwordInput.focus();
-                } else {
-                    // Verify password (direct comparison - in production use proper hashing)
-                    if (data.password_hash === password) {
-                        // Successful login
-                        sessionStorage.setItem('admin_logged_in', 'true');
-                        sessionStorage.setItem('admin_username', username);
-                        sessionStorage.setItem('admin_role', data.role || 'admin');
-                        sessionStorage.setItem('admin_login_time', new Date().toISOString());
-                        
-                        window.location.href = 'admin.html';
-                    } else {
-                        showError('Invalid username or password');
-                        passwordInput.value = '';
-                        passwordInput.focus();
-                    }
+                    setLoading(false);
+                    isSubmitting = false;
                 }
-                
-            } catch (error) {
-                console.error('Login error:', error);
-                showError('Authentication failed. Please try again later.');
-                passwordInput.value = '';
-                passwordInput.focus();
-            } finally {
-                setLoading(false);
-                isSubmitting = false;
-            }
-        }
-
-        function togglePasswordVisibility() {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            togglePassword.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+            }, 500);
         }
 
         // Check if already logged in
@@ -519,24 +436,20 @@
             }
         }
 
-        // Event Listeners
-        loginForm.addEventListener('submit', handleLogin);
-        togglePassword.addEventListener('click', togglePasswordVisibility);
-        
+        // Clear error when typing
         usernameInput.addEventListener('input', hideError);
         passwordInput.addEventListener('input', hideError);
         
-        // Prevent XSS
+        // Prevent XSS - sanitize input
         usernameInput.addEventListener('input', function(e) {
             this.value = this.value.replace(/[<>]/g, '');
         });
         
-        // Initialize
-        initSupabase();
-        checkExistingSession();
+        // Form submit
+        loginForm.addEventListener('submit', handleLogin);
         
-        // Add demo credentials hint for testing (remove in production)
-        console.log('Admin login ready. Use credentials from admin_users table.');
+        // Check existing session on page load
+        checkExistingSession();
     </script>
 </body>
 </html>
