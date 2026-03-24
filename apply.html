@@ -1,81 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Bougie Immigration - Your trusted partner for studying abroad in Italy and France">
-    <title>Bougie Immigration | Study Abroad Agency</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-</head>
-<body>
-    <!-- Navigation Header -->
-    <header class="header">
-        <nav class="navbar">
-            <div class="nav-container">
-                <div class="logo">
-                    <img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Bougie Immigration Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/50x50?text=BI'">
-                    <h1 class="logo-text">Bougie Immigration</h1>
-                </div>
-                <div class="nav-links">
-                    <a href="#" onclick="window.app.showHome(); return false;" class="nav-link">Home</a>
-                    <a href="#" onclick="window.app.showTrack(); return false;" class="nav-link">Track Application</a>
-                    <a href="#" onclick="window.app.showAdminLogin(); return false;" class="nav-link nav-link-admin">Admin</a>
-                </div>
-            </div>
-        </nav>
-    </header>
+<div class="form-container">
+  <h2>Application Form</h2>
 
-    <!-- Main Content Container -->
-    <main id="app" class="main-container">
-        <div class="loading">
-            <div class="spinner"></div>
-            <p>Loading Bougie Immigration...</p>
-        </div>
-    </main>
+  <form id="form">
+    <input type="text" placeholder="First Name" id="first" required>
+    <input type="text" placeholder="Last Name" id="last" required>
+    <input type="date" id="birth" required>
+    <input type="text" placeholder="BAC Date" id="bac" required>
+    <input type="email" placeholder="Email" id="email" required>
+    <input type="text" placeholder="Phone" id="phone" required>
+    <input type="text" placeholder="Courses" id="courses" required>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>Bougie Immigration</h3>
-                    <p>Your trusted partner for international education</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Contact</h4>
-                    <p>Email: contact@bougieimmigration.com</p>
-                    <p>Phone: +213 XXX XXX XXX</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Follow Us</h4>
-                    <div class="social-links">
-                        <a href="#">Facebook</a>
-                        <a href="#">Instagram</a>
-                        <a href="#">LinkedIn</a>
-                    </div>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 Bougie Immigration. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    <label>Dossier (ZIP)</label>
+    <input type="file" id="dossier" required>
 
-    <script src="app.js"></script>
-    <script>
-        // Ensure the app loads when the page is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing app...');
-            if (window.app && typeof window.app.showHome === 'function') {
-                window.app.showHome();
-            } else {
-                console.error('App not loaded properly');
-                document.getElementById('app').innerHTML = '<div class="alert alert-error">Error loading application. Please refresh the page.</div>';
-            }
-        });
-    </script>
-</body>
-</html>
+    <label>Payment Receipt (PDF)</label>
+    <input type="file" id="receipt">
+
+    <button class="btn" type="submit">Submit Application</button>
+  </form>
+</div>
