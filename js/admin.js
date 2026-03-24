@@ -15,7 +15,6 @@ let currentModalApp = null;
 
 // DOM Elements
 const elements = {
-    statsGrid: null,
     totalCount: null,
     pendingCount: null,
     approvedCount: null,
@@ -117,7 +116,7 @@ async function loadApplications() {
     } catch (error) {
         console.error('Error loading applications:', error);
         if (elements.emptyState) {
-            elements.emptyState.innerHTML = '<i class="fas fa-exclamation-circle"></i><p>Error loading applications. Please refresh the page.</p>';
+            elements.emptyState.innerHTML = '<i class="fas fa-exclamation-circle"></i><p>Error loading applications. Please refresh the page.</p><p style="font-size:12px; margin-top:10px;">' + error.message + '</p>';
             elements.emptyState.style.display = 'block';
         }
         showNotification('Failed to load applications. Please refresh the page.', 'error');
@@ -281,7 +280,6 @@ function viewApplication(id) {
         ${app.admin_notes ? `<div class="detail-row"><div class="detail-label">Admin Notes</div><div class="detail-value">${escapeHtml(app.admin_notes)}</div></div>` : ''}
     `;
     
-    // Update modal buttons
     if (elements.modalApproveBtn && elements.modalRejectBtn) {
         if (app.application_status === 'pending') {
             elements.modalApproveBtn.style.display = 'inline-flex';
@@ -323,6 +321,11 @@ async function approveApplication(id) {
         
         if (error) throw error;
         
+        // Send approval email
+        if (window.SupabaseClient && window.SupabaseClient.sendStatusEmail) {
+            await window.SupabaseClient.sendStatusEmail(app, 'approved');
+        }
+        
         showNotification(`Application ${app.application_number} approved. Email sent to ${app.email}`, 'success');
         await loadApplications();
         closeModal();
@@ -362,6 +365,11 @@ async function rejectApplication(id) {
             .eq('id', id);
         
         if (error) throw error;
+        
+        // Send rejection email
+        if (window.SupabaseClient && window.SupabaseClient.sendStatusEmail) {
+            await window.SupabaseClient.sendStatusEmail(app, 'rejected', reason);
+        }
         
         showNotification(`Application ${app.application_number} rejected. Email sent to ${app.email}`, 'warning');
         await loadApplications();
@@ -511,14 +519,12 @@ function setupEventListeners() {
         elements.logoutBtn.addEventListener('click', logout);
     }
     
-    // Close modal on outside click
     window.addEventListener('click', (event) => {
         if (event.target === elements.detailModal) {
             closeModal();
         }
     });
     
-    // Close modal on escape key
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && elements.detailModal && elements.detailModal.style.display === 'flex') {
             closeModal();
@@ -550,6 +556,9 @@ style.textContent = `
     }
     .notification-close:hover {
         opacity: 0.8;
+    }
+    .input-error {
+        border-color: #e74c3c !important;
     }
 `;
 document.head.appendChild(style);
