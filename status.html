@@ -1,0 +1,22 @@
+<input type="text" id="appId" placeholder="Application Number">
+<button onclick="check()">Check</button>
+
+<div id="result"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="js/supabase.js"></script>
+
+<script>
+async function check() {
+  const id = document.getElementById("appId").value;
+
+  const { data } = await supabase
+    .from("applications")
+    .select("*")
+    .eq("application_number", id)
+    .single();
+
+  document.getElementById("result").innerHTML =
+    data ? data.status : "Not found";
+}
+</script>
