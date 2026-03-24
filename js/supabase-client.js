@@ -1,12 +1,6 @@
 /**
- * Bougie Immigration - Supabase Client Configuration
- * Database: PostgreSQL via Supabase
- * Storage: Document uploads (applications, receipts)
- * 
- * Configuration:
- * - API URL: https://qpprzcckolmdyabnmgol.supabase.co
- * - Anon Key: Provided for client-side operations
- * - Service Role Key: For admin operations (use only on server-side in production)
+ * Bougie Immigration - Supabase Client
+ * Complete database operations, file storage, and email integration
  */
 
 // Supabase configuration
@@ -17,22 +11,20 @@ const SUPABASE_CONFIG = {
     storageBucket: 'documents'
 };
 
-// Initialize Supabase client
 let supabaseClient = null;
 
 /**
  * Initialize Supabase client
- * @returns {Object} Supabase client instance
  */
 function initSupabase() {
     if (typeof supabase === 'undefined') {
-        console.error('Supabase library not loaded. Please include the Supabase JS library.');
+        console.error('Supabase library not loaded');
         return null;
     }
     
     if (!supabaseClient) {
         supabaseClient = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
-        console.log('Supabase client initialized successfully');
+        console.log('Supabase client initialized');
     }
     
     return supabaseClient;
@@ -40,7 +32,6 @@ function initSupabase() {
 
 /**
  * Get Supabase client instance
- * @returns {Object} Supabase client
  */
 function getSupabaseClient() {
     if (!supabaseClient) {
@@ -50,257 +41,31 @@ function getSupabaseClient() {
 }
 
 /**
- * Database table names
- */
-const TABLES = {
-    APPLICATIONS: 'applications',
-    USERS: 'users',
-    ADMIN_SESSIONS: 'admin_sessions',
-    DOCUMENTS: 'documents'
-};
-
-/**
- * Application status enum
- */
-const APPLICATION_STATUS = {
-    PENDING: 'pending',
-    APPROVED: 'approved',
-    REJECTED: 'rejected',
-    PAYMENT_PENDING: 'payment_pending',
-    PAYMENT_VERIFIED: 'payment_verified',
-    DOCUMENTS_REQUIRED: 'documents_required'
-};
-
-/**
- * Destination types
- */
-const DESTINATIONS = {
-    ITALY: 'italy',
-    CAMPUS_FRANCE: 'campus_france'
-};
-
-/**
- * Study levels
- */
-const STUDY_LEVELS = {
-    BACHELOR: 'Bachelor',
-    MASTER: 'Master'
-};
-
-/**
  * Generate unique application number
  * Format: DEST-YEAR-RANDOM (e.g., IT-2024-A3B5C7)
- * @param {string} destination - Italy or Campus France
- * @returns {string} Unique application number
  */
 function generateApplicationNumber(destination) {
-    const prefix = destination === DESTINATIONS.ITALY ? 'IT' : 'CF';
+    const prefix = destination === 'italy' ? 'IT' : 'CF';
     const year = new Date().getFullYear();
     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
     return `${prefix}-${year}-${random}`;
 }
 
 /**
- * Create a new application in the database
- * @param {Object} applicationData - Application form data
- * @returns {Promise<Object>} Created application record
- */
-async function createApplication(applicationData) {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-        throw new Error('Supabase client not initialized');
-    }
-    
-    const applicationNumber = generateApplicationNumber(applicationData.destination);
-    
-    const newApplication = {
-        application_number: applicationNumber,
-        first_name: applicationData.firstName,
-        last_name: applicationData.lastName,
-        birth_date: applicationData.birthDate,
-        role: applicationData.role || 'Student',
-        bac_date: applicationData.bacDate,
-        email: applicationData.email,
-        phone: applicationData.phone,
-        year_of_study: applicationData.yearOfStudies,
-        courses: applicationData.courses,
-        destination: applicationData.destination,
-        documents_urls: applicationData.documentsUrls || {},
-        payment_status: applicationData.paymentStatus || 'pending',
-        application_status: APPLICATION_STATUS.PENDING,
-        submitted_at: new Date().toISOString(),
-        payment_deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
-    };
-    
-    const { data, error } = await supabase
-        .from(TABLES.APPLICATIONS)
-        .insert([newApplication])
-        .select()
-        .single();
-    
-    if (error) {
-        console.error('Error creating application:', error);
-        throw new Error(`Failed to create application: ${error.message}`);
-    }
-    
-    return data;
-}
-
-/**
- * Get application by application number
- * @param {string} applicationNumber - Unique application number
- * @returns {Promise<Object>} Application record
- */
-async function getApplicationByNumber(applicationNumber) {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-        throw new Error('Supabase client not initialized');
-    }
-    
-    const { data, error } = await supabase
-        .from(TABLES.APPLICATIONS)
-        .select('*')
-        .eq('application_number', applicationNumber)
-        .single();
-    
-    if (error) {
-        console.error('Error fetching application:', error);
-        return null;
-    }
-    
-    return data;
-}
-
-/**
- * Get all applications (admin only)
- * @param {Object} filters - Optional filters (status, destination, search)
- * @returns {Promise<Array>} List of applications
- */
-async function getAllApplications(filters = {}) {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-        throw new Error('Supabase client not initialized');
-    }
-    
-    let query = supabase.from(TABLES.APPLICATIONS).select('*');
-    
-    if (filters.status && filters.status !== 'all') {
-        query = query.eq('application_status', filters.status);
-    }
-    
-    if (filters.destination && filters.destination !== 'all') {
-        query = query.eq('destination', filters.destination);
-    }
-    
-    if (filters.search) {
-        query = query.or(`first_name.ilike.%${filters.search}%,last_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,application_number.ilike.%${filters.search}%`);
-    }
-    
-    const { data, error } = await query.order('submitted_at', { ascending: false });
-    
-    if (error) {
-        console.error('Error fetching applications:', error);
-        throw new Error(`Failed to fetch applications: ${error.message}`);
-    }
-    
-    return data;
-}
-
-/**
- * Update application status
- * @param {string} applicationId - Application ID
- * @param {string} status - New status
- * @param {string} notes - Optional admin notes
- * @returns {Promise<Object>} Updated application
- */
-async function updateApplicationStatus(applicationId, status, notes = null) {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-        throw new Error('Supabase client not initialized');
-    }
-    
-    const updateData = {
-        application_status: status,
-        updated_at: new Date().toISOString()
-    };
-    
-    if (notes) {
-        updateData.admin_notes = notes;
-    }
-    
-    if (status === APPLICATION_STATUS.APPROVED || status === APPLICATION_STATUS.REJECTED) {
-        updateData.decision_date = new Date().toISOString();
-    }
-    
-    const { data, error } = await supabase
-        .from(TABLES.APPLICATIONS)
-        .update(updateData)
-        .eq('id', applicationId)
-        .select()
-        .single();
-    
-    if (error) {
-        console.error('Error updating application status:', error);
-        throw new Error(`Failed to update application: ${error.message}`);
-    }
-    
-    return data;
-}
-
-/**
- * Update payment status
- * @param {string} applicationId - Application ID
- * @param {string} paymentStatus - Payment status
- * @param {string} receiptUrl - Uploaded receipt URL
- * @returns {Promise<Object>} Updated application
- */
-async function updatePaymentStatus(applicationId, paymentStatus, receiptUrl = null) {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-        throw new Error('Supabase client not initialized');
-    }
-    
-    const updateData = {
-        payment_status: paymentStatus,
-        updated_at: new Date().toISOString()
-    };
-    
-    if (receiptUrl) {
-        updateData.payment_receipt_url = receiptUrl;
-    }
-    
-    const { data, error } = await supabase
-        .from(TABLES.APPLICATIONS)
-        .update(updateData)
-        .eq('id', applicationId)
-        .select()
-        .single();
-    
-    if (error) {
-        console.error('Error updating payment status:', error);
-        throw new Error(`Failed to update payment: ${error.message}`);
-    }
-    
-    return data;
-}
-
-/**
- * Upload document to Supabase Storage
+ * Upload a file to Supabase Storage
  * @param {File} file - File to upload
  * @param {string} applicationNumber - Application number for folder
- * @param {string} documentType - Type of document (passport, cv, etc.)
+ * @param {string} documentType - Type of document
  * @returns {Promise<string>} Public URL of uploaded file
  */
-async function uploadDocument(file, applicationNumber, documentType) {
+async function uploadFile(file, applicationNumber, documentType) {
     const supabase = getSupabaseClient();
-    if (!supabase) {
-        throw new Error('Supabase client not initialized');
-    }
+    if (!supabase) throw new Error('Supabase not initialized');
     
     // Validate file size (5MB max)
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-        throw new Error(`File size exceeds 5MB limit. Current file: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+        throw new Error(`File size exceeds 5MB limit. Current: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
     }
     
     // Validate file type
@@ -320,49 +85,33 @@ async function uploadDocument(file, applicationNumber, documentType) {
         });
     
     if (error) {
-        console.error('Error uploading document:', error);
+        console.error('Upload error:', error);
         throw new Error(`Failed to upload document: ${error.message}`);
     }
     
-    // Get public URL
-    const { data: publicUrlData } = supabase.storage
+    const { data: urlData } = supabase.storage
         .from(SUPABASE_CONFIG.storageBucket)
         .getPublicUrl(fileName);
     
-    return publicUrlData.publicUrl;
-}
-
-/**
- * Upload payment receipt
- * @param {File} file - Receipt file
- * @param {string} applicationNumber - Application number
- * @returns {Promise<string>} Public URL of receipt
- */
-async function uploadPaymentReceipt(file, applicationNumber) {
-    return uploadDocument(file, applicationNumber, 'payment_receipt');
+    return urlData.publicUrl;
 }
 
 /**
  * Upload all documents for an application
- * @param {Object} documents - Object containing files for each document type
+ * @param {Object} documents - Object with document files
  * @param {string} applicationNumber - Application number
- * @returns {Promise<Object>} Object with URLs for each document
+ * @returns {Promise<Object>} URLs of uploaded documents
  */
 async function uploadAllDocuments(documents, applicationNumber) {
-    const uploadPromises = [];
     const documentUrls = {};
+    const uploadPromises = [];
     
     for (const [docType, file] of Object.entries(documents)) {
         if (file && file instanceof File) {
             uploadPromises.push(
-                uploadDocument(file, applicationNumber, docType)
-                    .then(url => {
-                        documentUrls[docType] = url;
-                    })
-                    .catch(error => {
-                        console.error(`Failed to upload ${docType}:`, error);
-                        documentUrls[docType] = null;
-                    })
+                uploadFile(file, applicationNumber, docType)
+                    .then(url => { documentUrls[docType] = url; })
+                    .catch(error => { console.error(`Failed to upload ${docType}:`, error); documentUrls[docType] = null; })
             );
         }
     }
@@ -372,146 +121,373 @@ async function uploadAllDocuments(documents, applicationNumber) {
 }
 
 /**
- * Check if payment deadline has passed
- * @param {string} applicationId - Application ID
- * @returns {Promise<boolean>} True if deadline passed
+ * Create a new application in the database
+ * @param {Object} applicationData - Application form data
+ * @returns {Promise<Object>} Created application
  */
-async function checkPaymentDeadline(applicationId) {
+async function createApplication(applicationData) {
     const supabase = getSupabaseClient();
-    if (!supabase) {
-        throw new Error('Supabase client not initialized');
-    }
+    if (!supabase) throw new Error('Supabase not initialized');
+    
+    const applicationNumber = generateApplicationNumber(applicationData.destination);
+    const paymentDeadline = new Date();
+    paymentDeadline.setDate(paymentDeadline.getDate() + 3);
+    
+    const newApplication = {
+        application_number: applicationNumber,
+        first_name: applicationData.firstName,
+        last_name: applicationData.lastName,
+        birth_date: applicationData.birthDate,
+        role: applicationData.role || 'Student',
+        bac_date: applicationData.bacDate,
+        email: applicationData.email,
+        phone: applicationData.phone,
+        year_of_study: applicationData.yearOfStudies,
+        courses: applicationData.courses,
+        destination: applicationData.destination,
+        documents_urls: applicationData.documentUrls || {},
+        payment_status: applicationData.paymentStatus || 'pending',
+        application_status: 'pending',
+        submitted_at: new Date().toISOString(),
+        payment_deadline: paymentDeadline.toISOString(),
+        created_at: new Date().toISOString()
+    };
     
     const { data, error } = await supabase
-        .from(TABLES.APPLICATIONS)
-        .select('payment_deadline, payment_status, application_status')
-        .eq('id', applicationId)
+        .from('applications')
+        .insert([newApplication])
+        .select()
         .single();
     
     if (error) {
-        console.error('Error checking payment deadline:', error);
-        return false;
+        console.error('Create application error:', error);
+        throw new Error(`Failed to create application: ${error.message}`);
     }
     
-    const deadline = new Date(data.payment_deadline);
-    const now = new Date();
-    
-    if (now > deadline && data.payment_status !== 'paid' && data.application_status === APPLICATION_STATUS.PENDING) {
-        // Auto-reject if payment not received by deadline
-        await updateApplicationStatus(applicationId, APPLICATION_STATUS.REJECTED, 'Payment deadline expired');
-        return true;
-    }
-    
-    return false;
+    return data;
 }
 
 /**
- * Get statistics for admin dashboard
- * @returns {Promise<Object>} Statistics object
+ * Get application by number
+ * @param {string} applicationNumber - Application number
+ * @returns {Promise<Object>} Application data
  */
-async function getApplicationStatistics() {
+async function getApplicationByNumber(applicationNumber) {
     const supabase = getSupabaseClient();
-    if (!supabase) {
-        throw new Error('Supabase client not initialized');
+    if (!supabase) throw new Error('Supabase not initialized');
+    
+    const { data, error } = await supabase
+        .from('applications')
+        .select('*')
+        .eq('application_number', applicationNumber)
+        .single();
+    
+    if (error) {
+        if (error.code === 'PGRST116') {
+            return null; // Not found
+        }
+        throw error;
+    }
+    
+    return data;
+}
+
+/**
+ * Get all applications (admin only)
+ * @param {Object} filters - Optional filters
+ * @returns {Promise<Array>} List of applications
+ */
+async function getAllApplications(filters = {}) {
+    const supabase = getSupabaseClient();
+    if (!supabase) throw new Error('Supabase not initialized');
+    
+    let query = supabase.from('applications').select('*');
+    
+    if (filters.status && filters.status !== 'all') {
+        query = query.eq('application_status', filters.status);
+    }
+    
+    if (filters.destination && filters.destination !== 'all') {
+        query = query.eq('destination', filters.destination);
+    }
+    
+    if (filters.search) {
+        query = query.or(`first_name.ilike.%${filters.search}%,last_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,application_number.ilike.%${filters.search}%`);
+    }
+    
+    const { data, error } = await query.order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+}
+
+/**
+ * Update application status
+ * @param {string} applicationId - Application ID
+ * @param {string} status - New status
+ * @param {string} notes - Optional admin notes
+ * @returns {Promise<Object>} Updated application
+ */
+async function updateApplicationStatus(applicationId, status, notes = null) {
+    const supabase = getSupabaseClient();
+    if (!supabase) throw new Error('Supabase not initialized');
+    
+    const updateData = {
+        application_status: status,
+        updated_at: new Date().toISOString()
+    };
+    
+    if (notes) {
+        updateData.admin_notes = notes;
+    }
+    
+    if (status === 'approved' || status === 'rejected') {
+        updateData.decision_date = new Date().toISOString();
     }
     
     const { data, error } = await supabase
-        .from(TABLES.APPLICATIONS)
+        .from('applications')
+        .update(updateData)
+        .eq('id', applicationId)
+        .select()
+        .single();
+    
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Update payment status
+ * @param {string} applicationId - Application ID
+ * @param {string} paymentStatus - Payment status
+ * @param {string} receiptUrl - Receipt URL
+ * @returns {Promise<Object>} Updated application
+ */
+async function updatePaymentStatus(applicationId, paymentStatus, receiptUrl = null) {
+    const supabase = getSupabaseClient();
+    if (!supabase) throw new Error('Supabase not initialized');
+    
+    const updateData = {
+        payment_status: paymentStatus,
+        updated_at: new Date().toISOString()
+    };
+    
+    if (receiptUrl) {
+        updateData.payment_receipt_url = receiptUrl;
+    }
+    
+    const { data, error } = await supabase
+        .from('applications')
+        .update(updateData)
+        .eq('id', applicationId)
+        .select()
+        .single();
+    
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Verify admin credentials
+ * @param {string} username - Admin username
+ * @param {string} password - Admin password
+ * @returns {Promise<Object>} Admin user data or null
+ */
+async function verifyAdminCredentials(username, password) {
+    const supabase = getSupabaseClient();
+    if (!supabase) throw new Error('Supabase not initialized');
+    
+    const { data, error } = await supabase
+        .from('admin_users')
+        .select('id, username, role')
+        .eq('username', username)
+        .eq('is_active', true)
+        .single();
+    
+    if (error || !data) {
+        return null;
+    }
+    
+    // In production, use proper password hashing with bcrypt
+    // For now, direct comparison (development only)
+    const { data: authCheck, error: authError } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('username', username)
+        .eq('password_hash', password)
+        .single();
+    
+    if (authError || !authCheck) {
+        return null;
+    }
+    
+    return data;
+}
+
+/**
+ * Get application statistics
+ * @returns {Promise<Object>} Statistics
+ */
+async function getApplicationStatistics() {
+    const supabase = getSupabaseClient();
+    if (!supabase) throw new Error('Supabase not initialized');
+    
+    const { data, error } = await supabase
+        .from('applications')
         .select('application_status, destination');
     
-    if (error) {
-        console.error('Error fetching statistics:', error);
-        return {
-            total: 0,
-            pending: 0,
-            approved: 0,
-            rejected: 0,
-            italy: 0,
-            campusFrance: 0
-        };
-    }
+    if (error) throw error;
     
     const stats = {
         total: data.length,
-        pending: data.filter(app => app.application_status === APPLICATION_STATUS.PENDING).length,
-        approved: data.filter(app => app.application_status === APPLICATION_STATUS.APPROVED).length,
-        rejected: data.filter(app => app.application_status === APPLICATION_STATUS.REJECTED).length,
-        italy: data.filter(app => app.destination === DESTINATIONS.ITALY).length,
-        campusFrance: data.filter(app => app.destination === DESTINATIONS.CAMPUS_FRANCE).length
+        pending: data.filter(app => app.application_status === 'pending').length,
+        approved: data.filter(app => app.application_status === 'approved').length,
+        rejected: data.filter(app => app.application_status === 'rejected').length,
+        italy: data.filter(app => app.destination === 'italy').length,
+        campusFrance: data.filter(app => app.destination === 'campus_france').length
     };
     
     return stats;
 }
 
 /**
- * Delete application (admin only)
- * @param {string} applicationId - Application ID
+ * Send email via Resend (via Supabase Edge Function)
+ * @param {Object} emailData - Email data
  * @returns {Promise<boolean>} Success status
  */
-async function deleteApplication(applicationId) {
+async function sendEmail(emailData) {
     const supabase = getSupabaseClient();
     if (!supabase) {
-        throw new Error('Supabase client not initialized');
-    }
-    
-    const { error } = await supabase
-        .from(TABLES.APPLICATIONS)
-        .delete()
-        .eq('id', applicationId);
-    
-    if (error) {
-        console.error('Error deleting application:', error);
+        console.error('Supabase not initialized');
         return false;
     }
     
-    return true;
+    try {
+        // Call Supabase Edge Function to send email
+        const { data, error } = await supabase.functions.invoke('send-email', {
+            body: {
+                to: emailData.to,
+                subject: emailData.subject,
+                html: emailData.html,
+                type: emailData.type
+            }
+        });
+        
+        if (error) {
+            console.error('Email sending error:', error);
+            return false;
+        }
+        
+        console.log('Email sent successfully:', data);
+        return true;
+        
+    } catch (error) {
+        console.error('Failed to send email:', error);
+        return false;
+    }
 }
 
 /**
- * Verify admin credentials (simplified - in production use proper auth)
- * @param {string} username - Admin username
- * @param {string} password - Admin password
- * @returns {Promise<boolean>} Authentication result
+ * Send application confirmation email
+ * @param {Object} application - Application data
+ * @returns {Promise<boolean>} Success status
  */
-async function verifyAdminCredentials(username, password) {
-    // In production, this should query a secure admin table with hashed passwords
-    // For demo purposes, using hardcoded credentials
-    const ADMIN_USERNAME = 'admin';
-    const ADMIN_PASSWORD = 'password123';
+async function sendConfirmationEmail(application) {
+    const subject = `Application Confirmation - Bougie Immigration (${application.application_number})`;
     
-    return username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8"><title>Application Confirmation</title></head>
+        <body style="font-family: Arial, sans-serif; background: #f4eddb; padding: 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; padding: 30px;">
+                <h1 style="color: #2c2b28;">Bougie Immigration</h1>
+                <h2>Application Received</h2>
+                <p>Dear ${application.first_name} ${application.last_name},</p>
+                <p>Thank you for submitting your application. Your application has been received and is being processed.</p>
+                <p><strong>Application Number:</strong> ${application.application_number}</p>
+                <p><strong>Destination:</strong> ${application.destination === 'italy' ? 'Italy' : 'Campus France'}</p>
+                <p><strong>Submission Date:</strong> ${new Date().toLocaleDateString()}</p>
+                <p>You have 3 days to complete your payment. If payment is not received within this period, your application will be automatically refused.</p>
+                <p>You can check your application status at: <a href="https://bougie-immigration.com/status.html">https://bougie-immigration.com/status.html</a></p>
+                <hr>
+                <p style="color: #6b6a66; font-size: 12px;">Bougie Immigration - Professional Study Immigration Services</p>
+            </div>
+        </body>
+        </html>
+    `;
+    
+    return sendEmail({
+        to: application.email,
+        subject: subject,
+        html: html,
+        type: 'confirmation'
+    });
 }
 
 /**
- * Export all functions for use in other scripts
+ * Send status update email (approval/rejection)
+ * @param {Object} application - Application data
+ * @param {string} status - New status
+ * @param {string} reason - Rejection reason (if applicable)
+ * @returns {Promise<boolean>} Success status
  */
+async function sendStatusEmail(application, status, reason = null) {
+    const isApproved = status === 'approved';
+    const subject = isApproved 
+        ? `Application Approved - Bougie Immigration (${application.application_number})`
+        : `Application Status Update - Bougie Immigration (${application.application_number})`;
+    
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8"><title>Application Status Update</title></head>
+        <body style="font-family: Arial, sans-serif; background: #f4eddb; padding: 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; padding: 30px;">
+                <h1 style="color: #2c2b28;">Bougie Immigration</h1>
+                <h2>${isApproved ? 'Application Approved' : 'Application Status Update'}</h2>
+                <p>Dear ${application.first_name} ${application.last_name},</p>
+                <p>Your application (${application.application_number}) has been <strong>${status.toUpperCase()}</strong>.</p>
+                ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+                ${isApproved ? '<p>Congratulations! Our team will contact you shortly with next steps for the visa application process.</p>' : '<p>If you have any questions about this decision, please contact our support team.</p>'}
+                <p>You can check your application status at: <a href="https://bougie-immigration.com/status.html">https://bougie-immigration.com/status.html</a></p>
+                <hr>
+                <p style="color: #6b6a66; font-size: 12px;">Bougie Immigration - Professional Study Immigration Services</p>
+            </div>
+        </body>
+        </html>
+    `;
+    
+    return sendEmail({
+        to: application.email,
+        subject: subject,
+        html: html,
+        type: status
+    });
+}
+
+// Export all functions
 window.SupabaseClient = {
     init: initSupabase,
     getClient: getSupabaseClient,
+    uploadFile,
+    uploadAllDocuments,
     createApplication,
     getApplicationByNumber,
     getAllApplications,
     updateApplicationStatus,
     updatePaymentStatus,
-    uploadDocument,
-    uploadPaymentReceipt,
-    uploadAllDocuments,
-    checkPaymentDeadline,
-    getApplicationStatistics,
-    deleteApplication,
     verifyAdminCredentials,
-    TABLES,
-    APPLICATION_STATUS,
-    DESTINATIONS,
-    STUDY_LEVELS,
+    getApplicationStatistics,
+    sendEmail,
+    sendConfirmationEmail,
+    sendStatusEmail,
     generateApplicationNumber
 };
 
 // Auto-initialize when script loads
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        initSupabase();
-    });
+    document.addEventListener('DOMContentLoaded', () => initSupabase());
 } else {
     initSupabase();
 }
