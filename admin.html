@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Bougie Immigration</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4eddb;
+            color: #2c2b28;
+        }
+
+        /* Header */
+        .header {
+            background-color: #dcdad5;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo img {
+            height: 45px;
+            width: auto;
+        }
+
+        .logo-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2c2b28;
+        }
+
+        .logo-text span {
+            font-weight: 400;
+            color: #6b6a66;
+        }
+
+        .admin-badge {
+            background-color: #9b8e6e;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #2c2b28;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(0,0,0,0.05);
+            color: #e74c3c;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #9b8e6e;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c2b28;
+        }
+
+        /* Filters */
+        .filters-bar {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 0.5rem 1rem;
+            border: 1px solid #dcdad5;
+            border-radius: 12px;
+            font-family: inherit;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        .search-input {
+            padding: 0.5rem 1rem;
+            border: 1px solid #dcdad5;
+            border-radius: 12px;
+            font-family: inherit;
+            width: 250px;
+        }
+
+        .btn-download {
+            background-color: #2c2b28;
+            color: #f4eddb;
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-download:hover {
+            background-color: #4a4945;
+        }
+
+        /* Applications Table */
+        .table-container {
+            background: #ffffff;
+            border-radius: 20px;
+            overflow-x: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .applications-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        .applications-table th {
+            text-align: left;
+            padding: 1rem 1rem;
+            background-color: #faf9f5;
+            font-weight: 600;
+            color: #2c2b28;
+            border-bottom: 2px solid #dcdad5;
+        }
+
+        .applications-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #dcdad5;
+            vertical-align: middle;
+        }
+
+        .applications-table tr:hover {
+            background-color: #faf9f5;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background-color: #fef5e7;
+            color: #f39c12;
+        }
+
+        .status-approved {
+            background-color: #e8f5e9;
+            color: #27ae60;
+        }
+
+        .status-rejected {
+            background-color: #fee;
+            color: #e74c3c;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .btn-view {
+            color: #3498db;
+        }
+
+        .btn-view:hover {
+            background-color: #e8f0fe;
+        }
+
+        .btn-approve {
+            color: #27ae60;
+        }
+
+        .btn-approve:hover {
+            background-color: #e8f5e9;
+        }
+
+        .btn-reject {
+            color: #e74c3c;
+        }
+
+        .btn-reject:hover {
+            background-color: #fee;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            border-radius: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #dcdad5;
+        }
+
+        .modal-header h3 {
+            font-size: 1.25rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b6a66;
+        }
+
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-row {
+            display: flex;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #dcdad5;
+        }
+
+        .detail-label {
+            width: 140px;
+            font-weight: 600;
+            color: #6b6a66;
+        }
+
+        .detail-value {
+            flex: 1;
+        }
+
+        .documents-list {
+            margin-top: 1rem;
+        }
+
+        .doc-item {
+            background-color: #f4eddb;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #dcdad5;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6b6a66;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #dcdad5;
+            border-top-color: #2c2b28;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .filters-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                flex-direction: column;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Bougie Immigration Logo" onerror="this.src='https://placehold.co/45x45/dcdad5/2c2b28?text=BI'">
+                <div class="logo-text">Bougie <span>Immigration</span></div>
+                <span class="admin-badge">ADMIN</span>
+            </div>
+            <div class="header-actions">
+                <span id="adminName" style="font-size: 0.875rem;">Welcome, Admin</span>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Stats Cards -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-title">Total Applications</div>
+                <div class="stat-value" id="totalCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Pending</div>
+                <div class="stat-value" id="pendingCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Approved</div>
+                <div class="stat-value" id="approvedCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Rejected</div>
+                <div class="stat-value" id="rejectedCount">0</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-bar">
+            <div class="filter-group">
+                <select id="statusFilter" class="filter-select">
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+                <select id="destinationFilter" class="filter-select">
+                    <option value="all">All Destinations</option>
+                    <option value="Italy">Italy</option>
+                    <option value="Campus France">Campus France</option>
+                </select>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search by name or email...">
+            </div>
+            <button id="downloadAllBtn" class="btn-download">
+                <i class="fas fa-download"></i>
+                Download All (ZIP)
+            </button>
+        </div>
+
+        <!-- Applications Table -->
+        <div class="table-container">
+            <div id="loadingState" class="loading">
+                <div class="spinner"></div>
+                <p>Loading applications...</p>
+            </div>
+            <div id="tableContent" style="display: none;">
+                <table class="applications-table">
+                    <thead>
+                        <tr>
+                            <th>Application #</th>
+                            <th>Full Name</th>
+                            <th>BAC Year</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Destination</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applicationsTableBody">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <p>No applications found</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Detail Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Application Details</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-actions">
+                <button id="modalApproveBtn" class="btn-icon btn-approve" style="padding: 0.5rem 1rem;">
+                    <i class="fas fa-check"></i> Approve
+                </button>
+                <button id="modalRejectBtn" class="btn-icon btn-reject" style="padding: 0.5rem 1rem;">
+                    <i class="fas fa-times"></i> Reject
+                </button>
+                <button class="btn-download" onclick="closeModal()" style="background-color: #dcdad5; color: #2c2b28;">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script>
+        // Sample applications data (in production, this would come from Supabase)
+        let applications = [
+            {
+                id: '1',
+                applicationNumber: 'IT-2024-A3B5C7',
+                firstName: 'Ahmed',
+                lastName: 'Benali',
+                fullName: 'Ahmed Benali',
+                bacDate: '2016-06',
+                phone: '+213 55 12 34 567',
+                email: 'ahmed.benali@example.com',
+                destination: 'Italy',
+                status: 'approved',
+                yearOfStudies: 'Master',
+                birthDate: '1998-05-15',
+                courses: 'Computer Science, Data Science',
+                paymentStatus: 'paid',
+                submittedDate: '2024-01-15',
+                documents: {
+                    passport: 'passport_ahmed.pdf',
+                    photo: 'photo_ahmed.jpg',
+                    cv: 'cv_ahmed.pdf',
+                    bacCert: 'bac_cert_ahmed.pdf',
+                    bacTrans: 'bac_trans_ahmed.pdf',
+                    bachelorCert: 'bachelor_cert_ahmed.pdf',
+                    bachelorTrans: 'bachelor_trans_ahmed.pdf',
+                    englishProof: 'ielts_ahmed.pdf'
+                }
+            },
+            {
+                id: '2',
+                applicationNumber: 'IT-2024-D9E2F1',
+                firstName: 'Fatima',
+                lastName: 'Zohra',
+                fullName: 'Fatima Zohra',
+                bacDate: '2018-06',
+                phone: '+213 77 98 76 543',
+                email: 'fatima.zohra@example.com',
+                destination: 'Italy',
+                status: 'pending',
+                yearOfStudies: 'Bachelor',
+                birthDate: '2000-03-22',
+                courses: 'Economics, Business Management',
+                paymentStatus: 'pending',
+                submittedDate: '2024-02-20',
+                documents: {
+                    passport: 'passport_fatima.pdf',
+                    photo: 'photo_fatima.jpg',
+                    cv: 'cv_fatima.pdf',
+                    bacCert: 'bac_cert_fatima.pdf',
+                    bacTrans: 'bac_trans_fatima.pdf',
+                    englishProof: 'toefl_fatima.pdf'
+                }
+            },
+            {
+                id: '3',
+                applicationNumber: 'CF-2024-G4H6I8',
+                firstName: 'Karim',
+                lastName: 'Mansouri',
+                fullName: 'Karim Mansouri',
+                bacDate: '2017-06',
+                phone: '+213 66 45 67 890',
+                email: 'karim.mansouri@example.com',
+                destination: 'Campus France',
+                status: 'rejected',
+                yearOfStudies: 'Master',
+                birthDate: '1999-11-10',
+                courses: 'French Literature, Linguistics',
+                paymentStatus: 'paid',
+                submittedDate: '2024-01-05',
+                documents: {
+                    passport: 'passport_karim.pdf',
+                    photo: 'photo_karim.jpg',
+                    cv: 'cv_karim.pdf',
+                    bacCert: 'bac_cert_karim_fr.pdf',
+                    bacTrans: 'bac_trans_karim_fr.pdf',
+                    bachelorCert: 'bachelor_cert_karim_fr.pdf',
+                    bachelorTrans: 'bachelor_trans_karim_fr.pdf',
+                    tcfResults: 'tcf_karim.pdf'
+                }
+            },
+            {
+                id: '4',
+                applicationNumber: 'IT-2024-H7J9K1',
+                firstName: 'Sofia',
+                lastName: 'Benyahia',
+                fullName: 'Sofia Benyahia',
+                bacDate: '2019-06',
+                phone: '+213 55 98 76 543',
+                email: 'sofia.benyahia@example.com',
+                destination: 'Italy',
+                status: 'pending',
+                yearOfStudies: 'Bachelor',
+                birthDate: '2001-08-14',
+                courses: 'Architecture, Design',
+                paymentStatus: 'pending',
+                submittedDate: '2024-02-25',
+                documents: {
+                    passport: 'passport_sofia.pdf',
+                    photo: 'photo_sofia.jpg',
+                    cv: 'cv_sofia.pdf',
+                    bacCert: 'bac_cert_sofia.pdf',
+                    bacTrans: 'bac_trans_sofia.pdf',
+                    englishProof: 'ielts_sofia.pdf'
+                }
+            },
+            {
+                id: '5',
+                applicationNumber: 'CF-2024-L2M4N6',
+                firstName: 'Yacine',
+                lastName: 'Boudiaf',
+                fullName: 'Yacine Boudiaf',
+                bacDate: '2015-06',
+                phone: '+213 77 12 34 567',
+                email: 'yacine.boudiaf@example.com',
+                destination: 'Campus France',
+                status: 'approved',
+                yearOfStudies: 'Master',
+                birthDate: '1997-02-28',
+                courses: 'Engineering, Mechanical',
+                paymentStatus: 'paid',
+                submittedDate: '2024-01-20',
+                documents: {
+                    passport: 'passport_yacine.pdf',
+                    photo: 'photo_yacine.jpg',
+                    cv: 'cv_yacine.pdf',
+                    bacCert: 'bac_cert_yacine_fr.pdf',
+                    bacTrans: 'bac_trans_yacine_fr.pdf',
+                    bachelorCert: 'bachelor_cert_yacine_fr.pdf',
+                    bachelorTrans: 'bachelor_trans_yacine_fr.pdf',
+                    tcfResults: 'tcf_yacine.pdf'
+                }
+            }
+        ];
+
+        let currentApplications = [...applications];
+        let currentModalAppId = null;
+
+        // Check authentication
+        function checkAuth() {
+            const isLoggedIn = sessionStorage.getItem('admin_logged_in');
+            if (!isLoggedIn || isLoggedIn !== 'true') {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Update statistics
+        function updateStats() {
+            const total = currentApplications.length;
+            const pending = currentApplications.filter(app => app.status === 'pending').length;
+            const approved = currentApplications.filter(app => app.status === 'approved').length;
+            const rejected = currentApplications.filter(app => app.status === 'rejected').length;
+            
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('approvedCount').textContent = approved;
+            document.getElementById('rejectedCount').textContent = rejected;
+        }
+
+        // Render applications table
+        function renderTable() {
+            const tbody = document.getElementById('applicationsTableBody');
+            const emptyState = document.getElementById('emptyState');
+            const tableContent = document.getElementById('tableContent');
+            const loadingState = document.getElementById('loadingState');
+            
+            // Hide loading, show table
+            loadingState.style.display = 'none';
+            tableContent.style.display = 'block';
+            
+            if (currentApplications.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            tbody.innerHTML = currentApplications.map(app => `
+                <tr>
+                    <td><code style="font-size: 0.8rem;">${app.applicationNumber}</code></td>
+                    <td><strong>${app.fullName}</strong></td>
+                    <td>${app.bacDate}</td>
+                    <td>${app.phone}</td>
+                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${app.email}</td>
+                    <td>${app.destination}</td>
+                    <td>
+                        <span class="status-badge status-${app.status}">
+                            <i class="fas ${app.status === 'pending' ? 'fa-clock' : (app.status === 'approved' ? 'fa-check-circle' : 'fa-times-circle')}"></i>
+                            ${app.status.charAt(0).toUpperCase() + app.status.slice(1)}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon btn-view" onclick="viewApplication('${app.id}')" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${app.status === 'pending' ? `
+                                <button class="btn-icon btn-approve" onclick="approveApplication('${app.id}')" title="Approve">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn-icon btn-reject" onclick="rejectApplication('${app.id}')" title="Reject">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            updateStats();
+        }
+
+        // Filter applications
+        function filterApplications() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const destinationFilter = document.getElementById('destinationFilter').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            currentApplications = applications.filter(app => {
+                const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
+                const matchesDestination = destinationFilter === 'all' || app.destination === destinationFilter;
+                const matchesSearch = searchTerm === '' || 
+                    app.fullName.toLowerCase().includes(searchTerm) || 
+                    app.email.toLowerCase().includes(searchTerm) ||
+                    app.applicationNumber.toLowerCase().includes(searchTerm);
+                
+                return matchesStatus && matchesDestination && matchesSearch;
+            });
+            
+            renderTable();
+        }
+
+        // View application details
+        function viewApplication(id) {
+            const app = applications.find(a => a.id === id);
+            if (!app) return;
+            
+            currentModalAppId = id;
+            
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = `
+                <div class="detail-row">
+                    <div class="detail-label">Application Number</div>
+                    <div class="detail-value"><code>${app.applicationNumber}</code></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Full Name</div>
+                    <div class="detail-value">${app.fullName}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Birth Date</div>
+                    <div class="detail-value">${app.birthDate}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Email</div>
+                    <div class="detail-value">${app.email}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Phone</div>
+                    <div class="detail-value">${app.phone}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">BAC Completion</div>
+                    <div class="detail-value">${app.bacDate}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Year of Studies</div>
+                    <div class="detail-value">${app.yearOfStudies}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Destination</div>
+                    <div class="detail-value">${app.destination}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Courses</div>
+                    <div class="detail-value">${app.courses}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Payment Status</div>
+                    <div class="detail-value">
+                        <span class="status-badge ${app.paymentStatus === 'paid' ? 'status-approved' : 'status-pending'}">
+                            ${app.paymentStatus === 'paid' ? 'Paid' : 'Pending'}
+                        </span>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Submitted Date</div>
+                    <div class="detail-value">${app.submittedDate}</div>
+                </div>
+                <div class="documents-list">
+                    <div class="detail-label" style="margin-bottom: 0.5rem;">Uploaded Documents</div>
+                    ${Object.entries(app.documents).map(([key, value]) => `
+                        <div class="doc-item">
+                            <span><i class="fas fa-file-pdf"></i> ${key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                            <span style="font-size: 0.75rem; color: #6b6a66;">${value}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            // Update modal buttons based on status
+            const modalApproveBtn = document.getElementById('modalApproveBtn');
+            const modalRejectBtn = document.getElementById('modalRejectBtn');
+            
+            if (app.status === 'pending') {
+                modalApproveBtn.style.display = 'inline-flex';
+                modalRejectBtn.style.display = 'inline-flex';
+                modalApproveBtn.onclick = () => approveApplication(id);
+                modalRejectBtn.onclick = () => rejectApplication(id);
+            } else {
+                modalApproveBtn.style.display = 'none';
+                modalRejectBtn.style.display = 'none';
+            }
+            
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+
+        // Approve application
+        function approveApplication(id) {
+            if (confirm('Are you sure you want to approve this application? An email notification will be sent to the applicant.')) {
+                const app = applications.find(a => a.id === id);
+                if (app) {
+                    app.status = 'approved';
+                    app.decisionDate = new Date().toISOString().split('T')[0];
+                    
+                    // Simulate sending email
+                    console.log(`Approval email sent to ${app.email}`);
+                    alert(`Application ${app.applicationNumber} has been approved. An email notification has been sent to ${app.email}`);
+                    
+                    filterApplications();
+                    closeModal();
+                }
+            }
+        }
+
+        // Reject application
+        function rejectApplication(id) {
+            const reason = prompt('Please provide a reason for rejection (this will be included in the email to the applicant):');
+            if (reason !== null) {
+                const app = applications.find(a => a.id === id);
+                if (app) {
+                    app.status = 'rejected';
+                    app.rejectionReason = reason;
+                    app.decisionDate = new Date().toISOString().split('T')[0];
+                    
+                    // Simulate sending email
+                    console.log(`Rejection email sent to ${app.email} with reason: ${reason}`);
+                    alert(`Application ${app.applicationNumber} has been rejected. An email notification has been sent to ${app.email}`);
+                    
+                    filterApplications();
+                    closeModal();
+                }
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
+            currentModalAppId = null;
+        }
+
+        // Download all applications as ZIP
+        async function downloadAllAsZip() {
+            const zip = new JSZip();
+            
+            // Create a folder for all applications
+            const appsFolder = zip.folder("applications_export");
+            
+            // Add applications data as JSON
+            const dataStr = JSON.stringify(applications, null, 2);
+            appsFolder.file("applications_data.json", dataStr);
+            
+            // Create CSV export
+            const csvRows = [["Application Number", "Full Name", "Email", "Phone", "BAC Year", "Destination", "Status", "Payment Status", "Submitted Date"]];
+            applications.forEach(app => {
+                csvRows.push([app.applicationNumber, app.fullName, app.email, app.phone, app.bacDate, app.destination, app.status, app.paymentStatus, app.submittedDate]);
+            });
+            const csvStr = csvRows.map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
+            appsFolder.file("applications_export.csv", csvStr);
+            
+            // Create HTML summary
+            const htmlSummary = `
+                <!DOCTYPE html>
+                <html>
+                <head><title>Applications Export - Bougie Immigration</title></head>
+                <body>
+                    <h1>Applications Export</h1>
+                    <p>Generated on: ${new Date().toLocaleString()}</p>
+                    <table border="1" cellpadding="5">
+                        <tr><th>Application #</th><th>Full Name</th><th>Email</th><th>Destination</th><th>Status</th></tr>
+                        ${applications.map(app => `<tr><td>${app.applicationNumber}</td><td>${app.fullName}</td><td>${app.email}</td><td>${app.destination}</td><td>${app.status}</td></tr>`).join('')}
+                    </table>
+                </body>
+                </html>
+            `;
+            appsFolder.file("summary_report.html", htmlSummary);
+            
+            // Generate ZIP and download
+            const content = await zip.generateAsync({ type: "blob" });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = `bougie_applications_${new Date().toISOString().split('T')[0]}.zip`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            
+            alert('ZIP file downloaded successfully. It contains all application data and document references.');
+        }
+
+        // Logout function
+        function logout() {
+            sessionStorage.removeItem('admin_logged_in');
+            sessionStorage.removeItem('admin_username');
+            sessionStorage.removeItem('admin_login_time');
+            window.location.href = 'login.html';
+        }
+
+        // Event listeners
+        document.getElementById('statusFilter').addEventListener('change', filterApplications);
+        document.getElementById('destinationFilter').addEventListener('change', filterApplications);
+        document.getElementById('searchInput').addEventListener('input', filterApplications);
+        document.getElementById('downloadAllBtn').addEventListener('click', downloadAllAsZip);
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('detailModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        };
+        
+        // Initialize
+        checkAuth();
+        
+        // Simulate loading
+        setTimeout(() => {
+            filterApplications();
+        }, 500);
+    </script>
+</body>
+</html>
