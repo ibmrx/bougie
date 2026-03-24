@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Status Update - Bougie Immigration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4eddb;
+            line-height: 1.6;
+            color: #2c2b28;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .email-header {
+            background: linear-gradient(135deg, #2c2b28 0%, #4a4945 100%);
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .logo {
+            margin-bottom: 1rem;
+        }
+        
+        .logo img {
+            max-width: 80px;
+            height: auto;
+        }
+        
+        .email-header h1 {
+            color: #f4eddb;
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        
+        .email-header p {
+            color: #dcdad5;
+            font-size: 0.9rem;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            background-color: #e74c3c;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .email-body {
+            padding: 2rem;
+        }
+        
+        .greeting {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            color: #2c2b28;
+        }
+        
+        .greeting strong {
+            color: #9b8e6e;
+        }
+        
+        .message {
+            margin-bottom: 1.5rem;
+            color: #6b6a66;
+        }
+        
+        .info-card {
+            background-color: #f4eddb;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .info-card h3 {
+            color: #2c2b28;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #9b8e6e;
+            display: inline-block;
+        }
+        
+        .info-row {
+            display: flex;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #dcdad5;
+        }
+        
+        .info-label {
+            width: 140px;
+            font-weight: 600;
+            color: #2c2b28;
+        }
+        
+        .info-value {
+            flex: 1;
+            color: #6b6a66;
+        }
+        
+        .info-value code {
+            background-color: #ffffff;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+        
+        .reason-box {
+            background-color: #fee;
+            border-left: 4px solid #e74c3c;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+        }
+        
+        .reason-box h4 {
+            color: #e74c3c;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .reason-box p {
+            color: #c0392b;
+            margin: 0;
+        }
+        
+        .options-box {
+            background-color: #e8f0fe;
+            border-left: 4px solid #3498db;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+        }
+        
+        .options-box h4 {
+            color: #3498db;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .options-box ul {
+            margin-left: 1.5rem;
+            color: #2c2b28;
+        }
+        
+        .options-box li {
+            margin: 0.5rem 0;
+        }
+        
+        .button {
+            display: inline-block;
+            background-color: #2c2b28;
+            color: #f4eddb;
+            text-decoration: none;
+            padding: 0.875rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            margin: 1rem 0;
+            transition: background-color 0.3s ease;
+        }
+        
+        .button:hover {
+            background-color: #4a4945;
+        }
+        
+        .button-secondary {
+            background-color: #dcdad5;
+            color: #2c2b28;
+            margin-left: 1rem;
+        }
+        
+        .button-secondary:hover {
+            background-color: #c0bcb4;
+        }
+        
+        .contact-info {
+            background-color: #faf9f5;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+        }
+        
+        .contact-info p {
+            margin: 0.5rem 0;
+        }
+        
+        .contact-info a {
+            color: #9b8e6e;
+            text-decoration: none;
+        }
+        
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+        
+        .email-footer {
+            background-color: #dcdad5;
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #6b6a66;
+        }
+        
+        .email-footer a {
+            color: #2c2b28;
+            text-decoration: none;
+        }
+        
+        .email-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        hr {
+            border: none;
+            border-top: 1px solid #dcdad5;
+            margin: 1rem 0;
+        }
+        
+        .supportive-message {
+            font-style: italic;
+            color: #9b8e6e;
+            text-align: center;
+            margin: 1rem 0;
+            padding: 1rem;
+            background-color: #faf9f5;
+            border-radius: 12px;
+        }
+        
+        @media (max-width: 600px) {
+            .info-row {
+                flex-direction: column;
+            }
+            
+            .info-label {
+                width: 100%;
+                margin-bottom: 0.25rem;
+            }
+            
+            .button {
+                display: block;
+                text-align: center;
+                margin: 1rem 0;
+            }
+            
+            .button-secondary {
+                margin-left: 0;
+            }
+            
+            .email-body {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+            <div class="logo">
+                <img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Bougie Immigration" style="max-width: 70px;">
+            </div>
+            <h1>Application Status Update</h1>
+            <p>Important information regarding your application</p>
+            <div class="status-badge">
+                <span>✗ NOT APPROVED</span>
+            </div>
+        </div>
+        
+        <!-- Body -->
+        <div class="email-body">
+            <div class="greeting">
+                Dear <strong>{{firstName}} {{lastName}}</strong>,
+            </div>
+            
+            <div class="message">
+                <p>Thank you for submitting your application to Bougie Immigration. After careful review of your application and supporting documents, we regret to inform you that we are unable to proceed with your application at this time.</p>
+            </div>
+            
+            <!-- Application Details -->
+            <div class="info-card">
+                <h3>Application Details</h3>
+                <div class="info-row">
+                    <div class="info-label">Application Number:</div>
+                    <div class="info-value"><code>{{applicationNumber}}</code></div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Destination:</div>
+                    <div class="info-value">{{destination}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Study Level:</div>
+                    <div class="info-value">{{studyLevel}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Submitted Date:</div>
+                    <div class="info-value">{{submittedDate}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Decision Date:</div>
+                    <div class="info-value">{{decisionDate}}</div>
+                </div>
+            </div>
+            
+            <!-- Reason for Rejection -->
+            <div class="reason-box">
+                <h4>Reason for Decision</h4>
+                <p>{{rejectionReason}}</p>
+            </div>
+            
+            <!-- Additional Options -->
+            <div class="options-box">
+                <h4>What You Can Do Next</h4>
+                <ul>
+                    <li><strong>Review and Reapply:</strong> You may address the issues mentioned above and submit a new application. We recommend reviewing all requirements carefully before reapplying.</li>
+                    <li><strong>Request Feedback:</strong> Contact our support team for more detailed feedback on your application to better understand how to improve.</li>
+                    <li><strong>Explore Alternative Destinations:</strong> Consider exploring other study destinations that might better match your academic profile.</li>
+                    <li><strong>Language Preparation:</strong> If language proficiency was a factor, consider taking additional language courses and retaking required tests.</li>
+                </ul>
+            </div>
+            
+            <!-- Document Return Information -->
+            <div class="info-card">
+                <h3>Document Information</h3>
+                <p>All documents submitted with your application will be retained in our system. If you would like to request the return of any original documents, please contact our office within 30 days of this notice.</p>
+                <p style="margin-top: 0.5rem; font-size: 0.85rem;">Note: Certified copies and digital documents will remain in our records as per our data retention policy.</p>
+            </div>
+            
+            <!-- Contact Information -->
+            <div class="contact-info">
+                <p><strong>Need Assistance or Clarification?</strong></p>
+                <p>Our team is available to answer any questions you may have about this decision or the reapplication process:</p>
+                <p>
+                    📞 Phone: <a href="tel:0770614198">07 70 61 41 98</a><br>
+                    📧 Email: <a href="mailto:benlassousmohamedreda@gmail.com">benlassousmohamedreda@gmail.com</a><br>
+                    📱 Instagram: <a href="https://instagram.com/bougie_immigration06">@bougie_immigration06</a>
+                </p>
+            </div>
+            
+            <div class="supportive-message">
+                <p>We understand that this news may be disappointing. Please know that our team is committed to helping you achieve your educational goals. We encourage you to reach out if you would like guidance on strengthening your application for the future.</p>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div style="text-align: center; margin: 1.5rem 0;">
+                <a href="{{statusUrl}}" class="button">Check Application Status</a>
+                <a href="{{contactUrl}}" class="button button-secondary">Contact Support</a>
+            </div>
+            
+            <hr>
+            
+            <div style="font-size: 0.85rem; color: #9b8e6e; text-align: center;">
+                <p><strong>Bougie Immigration</strong><br>
+                Professional Study Immigration Services</p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="email-footer">
+            <p>This is an automated message from Bougie Immigration. Please do not reply directly to this email.</p>
+            <p>If you need assistance, please contact us at <a href="mailto:benlassousmohamedreda@gmail.com">benlassousmohamedreda@gmail.com</a> or call <a href="tel:0770614198">07 70 61 41 98</a>.</p>
+            <p>&copy; {{currentYear}} Bougie Immigration. All rights reserved.</p>
+        </div>
+    </div>
+    
+    <script>
+        // This script demonstrates how to populate the template with dynamic data
+        // In production, this would be handled by the server-side email system
+        
+        function populateRejectionEmail(data) {
+            const placeholders = {
+                '{{firstName}}': escapeHtml(data.firstName) || 'Student',
+                '{{lastName}}': escapeHtml(data.lastName) || '',
+                '{{applicationNumber}}': escapeHtml(data.applicationNumber) || 'N/A',
+                '{{destination}}': escapeHtml(data.destination) || 'Not specified',
+                '{{studyLevel}}': escapeHtml(data.studyLevel) || 'Not specified',
+                '{{submittedDate}}': formatDate(data.submittedDate) || formatDate(new Date()),
+                '{{decisionDate}}': formatDate(data.decisionDate) || formatDate(new Date()),
+                '{{rejectionReason}}': escapeHtml(data.rejectionReason) || 'The application did not meet the minimum requirements for the selected program.',
+                '{{statusUrl}}': data.statusUrl || 'https://bougie-immigration.com/status.html',
+                '{{contactUrl}}': data.contactUrl || 'https://bougie-immigration.com/index.html#contact',
+                '{{currentYear}}': new Date().getFullYear().toString()
+            };
+            
+            let html = document.body.innerHTML;
+            for (const [placeholder, value] of Object.entries(placeholders)) {
+                html = html.replace(new RegExp(placeholder, 'g'), value);
+            }
+            
+            return html;
+        }
+        
+        function formatDate(dateInput) {
+            if (!dateInput) return 'Not available';
+            
+            try {
+                const date = new Date(dateInput);
+                if (isNaN(date.getTime())) return dateInput;
+                
+                return date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+            } catch (e) {
+                return dateInput;
+            }
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+        
+        // Common rejection reasons for dropdown/selection
+        const commonRejectionReasons = {
+            documents: 'Incomplete or missing required documents. Please ensure all required documents are uploaded and properly certified where applicable.',
+            language: 'Language proficiency test scores did not meet the minimum requirements for the selected program.',
+            academic: 'Academic qualifications do not meet the program requirements. The admission committee found that your academic background does not align with the selected course of study.',
+            payment: 'Payment was not received within the required 3-day period, resulting in automatic application expiration.',
+            tcf: 'TCF (Test de Connaissance du Français) scores did not meet the minimum requirement for Campus France application.',
+            certification: 'Documents were not properly certified by the Ministry of Education and Foreign Affairs as required for Italy applications.',
+            translation: 'Documents were not properly translated to the required language (French for Campus France applications).',
+            other: 'The application did not meet the overall criteria for admission. For more specific feedback, please contact our support team.'
+        };
+        
+        // Example usage (for demonstration)
+        console.log('Rejection email template ready');
+        console.log('Use populateRejectionEmail() to fill with dynamic data');
+        console.log('Available rejection reasons:', Object.keys(commonRejectionReasons));
+        
+        // Example of how to use:
+        // const emailData = {
+        //     firstName: 'Ahmed',
+        //     lastName: 'Benali',
+        //     applicationNumber: 'IT-2024-A3B5C7',
+        //     destination: 'Italy',
+        //     studyLevel: 'Master',
+        //     submittedDate: '2024-01-15',
+        //     decisionDate: '2024-02-10',
+        //     rejectionReason: commonRejectionReasons.language,
+        //     statusUrl: 'https://bougie-immigration.com/status.html',
+        //     contactUrl: 'https://bougie-immigration.com/index.html#contact'
+        // };
+        // 
+        // const emailHtml = populateRejectionEmail(emailData);
+        // console.log(emailHtml);
+    </script>
+</body>
+</html>
