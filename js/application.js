@@ -103,6 +103,9 @@ function initApplicationForm(destination) {
     
     // Load destination-specific content
     loadDestinationContent(destination);
+
+    // Create initial document upload section for bachelor
+    createUploadSection('bachelorDocs', DOCUMENT_REQUIREMENTS[destination].bachelor);
     
     // Initial validation for step 1
     validateStep1();
