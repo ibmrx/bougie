@@ -248,20 +248,26 @@
             { id: 'bachelorTranscriptTranslated', name: 'Bachelor Transcript (certified translated)' }
         ];
 
-        // ==================== STEP 1 VALIDATION ====================
-        const confirmCertified = document.getElementById('confirmCertified');
-        const confirmFinal = document.getElementById('confirmFinal');
-        const startBtn = document.getElementById('startBtn');
+// ==================== STEP 1 VALIDATION ====================
+const confirmCertified = document.getElementById('confirmCertified');
+const confirmFinal = document.getElementById('confirmFinal');
+const startBtn = document.getElementById('startBtn');
 
-        function validateStep1() {
-            const allChecked = confirmCertified.checked && confirmFinal.checked;
-            startBtn.disabled = !allChecked;
-            return allChecked;
-        }
+function validateStep1() {
+    const allChecked = confirmCertified.checked && confirmFinal.checked;
+    if (startBtn) {
+        startBtn.disabled = !allChecked;
+    }
+    console.log('Step 1 validation - allChecked:', allChecked); // Debug log
+    return allChecked;
+}
 
-        confirmCertified.addEventListener('change', validateStep1);
-        confirmFinal.addEventListener('change', validateStep1);
-        validateStep1();
+// Add event listeners
+if (confirmCertified) confirmCertified.addEventListener('change', validateStep1);
+if (confirmFinal) confirmFinal.addEventListener('change', validateStep1);
+
+// Run initial validation
+validateStep1();
 
         // ==================== DOCUMENT UPLOAD UI ====================
         function createUploadSection(containerId, docs) {
