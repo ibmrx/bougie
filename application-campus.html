@@ -72,10 +72,11 @@
         .success-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; display: none; justify-content: center; align-items: center; }
         .success-card { background: white; border-radius: 24px; padding: 2rem; text-align: center; max-width: 400px; width: 90%; }
         .success-card i { font-size: 4rem; color: #27ae60; margin-bottom: 1rem; }
+        .input-error { border-color: #e74c3c !important; }
         @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .payment-options { grid-template-columns: 1fr; } .progress-steps { flex-direction: column; gap: 0.75rem; } .step { display: flex; align-items: center; gap: 1rem; } .step-number { margin: 0; } .form-card { padding: 1.5rem; } }
     </style>
 </head>
-<body>
+<body data-destination="campus">
     <header class="header"><div class="header-container"><div class="logo"><img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Bougie Immigration Logo"><div class="logo-text">Bougie <span>Immigration</span></div></div><a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Home</a></div></header>
 
     <div class="container">
@@ -92,7 +93,7 @@
             <h2 class="form-title">Campus France Application <span style="background:#9b8e6e; color:white; padding:0.2rem 0.6rem; border-radius:20px; font-size:0.7rem; margin-left:0.5rem;">French Translation Required</span></h2>
             <div class="info-box"><i class="fas fa-info-circle"></i> <strong>Campus France Program:</strong> Official French government program for international students. All documents must be translated to French.</div>
             <div class="tcf-box"><i class="fas fa-language"></i> <strong>TCF Language Test Required:</strong> TCF (Test de Connaissance du Français) is mandatory for all Campus France applications.</div>
-            <div class="warning-box"><i class="fas fa-exclamation-triangle"></i> <strong>Note:</strong> Documents do NOT require certification. However, all documents must be translated to French.</div>
+            <div class="warning-box"><i class="fas fa-exclamation-triangle"></i> <strong>Note:</strong> Documents do NOT require certification. Upload both ORIGINAL and FRENCH TRANSLATION where applicable.</div>
             <div class="checkbox-group"><label><input type="checkbox" id="confirmCorrect"> <span>I confirm that all information provided is correct and all documents will be submitted in French translation as required.</span></label></div>
             <div class="checkbox-group"><label><input type="checkbox" id="confirmTcf"> <span>I confirm that I have taken or will take the TCF (Test de Connaissance du Français) language test.</span></label></div>
             <div class="checkbox-group"><label><input type="checkbox" id="confirmFinal"> <span>I understand that this submission is final and I cannot go back or modify my application after submission.</span></label></div>
@@ -112,13 +113,15 @@
             <div class="button-group"><button class="btn btn-secondary prevBtn">Previous</button><button class="btn btn-primary nextBtn">Next: Documents</button></div>
         </div>
 
-        <!-- Step 3: Documents -->
+        <!-- Step 3: Documents - with Original + Translation -->
         <div id="step3" class="form-card hidden">
             <h2 class="form-title">Document Upload</h2>
-            <div class="form-subtitle">Upload all required documents (PDF or JPG, max 5MB each) - French translation required</div>
-            <div class="info-box"><i class="fas fa-language"></i> <strong>Translation Requirement:</strong> All documents must be translated to French. Upload both original and French translation where applicable.</div>
+            <div class="form-subtitle">Upload all required documents (PDF or JPG, max 5MB each)</div>
+            <div class="info-box"><i class="fas fa-language"></i> <strong>Translation Requirement:</strong> Upload both ORIGINAL document and FRENCH TRANSLATION for certificates and transcripts.</div>
+            
             <div id="bachelorDocs"></div>
             <div id="masterDocs" class="hidden"></div>
+            
             <div class="button-group"><button class="btn btn-secondary prevBtn">Previous</button><button class="btn btn-primary nextBtn">Next: Payment</button></div>
         </div>
 
@@ -128,7 +131,7 @@
             <div class="form-subtitle">Total Service Fee: 35,000 DA</div>
             <div class="payment-options"><div class="payment-option" data-payment="ccp"><i class="fas fa-university"></i><h4>CCP</h4><p>Account: 40253214 Clé 56</p></div><div class="payment-option" data-payment="baridimob"><i class="fas fa-mobile-alt"></i><h4>Baridimob</h4><p>Account: 00799999004025321435</p></div></div>
             <div class="payment-action"><div class="button-group"><button id="payNowBtn" class="btn btn-primary">Pay Now - Upload Receipt</button><button id="payLaterBtn" class="btn btn-secondary">Pay Later - Contact Agency</button></div></div>
-            <div id="receiptUpload" class="hidden"><div class="file-upload" id="receiptUploadArea"><i class="fas fa-cloud-upload-alt"></i><p>Click to upload payment receipt</p><input type="file" id="receiptFile" accept=".pdf,.jpg,.jpeg" style="display:none"></div></div>
+            <div id="receiptUpload" class="hidden"><div class="file-upload" id="receiptUploadArea" data-id="payment_receipt"><i class="fas fa-cloud-upload-alt"></i><p>Click to upload payment receipt</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none"></div></div>
             <div class="bank-details"><h4>Bank Account Details</h4><p><strong>CCP:</strong> 40253214 Clé 56</p><p><strong>Baridimob:</strong> 00799999004025321435</p><div class="warning-box" style="margin-top:0.5rem"><i class="fas fa-clock"></i> You have 3 days to complete payment, otherwise your application will be automatically refused.</div></div>
             <div class="button-group"><button class="btn btn-secondary prevBtn">Previous</button><button class="btn btn-primary nextBtn" id="paymentNextBtn" disabled>Next: Signature</button></div>
         </div>
@@ -149,216 +152,124 @@
     <!-- Success Modal -->
     <div id="successModal" class="success-overlay"><div class="success-card"><i class="fas fa-check-circle"></i><h3>Application Submitted Successfully!</h3><p id="successAppNumber"></p><p>A confirmation email has been sent to your email address.</p><p>You have 3 days to complete payment.</p><button id="successOkBtn" class="btn btn-primary" style="margin-top:1rem">OK</button></div></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/application.js"></script>
     <script>
-        // State
-        let currentStep = 1;
-        let uploadedDocs = {};
-        let paymentMethod = null;
-        let paymentStatus = null;
-        let signatureData = null;
-        let canvas, ctx, drawing = false;
-
-        const steps = [null, document.getElementById('step1'), document.getElementById('step2'), document.getElementById('step3'), document.getElementById('step4'), document.getElementById('step5')];
-
-        // Document definitions with separate original and translation
+        // Document definitions for Campus France with Original + Translation
         const bachelorDocs = [
-            { id: 'passport', name: 'Passport (French translation)' },
-            { id: 'photo', name: 'ID Photo' },
-            { id: 'cv', name: 'CV (French)' },
-            { id: 'bacCert', name: 'Baccalaureate Certificate (French translation)' },
-            { id: 'bacTranscript', name: 'Baccalaureate Transcript (French translation)' },
-            { id: 'tcfResults', name: 'TCF Test Results' }
+            { id: 'passport', name: 'Passport (French translation)', required: true },
+            { id: 'photo', name: 'ID Photo', required: true },
+            { id: 'cv', name: 'CV (French)', required: true },
+            { id: 'bacCertOriginal', name: 'Baccalaureate Certificate (ORIGINAL)', required: true },
+            { id: 'bacCertTranslation', name: 'Baccalaureate Certificate (French translation)', required: true },
+            { id: 'bacTranscriptOriginal', name: 'Baccalaureate Transcript (ORIGINAL)', required: true },
+            { id: 'bacTranscriptTranslation', name: 'Baccalaureate Transcript (French translation)', required: true },
+            { id: 'tcfResults', name: 'TCF Test Results', required: true }
         ];
+        
         const masterDocs = [
             ...bachelorDocs,
-            { id: 'bachelorCert', name: 'Bachelor Certificate (French translation)' },
-            { id: 'bachelorTranscript', name: 'Bachelor Transcript - 3 years (French translation)' }
+            { id: 'bachelorCertOriginal', name: 'Bachelor Certificate (ORIGINAL)', required: true },
+            { id: 'bachelorCertTranslation', name: 'Bachelor Certificate (French translation)', required: true },
+            { id: 'bachelorTranscriptOriginal', name: 'Bachelor Transcript - 3 years (ORIGINAL)', required: true },
+            { id: 'bachelorTranscriptTranslation', name: 'Bachelor Transcript - 3 years (French translation)', required: true }
         ];
 
-        function createUploadSection(containerId, docs) {
+        // Override the document requirements for Campus France
+        window.CampusFranceDocs = { bachelorDocs, masterDocs };
+        
+        // Function to create upload sections with original + translation
+        function createCampusFranceUploadSection(containerId, docs) {
             const container = document.getElementById(containerId);
             if (!container) return;
             container.innerHTML = '';
+            
             docs.forEach(doc => {
                 const div = document.createElement('div');
                 div.className = 'form-group';
-                div.innerHTML = `<label>${doc.name} <span class="required">*</span></label><div class="file-upload" data-id="${doc.id}"><i class="fas fa-cloud-upload-alt"></i><p>Click to upload</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none"></div><div class="file-list" id="list-${doc.id}"></div>`;
+                div.innerHTML = `
+                    <label>${doc.name} <span class="required">*</span></label>
+                    <div class="file-upload" data-id="${doc.id}">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload</p>
+                        <input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">
+                    </div>
+                    <div class="file-list" id="list-${doc.id}"></div>
+                `;
                 container.appendChild(div);
             });
-            attachUploadHandlers();
-        }
-
-        function attachUploadHandlers() {
-            document.querySelectorAll('.file-upload').forEach(upload => {
-                const input = upload.querySelector('input');
-                const docId = upload.getAttribute('data-id');
-                if (!input) return;
-                upload.addEventListener('click', () => input.click());
-                input.addEventListener('change', (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    if (file.size > 5 * 1024 * 1024) { alert('File exceeds 5MB limit'); input.value = ''; return; }
-                    if (!['application/pdf','image/jpeg','image/jpg'].includes(file.type)) { alert('Only PDF and JPG files allowed'); input.value = ''; return; }
-                    uploadedDocs[docId] = file;
-                    const fileList = upload.nextElementSibling;
-                    fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0,30)}</span><button onclick="removeDoc('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
-                    upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File uploaded</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
-                    const newInput = upload.querySelector('input');
-                    if (newInput) newInput.addEventListener('change', arguments.callee);
+            
+            // Attach upload handlers
+            setTimeout(() => {
+                document.querySelectorAll('.file-upload').forEach(upload => {
+                    const input = upload.querySelector('input');
+                    const docId = upload.getAttribute('data-id');
+                    if (input && !input.hasAttribute('data-handler')) {
+                        input.setAttribute('data-handler', 'true');
+                        upload.addEventListener('click', () => input.click());
+                        input.addEventListener('change', (e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            if (file.size > 5 * 1024 * 1024) { alert('File exceeds 5MB'); input.value = ''; return; }
+                            if (!['application/pdf','image/jpeg','image/jpg'].includes(file.type)) { alert('Only PDF/JPG'); input.value = ''; return; }
+                            
+                            window.uploadedDocuments = window.uploadedDocuments || {};
+                            window.uploadedDocuments[docId] = file;
+                            
+                            const fileList = upload.nextElementSibling;
+                            if (fileList) {
+                                fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0,30)}</span><button onclick="removeCampusDoc('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
+                            }
+                            upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File uploaded</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
+                            const newInput = upload.querySelector('input');
+                            if (newInput) newInput.addEventListener('change', arguments.callee);
+                        });
+                    }
                 });
-            });
+            }, 100);
         }
-
-        window.removeDoc = function(docId, btn) {
-            delete uploadedDocs[docId];
+        
+        window.removeCampusDoc = function(docId, btn) {
+            if (window.uploadedDocuments) delete window.uploadedDocuments[docId];
             btn.closest('.file-item')?.remove();
             const upload = document.querySelector(`.file-upload[data-id="${docId}"]`);
-            if (upload) upload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i><p>Click to upload</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
+            if (upload) {
+                upload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i><p>Click to upload</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
+            }
         };
-
-        function initCanvas() {
-            canvas = document.getElementById('signatureCanvas');
-            if (!canvas) return;
-            ctx = canvas.getContext('2d');
-            function resizeCanvas() {
-                const container = canvas.parentElement;
-                const width = container.clientWidth - 32;
-                canvas.width = width;
-                canvas.height = 150;
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.strokeStyle = '#2c2b28';
-                ctx.lineWidth = 2;
-                ctx.lineCap = 'round';
-                if (signatureData) { const img = new Image(); img.onload = () => ctx.drawImage(img, 0, 0); img.src = signatureData; }
-            }
-            function startDrawing(e) { drawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); }
-            function draw(e) { if (!drawing) return; e.preventDefault(); const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); }
-            function stopDrawing() { drawing = false; signatureData = canvas.toDataURL(); }
-            function getPos(e) {
-                const rect = canvas.getBoundingClientRect();
-                const scaleX = canvas.width / rect.width;
-                const scaleY = canvas.height / rect.height;
-                let clientX, clientY;
-                if (e.touches) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
-                else { clientX = e.clientX; clientY = e.clientY; }
-                return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
-            }
-            canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDrawing);
-            canvas.addEventListener('mouseleave', stopDrawing);
-            canvas.addEventListener('touchstart', startDrawing);
-            canvas.addEventListener('touchmove', draw);
-            canvas.addEventListener('touchend', stopDrawing);
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas();
-            document.getElementById('clearSignature')?.addEventListener('click', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height); signatureData = null; });
-        }
-
-        function validateStep1() {
-            const correct = document.getElementById('confirmCorrect')?.checked;
-            const tcf = document.getElementById('confirmTcf')?.checked;
-            const final = document.getElementById('confirmFinal')?.checked;
-            const startBtn = document.getElementById('startApplicationBtn');
-            startBtn.disabled = !(correct && tcf && final);
-            return correct && tcf && final;
-        }
-        function validateStep2() {
-            let valid = true;
-            const fields = ['firstName','lastName','birthDate','bacDate','applyingDegree','phone','email','courses','tcfStatus'];
-            fields.forEach(id => { const el = document.getElementById(id); if (el && !el.value.trim()) valid = false; });
-            const email = document.getElementById('email')?.value;
-            if (email && !/^[^\s@]+@([^\s@]+\.)+[^\s@]+$/.test(email)) valid = false;
-            const phone = document.getElementById('phone')?.value;
-            if (phone && !/^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{3,4}[-\s\.]?[0-9]{3,4}$/.test(phone)) valid = false;
-            if (!valid) alert('Please fill all required fields correctly.');
-            return valid;
-        }
-        function validateStep3() {
+        
+        // Override validateStep3 for Campus France
+        const originalValidateStep3 = window.validateStep3;
+        window.validateStep3 = function() {
             const degree = document.getElementById('applyingDegree')?.value;
-            const requiredDocs = degree === 'Master' ? masterDocs : bachelorDocs;
-            const missing = requiredDocs.filter(doc => !uploadedDocs[doc.id]);
-            if (missing.length) { alert(`Please upload: ${missing.map(d => d.name).join(', ')}`); return false; }
-            return true;
-        }
-        function validateStep4() {
-            if (!paymentMethod) { alert('Please select a payment method.'); return false; }
-            if (paymentStatus === 'paid_pending') {
-                const receipt = document.getElementById('receiptFile')?.files[0];
-                if (!receipt) { alert('Please upload payment receipt.'); return false; }
+            const docs = degree === 'Master' ? masterDocs : bachelorDocs;
+            const missing = docs.filter(doc => !window.uploadedDocuments || !window.uploadedDocuments[doc.id]);
+            if (missing.length) {
+                alert(`Please upload: ${missing.map(d => d.name).join(', ')}`);
+                return false;
             }
             return true;
-        }
-        function validateStep5() {
-            if (!document.getElementById('privacyPolicy')?.checked) { alert('Please agree to the Privacy Policy and Contract.'); return false; }
-            if (!signatureData) { alert('Please provide your digital signature.'); return false; }
-            return true;
-        }
-
-        function updateStepDisplay() {
-            for (let i = 1; i <= 5; i++) {
-                const stepEl = document.querySelector(`.step[data-step="${i}"]`);
-                if (i === currentStep) { stepEl.classList.add('active'); stepEl.classList.remove('completed'); steps[i].classList.remove('hidden'); }
-                else if (i < currentStep) { stepEl.classList.add('completed'); stepEl.classList.remove('active'); steps[i].classList.add('hidden'); }
-                else { stepEl.classList.remove('active', 'completed'); steps[i].classList.add('hidden'); }
-            }
-        }
-        function nextStep() {
-            let valid = true;
-            if (currentStep === 1) valid = validateStep1();
-            else if (currentStep === 2) valid = validateStep2();
-            else if (currentStep === 3) valid = validateStep3();
-            else if (currentStep === 4) valid = validateStep4();
-            if (valid && currentStep < 5) { currentStep++; updateStepDisplay(); }
-        }
-        function prevStep() { if (currentStep > 1) { currentStep--; updateStepDisplay(); } }
-
-        function setupPayment() {
-            document.querySelectorAll('.payment-option').forEach(opt => {
-                opt.addEventListener('click', () => {
-                    document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
-                    opt.classList.add('selected');
-                    paymentMethod = opt.getAttribute('data-payment');
+        };
+        
+        // Handle applying degree change
+        document.addEventListener('DOMContentLoaded', () => {
+            const degreeSelect = document.getElementById('applyingDegree');
+            if (degreeSelect) {
+                degreeSelect.addEventListener('change', (e) => {
+                    const masterDiv = document.getElementById('masterDocs');
+                    if (e.target.value === 'Master') {
+                        masterDiv.classList.remove('hidden');
+                        createCampusFranceUploadSection('masterDocs', masterDocs);
+                    } else {
+                        masterDiv.classList.add('hidden');
+                        createCampusFranceUploadSection('bachelorDocs', bachelorDocs);
+                    }
                 });
-            });
-            document.getElementById('payNowBtn')?.addEventListener('click', () => { paymentStatus = 'paid_pending'; document.getElementById('receiptUpload').classList.remove('hidden'); document.getElementById('paymentNextBtn').disabled = false; });
-            document.getElementById('payLaterBtn')?.addEventListener('click', () => { paymentStatus = 'pending'; document.getElementById('receiptUpload').classList.add('hidden'); document.getElementById('paymentNextBtn').disabled = false; });
-            document.getElementById('receiptUploadArea')?.addEventListener('click', () => document.getElementById('receiptFile')?.click());
-        }
-
-        function submitApplication() {
-            if (!validateStep5()) return;
-            const appNumber = 'CF-' + new Date().getFullYear() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-            document.getElementById('successAppNumber').innerHTML = `<strong>Application Number: ${appNumber}</strong>`;
-            document.getElementById('successModal').style.display = 'flex';
-        }
-
-        // Event Listeners
-        document.getElementById('startApplicationBtn')?.addEventListener('click', () => { currentStep = 2; updateStepDisplay(); });
-        document.querySelectorAll('.nextBtn').forEach(btn => btn.addEventListener('click', nextStep));
-        document.querySelectorAll('.prevBtn').forEach(btn => btn.addEventListener('click', prevStep));
-        document.getElementById('submitApplication')?.addEventListener('click', submitApplication);
-        document.getElementById('privacyPolicy')?.addEventListener('change', (e) => { document.getElementById('submitApplication').disabled = !e.target.checked; });
-        document.getElementById('viewContract')?.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('contractModal').style.display = 'flex'; });
-        document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('contractModal').style.display = 'none');
-        document.getElementById('acceptContractBtn')?.addEventListener('click', () => document.getElementById('contractModal').style.display = 'none');
-        document.getElementById('successOkBtn')?.addEventListener('click', () => window.location.href = 'index.html');
-        document.getElementById('confirmCorrect')?.addEventListener('change', validateStep1);
-        document.getElementById('confirmTcf')?.addEventListener('change', validateStep1);
-        document.getElementById('confirmFinal')?.addEventListener('change', validateStep1);
-        document.getElementById('applyingDegree')?.addEventListener('change', (e) => {
-            const masterDiv = document.getElementById('masterDocs');
-            if (e.target.value === 'Master') { masterDiv.classList.remove('hidden'); createUploadSection('masterDocs', masterDocs); }
-            else { masterDiv.classList.add('hidden'); createUploadSection('bachelorDocs', bachelorDocs); }
+            }
+            // Initialize bachelor docs
+            createCampusFranceUploadSection('bachelorDocs', bachelorDocs);
         });
-
-        // Initialize
-        createUploadSection('bachelorDocs', bachelorDocs);
-        initCanvas();
-        setupPayment();
-        updateStepDisplay();
-        validateStep1();
     </script>
 </body>
 </html>
