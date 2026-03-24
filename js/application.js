@@ -38,27 +38,34 @@ const DOCUMENT_REQUIREMENTS = {
             { id: 'bacTranscriptTranslated', name: 'Baccalaureate Transcript (certified translated)', required: true },
             { id: 'bachelorCertOriginal', name: 'Bachelor Certificate (certified original)', required: true },
             { id: 'bachelorCertTranslated', name: 'Bachelor Certificate (certified translated)', required: true },
-            { id: 'bachelorTranscript', name: 'Bachelor Transcript - 3 years (certified original & translated)', required: true },
+            { id: 'bachelorTranscriptOriginal', name: 'Bachelor Transcript - 3 years (certified original)', required: true },
+            { id: 'bachelorTranscriptTranslated', name: 'Bachelor Transcript - 3 years (certified translated)', required: true },
             { id: 'englishProof', name: 'English Proof (IELTS/TOEFL)', required: true }
         ]
     },
     campus: {
         bachelor: [
-            { id: 'passport', name: 'Passport (French translation)', required: true },
+            { id: 'passport', name: 'Passport', required: true },
             { id: 'photo', name: 'ID Photo', required: true },
             { id: 'cv', name: 'CV (French)', required: true },
-            { id: 'bacCert', name: 'Baccalaureate Certificate (French translation)', required: true },
-            { id: 'bacTranscript', name: 'Baccalaureate Transcript (French translation)', required: true },
+            { id: 'bacCertOriginal', name: 'Baccalaureate Certificate (original)', required: true },
+            { id: 'bacCertTranslated', name: 'Baccalaureate Certificate (French translation)', required: true },
+            { id: 'bacTranscriptOriginal', name: 'Baccalaureate Transcript (original)', required: true },
+            { id: 'bacTranscriptTranslated', name: 'Baccalaureate Transcript (French translation)', required: true },
             { id: 'tcfResults', name: 'TCF Test Results', required: true }
         ],
         master: [
-            { id: 'passport', name: 'Passport (French translation)', required: true },
+            { id: 'passport', name: 'Passport', required: true },
             { id: 'photo', name: 'ID Photo', required: true },
             { id: 'cv', name: 'CV (French)', required: true },
-            { id: 'bacCert', name: 'Baccalaureate Certificate (French translation)', required: true },
-            { id: 'bacTranscript', name: 'Baccalaureate Transcript (French translation)', required: true },
-            { id: 'bachelorCert', name: 'Bachelor Certificate (French translation)', required: true },
-            { id: 'bachelorTranscript', name: 'Bachelor Transcript - 3 years (French translation)', required: true },
+            { id: 'bacCertOriginal', name: 'Baccalaureate Certificate (original)', required: true },
+            { id: 'bacCertTranslated', name: 'Baccalaureate Certificate (French translation)', required: true },
+            { id: 'bacTranscriptOriginal', name: 'Baccalaureate Transcript (original)', required: true },
+            { id: 'bacTranscriptTranslated', name: 'Baccalaureate Transcript (French translation)', required: true },
+            { id: 'bachelorCertOriginal', name: 'Bachelor Certificate (original)', required: true },
+            { id: 'bachelorCertTranslated', name: 'Bachelor Certificate (French translation)', required: true },
+            { id: 'bachelorTranscriptOriginal', name: 'Bachelor Transcript - 3 years (original)', required: true },
+            { id: 'bachelorTranscriptTranslated', name: 'Bachelor Transcript - 3 years (French translation)', required: true },
             { id: 'tcfResults', name: 'TCF Test Results', required: true }
         ]
     }
