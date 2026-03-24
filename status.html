@@ -175,14 +175,8 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .status-badge {
@@ -275,10 +269,7 @@
         .timeline-item:nth-child(4) { animation-delay: 0.4s; }
 
         @keyframes slideIn {
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .timeline-icon {
@@ -354,9 +345,7 @@
         }
 
         @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+            to { transform: rotate(360deg); }
         }
 
         .help-text {
@@ -385,15 +374,12 @@
             .input-group {
                 flex-direction: column;
             }
-            
             .search-btn {
                 justify-content: center;
             }
-            
             .status-header h1 {
                 font-size: 1.5rem;
             }
-            
             .info-grid {
                 grid-template-columns: 1fr;
             }
@@ -404,7 +390,7 @@
     <header class="header">
         <div class="header-container">
             <div class="logo">
-                <img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Bougie Immigration Logo" onerror="this.src='https://placehold.co/50x50/dcdad5/2c2b28?text=BI'">
+                <img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Bougie Immigration Logo">
                 <div class="logo-text">Bougie <span>Immigration</span></div>
             </div>
             <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Home</a>
@@ -488,30 +474,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Supabase configuration
-        const SUPABASE_URL = 'https://qpprzcckolmdyabnmgol.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwcHJ6Y2Nrb2xtZHlhYm5tZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjA5MTYsImV4cCI6MjA4OTkzNjkxNn0.Pp9fTdklyomxmG6wsb8FBzyhLXaXEx983ofdaiPG_So';
-        
-        let supabase = null;
-        let currentApplication = null;
-        let isLoading = false;
-
-        // Initialize Supabase
-        function initSupabase() {
-            if (typeof supabase !== 'undefined' && supabase) return supabase;
-            if (typeof window.supabase !== 'undefined') {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            } else if (typeof supabaseJs !== 'undefined') {
-                supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            } else {
-                console.warn('Supabase not loaded, using fallback mode');
-                return null;
-            }
-            return supabase;
-        }
-
         // DOM Elements
         const elements = {
             applicationNumber: document.getElementById('applicationNumber'),
@@ -532,6 +495,8 @@
             appNumber: document.getElementById('appNumber'),
             timelineItems: document.getElementById('timelineItems')
         };
+
+        let isLoading = false;
 
         // Helper functions
         function formatDate(dateString) {
@@ -557,8 +522,8 @@
         }
 
         function getDestinationDisplay(destination) {
-            if (destination === 'italy' || destination === 'Italy') return 'Italy';
-            if (destination === 'campus_france' || destination === 'Campus France') return 'Campus France';
+            if (destination === 'italy') return 'Italy';
+            if (destination === 'campus_france') return 'Campus France';
             return destination || 'Not specified';
         }
 
@@ -592,25 +557,26 @@
             // Submission
             timelineItems.push({
                 title: 'Application Submitted',
-                date: application.submitted_at || application.created_at,
+                date: application.created_at,
                 icon: 'fa-file-alt',
-                description: `Your application was successfully submitted on ${formatDate(application.submitted_at || application.created_at)}`
+                description: `Your application was successfully submitted on ${formatDate(application.created_at)}`
             });
             
             // Payment status
             if (application.payment_status === 'paid') {
                 timelineItems.push({
                     title: 'Payment Received',
-                    date: application.payment_date || application.submitted_at,
+                    date: application.payment_date || application.created_at,
                     icon: 'fa-credit-card',
                     description: 'Payment has been verified and received.'
                 });
             } else if (application.payment_status === 'pending') {
+                const deadline = application.payment_deadline;
                 timelineItems.push({
                     title: 'Payment Pending',
-                    date: application.payment_deadline,
+                    date: deadline,
                     icon: 'fa-clock',
-                    description: `Payment required within 3 days of submission. Deadline: ${formatDate(application.payment_deadline)}`
+                    description: `Payment required within 3 days of submission. Deadline: ${formatDate(deadline)}`
                 });
             }
             
@@ -656,8 +622,6 @@
         }
 
         function displayApplication(application) {
-            currentApplication = application;
-            
             // Status badge
             const statusClass = getStatusClass(application.application_status);
             const statusIcon = getStatusIcon(application.application_status);
@@ -730,7 +694,7 @@
             }
         }
 
-        async function searchApplication() {
+        function searchApplication() {
             const appNumber = elements.applicationNumber.value.trim().toUpperCase();
             
             if (!appNumber) {
@@ -746,24 +710,20 @@
             hideError();
             
             try {
-                const client = initSupabase();
+                // Read from localStorage
+                const stored = localStorage.getItem('bougie_applications');
+                let applications = [];
+                if (stored) {
+                    applications = JSON.parse(stored);
+                }
                 
-                if (client) {
-                    // Query Supabase for the application
-                    const { data, error } = await client
-                        .from('applications')
-                        .select('*')
-                        .eq('application_number', appNumber)
-                        .single();
-                    
-                    if (error || !data) {
-                        showError(`Application number "${appNumber}" not found. Please check and try again.`);
-                    } else {
-                        displayApplication(data);
-                    }
+                // Find application by number
+                const application = applications.find(app => app.application_number === appNumber);
+                
+                if (application) {
+                    displayApplication(application);
                 } else {
-                    // Fallback - show error that database connection is required
-                    showError('Unable to connect to the database. Please try again later or contact support.');
+                    showError(`Application number "${appNumber}" not found. Please check and try again.`);
                 }
                 
             } catch (error) {
@@ -788,9 +748,6 @@
         elements.applicationNumber.addEventListener('input', (e) => {
             e.target.value = e.target.value.toUpperCase();
         });
-        
-        // Initialize
-        initSupabase();
     </script>
 </body>
 </html>
