@@ -184,6 +184,10 @@ function initApplicationForm(destination) {
             }
         });
     }
+
+        if (window.SupabaseStorage) {
+        window.SupabaseStorage.init();
+    }
     
 } 
 /**
