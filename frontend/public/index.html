@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bougie Immigration</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background-color: #f4eddb;
+      color: #333;
+    }
+
+    header {
+      text-align: center;
+      padding: 50px 20px 20px 20px;
+      background-color: #dcdad5;
+    }
+
+    header img {
+      width: 180px;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 36px;
+      color: #2c2c2c;
+    }
+
+    header p {
+      font-size: 18px;
+      color: #555;
+    }
+
+    .cta {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 50px 20px;
+      gap: 20px;
+    }
+
+    .cta button {
+      background-color: #dcdad5;
+      border: none;
+      padding: 15px 40px;
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: 0.3s;
+    }
+
+    .cta button:hover {
+      background-color: #cfcbbc;
+    }
+
+    .destinations {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 30px;
+    }
+
+    .destination-card {
+      background-color: #fff;
+      border-radius: 12px;
+      padding: 30px 20px;
+      width: 250px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: 0.3s;
+      cursor: pointer;
+    }
+
+    .destination-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    }
+
+    .destination-card h3 {
+      margin: 15px 0 10px 0;
+      font-size: 22px;
+    }
+
+    .destination-card p {
+      font-size: 16px;
+      color: #555;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px 20px;
+      background-color: #dcdad5;
+      margin-top: 50px;
+    }
+
+    footer p {
+      margin: 0;
+      font-size: 14px;
+      color: #555;
+    }
+
+    @media(max-width: 600px){
+      .destinations {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Bougie Immigration Logo">
+    <h1>Bougie Immigration</h1>
+    <p>Your Professional Immigration Partner to Italy & Campus France</p>
+  </header>
+
+  <section class="cta">
+    <button onclick="window.location.href='/destinations'">Start Your Application</button>
+    <div class="destinations">
+      <div class="destination-card" onclick="window.location.href='/apply/italy'">
+        <h3>Italy</h3>
+        <p>Submit your documents for Bachelor or Master programs in Italian universities.</p>
+      </div>
+      <div class="destination-card" onclick="window.location.href='/apply/campus-france'">
+        <h3>Campus France</h3>
+        <p>Apply to French programs with TCF test and required documents.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2026 Bougie Immigration. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>
