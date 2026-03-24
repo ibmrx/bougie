@@ -1,22 +1,72 @@
 /**
  * Bougie Immigration - Application Form Handler
- * Manages multi-step application forms with Supabase integration
+ * Manages multi-step application forms for Italy and Campus France
+ * Handles form validation, document uploads to Supabase, and submission
  */
 
 // Global state
 let currentStep = 1;
 let totalSteps = 5;
-let uploadedDocuments = {};
+let selectedFiles = {};
 let paymentStatus = null;
 let selectedPaymentMethod = null;
 let applicationData = {};
 let signatureData = null;
 let canvas, ctx, drawing = false;
-let isSubmitting = false;
+let uploadResults = {};
+
+// Document requirements based on destination and study level
+const DOCUMENT_REQUIREMENTS = {
+    italy: {
+        bachelor: [
+            { id: 'passport', name: 'Passport', required: true },
+            { id: 'photo', name: 'ID Photo', required: true },
+            { id: 'cv', name: 'CV', required: true },
+            { id: 'bacCertOriginal', name: 'Baccalaureate Certificate (certified original)', required: true },
+            { id: 'bacCertTranslated', name: 'Baccalaureate Certificate (certified translated)', required: true },
+            { id: 'bacTranscriptOriginal', name: 'Baccalaureate Transcript (certified original)', required: true },
+            { id: 'bacTranscriptTranslated', name: 'Baccalaureate Transcript (certified translated)', required: true },
+            { id: 'englishProof', name: 'English Proof (IELTS/TOEFL)', required: true }
+        ],
+        master: [
+            { id: 'passport', name: 'Passport', required: true },
+            { id: 'photo', name: 'ID Photo', required: true },
+            { id: 'cv', name: 'CV', required: true },
+            { id: 'bacCertOriginal', name: 'Baccalaureate Certificate (certified original)', required: true },
+            { id: 'bacCertTranslated', name: 'Baccalaureate Certificate (certified translated)', required: true },
+            { id: 'bacTranscriptOriginal', name: 'Baccalaureate Transcript (certified original)', required: true },
+            { id: 'bacTranscriptTranslated', name: 'Baccalaureate Transcript (certified translated)', required: true },
+            { id: 'bachelorCertOriginal', name: 'Bachelor Certificate (certified original)', required: true },
+            { id: 'bachelorCertTranslated', name: 'Bachelor Certificate (certified translated)', required: true },
+            { id: 'bachelorTranscript', name: 'Bachelor Transcript - 3 years (certified original & translated)', required: true },
+            { id: 'englishProof', name: 'English Proof (IELTS/TOEFL)', required: true }
+        ]
+    },
+    campus: {
+        bachelor: [
+            { id: 'passport', name: 'Passport (French translation)', required: true },
+            { id: 'photo', name: 'ID Photo', required: true },
+            { id: 'cv', name: 'CV (French)', required: true },
+            { id: 'bacCert', name: 'Baccalaureate Certificate (French translation)', required: true },
+            { id: 'bacTranscript', name: 'Baccalaureate Transcript (French translation)', required: true },
+            { id: 'tcfResults', name: 'TCF Test Results', required: true }
+        ],
+        master: [
+            { id: 'passport', name: 'Passport (French translation)', required: true },
+            { id: 'photo', name: 'ID Photo', required: true },
+            { id: 'cv', name: 'CV (French)', required: true },
+            { id: 'bacCert', name: 'Baccalaureate Certificate (French translation)', required: true },
+            { id: 'bacTranscript', name: 'Baccalaureate Transcript (French translation)', required: true },
+            { id: 'bachelorCert', name: 'Bachelor Certificate (French translation)', required: true },
+            { id: 'bachelorTranscript', name: 'Bachelor Transcript - 3 years (French translation)', required: true },
+            { id: 'tcfResults', name: 'TCF Test Results', required: true }
+        ]
+    }
+};
 
 // File validation
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg'];
+const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
 
 /**
  * Initialize application form
@@ -24,6 +74,7 @@ const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg'];
  */
 function initApplicationForm(destination) {
     applicationData.destination = destination;
+    applicationData.documentRequirements = DOCUMENT_REQUIREMENTS[destination];
     
     // Setup step navigation
     setupStepNavigation();
@@ -48,6 +99,17 @@ function initApplicationForm(destination) {
     
     // Initial validation for step 1
     validateStep1();
+    
+    // Initialize Supabase Storage
+    if (window.SupabaseStorage) {
+        window.SupabaseStorage.init();
+        window.SupabaseStorage.checkAvailability().then(available => {
+            console.log('Supabase Storage available:', available);
+            if (!available) {
+                console.warn('Please create "documents" bucket in Supabase dashboard');
+            }
+        });
+    }
 }
 
 /**
@@ -56,7 +118,7 @@ function initApplicationForm(destination) {
 function setupPrivacyPolicyModal() {
     const viewContract = document.getElementById('viewContract');
     const contractModal = document.getElementById('contractModal');
-    const closeModalBtn = document.getElementById('closeModalBtn');
+    const closeModalBtn = document.getElementById('closeContractBtn');
     const acceptContractBtn = document.getElementById('acceptContractBtn');
     
     if (viewContract && contractModal) {
@@ -78,6 +140,7 @@ function setupPrivacyPolicyModal() {
         });
     }
     
+    // Close modal when clicking outside
     if (contractModal) {
         contractModal.addEventListener('click', (e) => {
             if (e.target === contractModal) {
@@ -102,7 +165,7 @@ function initSignatureCanvas() {
         canvas.width = width;
         canvas.height = 150;
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, width, 150);
         ctx.strokeStyle = '#2c2b28';
         ctx.lineWidth = 2;
         ctx.lineCap = 'round';
@@ -113,34 +176,11 @@ function initSignatureCanvas() {
         }
     }
     
-    function startDrawing(e) {
-        drawing = true;
-        const pos = getCanvasCoordinates(e);
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-    }
-    
-    function draw(e) {
-        if (!drawing) return;
-        e.preventDefault();
-        const pos = getCanvasCoordinates(e);
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-    }
-    
-    function stopDrawing() {
-        if (drawing) {
-            drawing = false;
-            signatureData = canvas.toDataURL();
-        }
-    }
-    
-    function getCanvasCoordinates(e) {
+    function getCoordinates(e) {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
         let clientX, clientY;
-        
         if (e.touches) {
             clientX = e.touches[0].clientX;
             clientY = e.touches[0].clientY;
@@ -148,11 +188,30 @@ function initSignatureCanvas() {
             clientX = e.clientX;
             clientY = e.clientY;
         }
-        
         return {
             x: (clientX - rect.left) * scaleX,
             y: (clientY - rect.top) * scaleY
         };
+    }
+    
+    function startDrawing(e) {
+        drawing = true;
+        const pos = getCoordinates(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+    }
+    
+    function draw(e) {
+        if (!drawing) return;
+        e.preventDefault();
+        const pos = getCoordinates(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+    }
+    
+    function stopDrawing() {
+        drawing = false;
+        signatureData = canvas.toDataURL();
     }
     
     canvas.addEventListener('mousedown', startDrawing);
@@ -162,9 +221,8 @@ function initSignatureCanvas() {
     canvas.addEventListener('touchstart', startDrawing);
     canvas.addEventListener('touchmove', draw);
     canvas.addEventListener('touchend', stopDrawing);
-    
     window.addEventListener('resize', resizeCanvas);
-    setTimeout(resizeCanvas, 100);
+    resizeCanvas();
     
     const clearBtn = document.getElementById('clearSignature');
     if (clearBtn) {
@@ -226,7 +284,7 @@ function validateCurrentStep() {
 function validateStep1() {
     const confirmCertified = document.getElementById('confirmCertified');
     const confirmFinal = document.getElementById('confirmFinal');
-    const startBtn = document.getElementById('startApplicationBtn');
+    const startBtn = document.getElementById('startBtn');
     
     let isValid = true;
     
@@ -252,7 +310,7 @@ function validateStep1() {
  * Validate step 2 - Personal Information
  */
 function validateStep2() {
-    const fields = ['firstName', 'lastName', 'birthDate', 'bacDate', 'applyingDegree', 'phone', 'email', 'courses'];
+    const fields = ['firstName', 'lastName', 'birthDate', 'bacDate', 'degree', 'phone', 'email', 'courses'];
     let isValid = true;
     let firstInvalid = null;
     
@@ -275,18 +333,6 @@ function validateStep2() {
             isValid = false;
             emailField.classList.add('input-error');
             showError('Please enter a valid email address.');
-            return false;
-        }
-    }
-    
-    const phoneField = document.getElementById('phone');
-    if (phoneField && phoneField.value.trim()) {
-        const phone = phoneField.value.trim();
-        const phoneRegex = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{3,4}[-\s\.]?[0-9]{3,4}$/;
-        if (!phoneRegex.test(phone)) {
-            isValid = false;
-            phoneField.classList.add('input-error');
-            showError('Please enter a valid phone number.');
             return false;
         }
     }
@@ -315,18 +361,18 @@ function validateStep2() {
  * Validate step 3 - Documents
  */
 function validateStep3() {
-    const degree = document.getElementById('applyingDegree')?.value;
+    const degree = document.getElementById('degree')?.value;
+    const docList = applicationData.documentRequirements[degree === 'Master' ? 'master' : 'bachelor'];
     const missingDocs = [];
     
-    // Check all uploaded documents based on requirements
-    for (const [docId, file] of Object.entries(uploadedDocuments)) {
-        if (!file) {
-            missingDocs.push(docId);
+    for (const doc of docList) {
+        if (doc.required && !selectedFiles[doc.id]) {
+            missingDocs.push(doc.name);
         }
     }
     
     if (missingDocs.length > 0) {
-        showError(`Please upload all required documents.`);
+        showError(`Please upload the following required documents:\n${missingDocs.join('\n')}`);
         return false;
     }
     
@@ -356,11 +402,9 @@ function validateStep4() {
         }
         
         if (!ALLOWED_FILE_TYPES.includes(receiptFile.type)) {
-            showError('Receipt must be PDF or JPG format.');
+            showError('Receipt must be PDF, JPG, or PNG format.');
             return false;
         }
-        
-        applicationData.receiptFile = receiptFile;
     }
     
     return true;
@@ -395,7 +439,7 @@ function saveCurrentStepData() {
         applicationData.bacDate = document.getElementById('bacDate')?.value;
         applicationData.phone = document.getElementById('phone')?.value.trim();
         applicationData.email = document.getElementById('email')?.value.trim();
-        applicationData.yearOfStudies = document.getElementById('applyingDegree')?.value;
+        applicationData.yearOfStudies = document.getElementById('degree')?.value;
         applicationData.courses = document.getElementById('courses')?.value.trim();
         
         if (applicationData.destination === 'campus') {
@@ -442,7 +486,7 @@ function updateStepDisplay() {
  * Setup form field listeners
  */
 function setupFormListeners() {
-    const applyingDegree = document.getElementById('applyingDegree');
+    const applyingDegree = document.getElementById('degree');
     if (applyingDegree) {
         applyingDegree.addEventListener('change', () => {
             updateDocumentRequirements();
@@ -458,7 +502,7 @@ function setupFormListeners() {
     if (confirmTcf) confirmTcf.addEventListener('change', validateStep1);
     
     const privacyPolicy = document.getElementById('privacyPolicy');
-    const submitBtn = document.getElementById('submitApplication');
+    const submitBtn = document.getElementById('submitBtn');
     if (privacyPolicy && submitBtn) {
         privacyPolicy.addEventListener('change', (e) => {
             submitBtn.disabled = !e.target.checked;
@@ -477,7 +521,7 @@ function setupFormListeners() {
  * Update document requirements based on study level
  */
 function updateDocumentRequirements() {
-    const applyingDegree = document.getElementById('applyingDegree')?.value;
+    const applyingDegree = document.getElementById('degree')?.value;
     const masterDocsDiv = document.getElementById('masterDocs');
     
     if (applyingDegree === 'Master') {
@@ -502,8 +546,8 @@ function attachUploadHandlers() {
         const input = upload.querySelector('input[type="file"]');
         const docId = upload.getAttribute('data-id');
         
-        if (input && !input.hasAttribute('data-handler-attached')) {
-            input.setAttribute('data-handler-attached', 'true');
+        if (input && !input.hasAttribute('data-attached')) {
+            input.setAttribute('data-attached', 'true');
             
             upload.addEventListener('click', (e) => {
                 if (e.target !== input) input.click();
@@ -518,14 +562,14 @@ function attachUploadHandlers() {
                     return;
                 }
                 
-                uploadedDocuments[docId] = file;
+                selectedFiles[docId] = file;
                 
                 const fileList = upload.nextElementSibling;
                 if (fileList && fileList.classList.contains('file-list')) {
-                    fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0, 30)}</span><button onclick="window.removeDocument('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
+                    fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0, 30)}</span><button onclick="removeDocument('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
                 }
                 
-                upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File uploaded: ${file.name.substring(0, 25)}</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
+                upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File ready: ${file.name.substring(0, 25)}</p><input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none">`;
                 const newInput = upload.querySelector('input');
                 if (newInput) {
                     newInput.setAttribute('data-id', docId);
@@ -540,24 +584,24 @@ function attachUploadHandlers() {
  * Remove uploaded document
  */
 window.removeDocument = function(docId, button) {
-    delete uploadedDocuments[docId];
+    delete selectedFiles[docId];
     const fileItem = button.closest('.file-item');
     if (fileItem) fileItem.remove();
     
     const upload = document.querySelector(`.file-upload[data-id="${docId}"]`);
     if (upload) {
         const docName = upload.closest('.form-group')?.querySelector('label')?.innerText?.replace('*', '').trim() || 'document';
-        upload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i><p>Click to upload ${docName}</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
+        upload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i><p>Click to upload ${docName}</p><input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none">`;
         const newInput = upload.querySelector('input');
         if (newInput) {
             newInput.setAttribute('data-id', docId);
             newInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (file && validateFile(file)) {
-                    uploadedDocuments[docId] = file;
+                    selectedFiles[docId] = file;
                     const fileList = upload.nextElementSibling;
-                    if (fileList) fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0, 30)}</span><button onclick="window.removeDocument('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
-                    upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File uploaded</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
+                    if (fileList) fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0, 30)}</span><button onclick="removeDocument('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
+                    upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File ready</p><input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none">`;
                 }
             });
         }
@@ -574,7 +618,7 @@ function validateFile(file) {
     }
     
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-        showError(`File "${file.name}" is not allowed. Please upload PDF or JPG files.`);
+        showError(`File "${file.name}" is not allowed. Please upload PDF, JPG, or PNG files.`);
         return false;
     }
     
@@ -615,7 +659,7 @@ function setupPaymentHandlers() {
         });
     }
     
-    const receiptUploadArea = document.getElementById('receiptUploadArea');
+    const receiptUploadArea = document.getElementById('receiptArea');
     const receiptFile = document.getElementById('receiptFile');
     
     if (receiptUploadArea && receiptFile) {
@@ -640,99 +684,157 @@ function loadDestinationContent(destination) {
         bacLabel.innerHTML = 'Baccalaureate Date of Completion <span class="required">*</span>';
     }
     
-    const degreeLabel = document.querySelector('label[for="applyingDegree"]');
+    const degreeLabel = document.querySelector('label[for="degree"]');
     if (degreeLabel) {
         degreeLabel.innerHTML = 'Applying Degree <span class="required">*</span>';
     }
 }
 
 /**
- * Submit application to Supabase
+ * Upload files to Supabase Storage
+ */
+async function uploadToSupabaseStorage(applicationNumber) {
+    const filesToUpload = [];
+    
+    for (const [docId, file] of Object.entries(selectedFiles)) {
+        filesToUpload.push({
+            file: file,
+            documentType: docId
+        });
+    }
+    
+    const receiptFile = document.getElementById('receiptFile')?.files[0];
+    if (receiptFile && paymentStatus === 'paid_pending') {
+        filesToUpload.push({
+            file: receiptFile,
+            documentType: 'payment_receipt'
+        });
+    }
+    
+    if (filesToUpload.length === 0) return {};
+    
+    if (!window.SupabaseStorage) {
+        throw new Error('Supabase Storage not available. Please check your connection.');
+    }
+    
+    const results = await window.SupabaseStorage.uploadMultiple(
+        filesToUpload,
+        applicationNumber,
+        (completed, total, docType, result) => {
+            console.log(`Uploaded ${docType}: ${completed}/${total}`);
+        }
+    );
+    
+    return results;
+}
+
+/**
+ * Send email via Resend
+ */
+async function sendEmail(to, subject, html) {
+    const RESEND_API_KEY = 're_UGbnfq94_KrG2rVQMhkbiGSkTGH9P62iR';
+    try {
+        const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${RESEND_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                from: 'Bougie Immigration <onboarding@resend.dev>',
+                to: [to],
+                subject: subject,
+                html: html
+            })
+        });
+        const result = await response.json();
+        console.log('Email sent:', result);
+        return result;
+    } catch (error) {
+        console.error('Email error:', error);
+        return null;
+    }
+}
+
+/**
+ * Submit application
  */
 async function submitApplication() {
     if (!validateStep5()) return;
-    if (isSubmitting) return;
     
-    isSubmitting = true;
-    const submitBtn = document.getElementById('submitApplication');
+    const appNumber = (applicationData.destination === 'italy' ? 'IT' : 'CF') + 
+        '-' + new Date().getFullYear() + '-' + 
+        Math.random().toString(36).substring(2, 8).toUpperCase();
+    const now = new Date();
+    const deadline = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
     
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-    }
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading documents...';
     
     try {
-        // Save all application data
-        applicationData.paymentMethod = selectedPaymentMethod;
-        applicationData.paymentStatus = paymentStatus;
-        applicationData.signature = signatureData;
+        const uploadResults = await uploadToSupabaseStorage(appNumber);
         
-        // Upload documents to Supabase Storage
-        const appNumber = window.SupabaseClient?.generateApplicationNumber(applicationData.destination);
-        applicationData.applicationNumber = appNumber;
+        const application = {
+            id: Date.now().toString(),
+            application_number: appNumber,
+            first_name: document.getElementById('firstName')?.value || '',
+            last_name: document.getElementById('lastName')?.value || '',
+            birth_date: document.getElementById('birthDate')?.value || '',
+            bac_date: document.getElementById('bacDate')?.value || '',
+            email: document.getElementById('email')?.value || '',
+            phone: document.getElementById('phone')?.value || '',
+            year_of_study: document.getElementById('degree')?.value || '',
+            courses: document.getElementById('courses')?.value || '',
+            destination: applicationData.destination,
+            application_status: 'pending',
+            payment_status: paymentStatus || 'pending',
+            payment_method: selectedPaymentMethod,
+            documents: uploadResults,
+            signature: signatureData,
+            created_at: now.toISOString(),
+            payment_deadline: deadline.toISOString()
+        };
         
-        showError('Submitting application and uploading documents...');
-        
-        // Upload all documents
-        const documentUrls = {};
-        for (const [docType, file] of Object.entries(uploadedDocuments)) {
-            if (file && file instanceof File) {
-                try {
-                    const url = await window.SupabaseClient.uploadFile(file, appNumber, docType);
-                    documentUrls[docType] = url;
-                } catch (err) {
-                    console.error(`Failed to upload ${docType}:`, err);
-                }
-            }
+        if (applicationData.destination === 'campus') {
+            application.tcf_status = document.getElementById('tcfStatus')?.value;
         }
         
-        // Upload receipt if exists
-        let receiptUrl = null;
-        if (applicationData.receiptFile) {
-            try {
-                receiptUrl = await window.SupabaseClient.uploadFile(applicationData.receiptFile, appNumber, 'payment_receipt');
-            } catch (err) {
-                console.error('Failed to upload receipt:', err);
-            }
+        let applications = JSON.parse(localStorage.getItem('bougie_applications') || '[]');
+        applications.push(application);
+        localStorage.setItem('bougie_applications', JSON.stringify(applications));
+        
+        const destinationName = applicationData.destination === 'italy' ? 'Italy' : 'Campus France';
+        const emailHtml = `
+            <!DOCTYPE html><html><body style="font-family:Arial;padding:20px">
+            <h2>Application Confirmation - ${destinationName}</h2>
+            <p>Dear ${application.first_name} ${application.last_name},</p>
+            <p>Your application has been submitted successfully.</p>
+            <p><strong>Application Number:</strong> ${appNumber}</p>
+            <p><strong>Destination:</strong> ${destinationName}</p>
+            <p><strong>Payment Deadline:</strong> ${deadline.toLocaleDateString()}</p>
+            <p>You have 3 days to complete payment.</p>
+            <p>Thank you,<br>Bougie Immigration Team</p>
+            </body></html>
+        `;
+        
+        await sendEmail(application.email, `Application Confirmation - Bougie Immigration`, emailHtml);
+        
+        const successAppNumber = document.getElementById('successAppNumber');
+        if (successAppNumber) {
+            successAppNumber.innerHTML = `<strong>Application Number: ${appNumber}</strong>`;
         }
         
-        applicationData.documentUrls = documentUrls;
-        applicationData.receiptUrl = receiptUrl;
-        
-        // Create application in database
-        const result = await window.SupabaseClient.createApplication(applicationData);
-        
-        if (result) {
-            // Send confirmation email
-            await window.SupabaseClient.sendConfirmationEmail(result);
-            
-            // Show success modal
-            const successModal = document.getElementById('successModal');
-            const successAppNumber = document.getElementById('successAppNumber');
-            if (successModal && successAppNumber) {
-                successAppNumber.innerHTML = `<strong>Application Number: ${result.application_number}</strong><br>A confirmation email has been sent to ${applicationData.email}`;
-                successModal.style.display = 'flex';
-            }
-            
-            const successOkBtn = document.getElementById('successOkBtn');
-            if (successOkBtn) {
-                successOkBtn.onclick = () => {
-                    window.location.href = 'index.html';
-                };
-            }
-        } else {
-            throw new Error('Failed to create application');
+        const successModal = document.getElementById('successModal');
+        if (successModal) {
+            successModal.style.display = 'flex';
         }
         
     } catch (error) {
         console.error('Submission error:', error);
-        showError('Failed to submit application: ' + error.message);
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = 'Submit Application';
-        }
-    } finally {
-        isSubmitting = false;
+        showError(`Failed to submit application: ${error.message}`);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Submit Application';
     }
 }
 
@@ -746,7 +848,7 @@ function showError(message) {
 // Export for global access
 window.initApplicationForm = initApplicationForm;
 window.submitApplication = submitApplication;
-window.removeDocument = window.removeDocument;
+window.removeDocument = removeDocument;
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
@@ -754,7 +856,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         (window.location.pathname.includes('italy') ? 'italy' : 'campus');
     initApplicationForm(destination);
     
-    const submitBtn = document.getElementById('submitApplication');
+    const submitBtn = document.getElementById('submitBtn');
     if (submitBtn) {
         submitBtn.addEventListener('click', submitApplication);
     }
