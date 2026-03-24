@@ -4,13 +4,15 @@
  * Handles form validation, document uploads, and submission
  */
 
-// Application state
+// Global state
 let currentStep = 1;
 let totalSteps = 5;
 let uploadedDocuments = {};
 let paymentStatus = null;
 let selectedPaymentMethod = null;
 let applicationData = {};
+let signatureData = null;
+let canvas, ctx, drawing = false;
 
 // Document requirements based on destination and study level
 const DOCUMENT_REQUIREMENTS = {
@@ -19,23 +21,23 @@ const DOCUMENT_REQUIREMENTS = {
             { id: 'passport', name: 'Passport', required: true },
             { id: 'photo', name: 'ID Photo', required: true },
             { id: 'cv', name: 'CV', required: true },
-            { id: 'bacCertOriginal', name: 'BAC Certificate (certified original)', required: true },
-            { id: 'bacCertTranslated', name: 'BAC Certificate (certified translated)', required: true },
-            { id: 'bacTranscriptOriginal', name: 'BAC Transcript (certified original)', required: true },
-            { id: 'bacTranscriptTranslated', name: 'BAC Transcript (certified translated)', required: true },
+            { id: 'bacCertOriginal', name: 'Baccalaureate Certificate (certified original)', required: true },
+            { id: 'bacCertTranslated', name: 'Baccalaureate Certificate (certified translated)', required: true },
+            { id: 'bacTranscriptOriginal', name: 'Baccalaureate Transcript (certified original)', required: true },
+            { id: 'bacTranscriptTranslated', name: 'Baccalaureate Transcript (certified translated)', required: true },
             { id: 'englishProof', name: 'English Proof (IELTS/TOEFL)', required: true }
         ],
         master: [
             { id: 'passport', name: 'Passport', required: true },
             { id: 'photo', name: 'ID Photo', required: true },
             { id: 'cv', name: 'CV', required: true },
-            { id: 'bacCertOriginal', name: 'BAC Certificate (certified original)', required: true },
-            { id: 'bacCertTranslated', name: 'BAC Certificate (certified translated)', required: true },
-            { id: 'bacTranscriptOriginal', name: 'BAC Transcript (certified original)', required: true },
-            { id: 'bacTranscriptTranslated', name: 'BAC Transcript (certified translated)', required: true },
+            { id: 'bacCertOriginal', name: 'Baccalaureate Certificate (certified original)', required: true },
+            { id: 'bacCertTranslated', name: 'Baccalaureate Certificate (certified translated)', required: true },
+            { id: 'bacTranscriptOriginal', name: 'Baccalaureate Transcript (certified original)', required: true },
+            { id: 'bacTranscriptTranslated', name: 'Baccalaureate Transcript (certified translated)', required: true },
             { id: 'bachelorCertOriginal', name: 'Bachelor Certificate (certified original)', required: true },
             { id: 'bachelorCertTranslated', name: 'Bachelor Certificate (certified translated)', required: true },
-            { id: 'bachelorTranscript', name: 'Bachelor Transcript (3 years, certified original & translated)', required: true },
+            { id: 'bachelorTranscript', name: 'Bachelor Transcript - 3 years (certified original & translated)', required: true },
             { id: 'englishProof', name: 'English Proof (IELTS/TOEFL)', required: true }
         ]
     },
@@ -44,25 +46,25 @@ const DOCUMENT_REQUIREMENTS = {
             { id: 'passport', name: 'Passport (French translation)', required: true },
             { id: 'photo', name: 'ID Photo', required: true },
             { id: 'cv', name: 'CV (French)', required: true },
-            { id: 'bacCert', name: 'BAC Certificate (French translation)', required: true },
-            { id: 'bacTranscript', name: 'BAC Transcript (French translation)', required: true },
+            { id: 'bacCert', name: 'Baccalaureate Certificate (French translation)', required: true },
+            { id: 'bacTranscript', name: 'Baccalaureate Transcript (French translation)', required: true },
             { id: 'tcfResults', name: 'TCF Test Results', required: true }
         ],
         master: [
             { id: 'passport', name: 'Passport (French translation)', required: true },
             { id: 'photo', name: 'ID Photo', required: true },
             { id: 'cv', name: 'CV (French)', required: true },
-            { id: 'bacCert', name: 'BAC Certificate (French translation)', required: true },
-            { id: 'bacTranscript', name: 'BAC Transcript (French translation)', required: true },
+            { id: 'bacCert', name: 'Baccalaureate Certificate (French translation)', required: true },
+            { id: 'bacTranscript', name: 'Baccalaureate Transcript (French translation)', required: true },
             { id: 'bachelorCert', name: 'Bachelor Certificate (French translation)', required: true },
-            { id: 'bachelorTranscript', name: 'Bachelor Transcript (3 years, French translation)', required: true },
+            { id: 'bachelorTranscript', name: 'Bachelor Transcript - 3 years (French translation)', required: true },
             { id: 'tcfResults', name: 'TCF Test Results', required: true }
         ]
     }
 };
 
 // File validation
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg'];
 
 /**
@@ -88,12 +90,150 @@ function initApplicationForm(destination) {
     // Setup signature canvas
     initSignatureCanvas();
     
+    // Setup privacy policy modal
+    setupPrivacyPolicyModal();
+    
     // Load destination-specific content
     loadDestinationContent(destination);
+    
+    // Initial validation for step 1
+    validateStep1();
 }
 
 /**
- * Setup step navigation between form sections
+ * Setup privacy policy modal
+ */
+function setupPrivacyPolicyModal() {
+    const viewContract = document.getElementById('viewContract');
+    const contractModal = document.getElementById('contractModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const acceptContractBtn = document.getElementById('acceptContractBtn');
+    
+    if (viewContract && contractModal) {
+        viewContract.addEventListener('click', (e) => {
+            e.preventDefault();
+            contractModal.style.display = 'flex';
+        });
+    }
+    
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => {
+            contractModal.style.display = 'none';
+        });
+    }
+    
+    if (acceptContractBtn) {
+        acceptContractBtn.addEventListener('click', () => {
+            contractModal.style.display = 'none';
+        });
+    }
+    
+    // Close modal when clicking outside
+    if (contractModal) {
+        contractModal.addEventListener('click', (e) => {
+            if (e.target === contractModal) {
+                contractModal.style.display = 'none';
+            }
+        });
+    }
+}
+
+/**
+ * Initialize signature canvas
+ */
+function initSignatureCanvas() {
+    canvas = document.getElementById('signatureCanvas');
+    if (!canvas) return;
+    
+    ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        const container = canvas.parentElement;
+        const width = container.clientWidth - 32;
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        canvas.width = width;
+        canvas.height = 150;
+        ctx.putImageData(imageData, 0, 0);
+        ctx.strokeStyle = '#2c2b28';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        if (signatureData) {
+            const img = new Image();
+            img.onload = () => ctx.drawImage(img, 0, 0);
+            img.src = signatureData;
+        } else {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+    
+    function startDrawing(e) {
+        drawing = true;
+        const pos = getCanvasCoordinates(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+    }
+    
+    function draw(e) {
+        if (!drawing) return;
+        e.preventDefault();
+        const pos = getCanvasCoordinates(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+    }
+    
+    function stopDrawing() {
+        if (drawing) {
+            drawing = false;
+            signatureData = canvas.toDataURL();
+        }
+    }
+    
+    function getCanvasCoordinates(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        let clientX, clientY;
+        
+        if (e.touches) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
+        
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+    }
+    
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDrawing);
+    
+    window.addEventListener('resize', resizeCanvas);
+    setTimeout(resizeCanvas, 100);
+    
+    // Clear signature button
+    const clearBtn = document.getElementById('clearSignature');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            signatureData = null;
+        });
+    }
+}
+
+/**
+ * Setup step navigation
  */
 function setupStepNavigation() {
     const nextButtons = document.querySelectorAll('.nextBtn');
@@ -103,161 +243,139 @@ function setupStepNavigation() {
         btn.addEventListener('click', () => {
             if (validateCurrentStep()) {
                 saveCurrentStepData();
-                currentStep++;
-                updateStepDisplay();
+                if (currentStep < totalSteps) {
+                    currentStep++;
+                    updateStepDisplay();
+                }
             }
         });
     });
     
     prevButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-            currentStep--;
-            updateStepDisplay();
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepDisplay();
+            }
         });
     });
 }
 
 /**
- * Validate current step before proceeding
- * @returns {boolean} Validation result
+ * Validate current step
  */
 function validateCurrentStep() {
     switch(currentStep) {
-        case 1:
-            return validateConfirmationStep();
-        case 2:
-            return validatePersonalInfoStep();
-        case 3:
-            return validateDocumentStep();
-        case 4:
-            return validatePaymentStep();
-        case 5:
-            return validateSignatureStep();
-        default:
-            return true;
+        case 1: return validateStep1();
+        case 2: return validateStep2();
+        case 3: return validateStep3();
+        case 4: return validateStep4();
+        case 5: return validateStep5();
+        default: return true;
     }
 }
 
 /**
- * Validate confirmation step
+ * Validate step 1 - Confirmation
  */
-function validateConfirmationStep() {
+function validateStep1() {
     const confirmCertified = document.getElementById('confirmCertified');
     const confirmFinal = document.getElementById('confirmFinal');
+    const startBtn = document.getElementById('startApplicationBtn');
     
-    if (applicationData.destination === 'campus') {
-        const confirmTcf = document.getElementById('confirmTcf');
-        if (!confirmTcf || !confirmTcf.checked) {
-            showError('Please confirm that you have taken or will take the TCF language test.');
+    let isValid = true;
+    
+    if (confirmCertified && confirmFinal) {
+        isValid = confirmCertified.checked && confirmFinal.checked;
+        
+        // For Campus France, also check TCF confirmation
+        if (applicationData.destination === 'campus') {
+            const confirmTcf = document.getElementById('confirmTcf');
+            if (confirmTcf) {
+                isValid = isValid && confirmTcf.checked;
+            }
+        }
+    }
+    
+    if (startBtn) {
+        startBtn.disabled = !isValid;
+    }
+    
+    return isValid;
+}
+
+/**
+ * Validate step 2 - Personal Information
+ */
+function validateStep2() {
+    const fields = ['firstName', 'lastName', 'birthDate', 'bacDate', 'applyingDegree', 'phone', 'email', 'courses'];
+    let isValid = true;
+    let firstInvalid = null;
+    
+    for (const fieldId of fields) {
+        const field = document.getElementById(fieldId);
+        if (field && !field.value.trim()) {
+            isValid = false;
+            if (!firstInvalid) firstInvalid = field;
+            field.classList.add('input-error');
+        } else if (field) {
+            field.classList.remove('input-error');
+        }
+    }
+    
+    // Email validation
+    const emailField = document.getElementById('email');
+    if (emailField && emailField.value.trim()) {
+        const email = emailField.value.trim();
+        const emailRegex = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            isValid = false;
+            emailField.classList.add('input-error');
+            showError('Please enter a valid email address.');
             return false;
         }
     }
     
-    if (!confirmCertified || !confirmCertified.checked) {
-        showError('Please confirm that all information is correct and documents are properly prepared.');
-        return false;
-    }
-    
-    if (!confirmFinal || !confirmFinal.checked) {
-        showError('Please confirm that you understand this submission is final.');
-        return false;
-    }
-    
-    return true;
-}
-
-/**
- * Validate personal information step
- */
-function validatePersonalInfoStep() {
-    const firstName = document.getElementById('firstName')?.value.trim();
-    const lastName = document.getElementById('lastName')?.value.trim();
-    const birthDate = document.getElementById('birthDate')?.value;
-    const bacDate = document.getElementById('bacDate')?.value;
-    const phone = document.getElementById('phone')?.value.trim();
-    const email = document.getElementById('email')?.value.trim();
-    const yearOfStudies = document.getElementById('yearOfStudies')?.value;
-    const courses = document.getElementById('courses')?.value.trim();
-    
-    if (!firstName) {
-        showError('Please enter your first name.');
-        return false;
-    }
-    
-    if (!lastName) {
-        showError('Please enter your last name.');
-        return false;
-    }
-    
-    if (!birthDate) {
-        showError('Please enter your birth date.');
-        return false;
-    }
-    
-    if (!bacDate) {
-        showError('Please enter your BAC completion date.');
-        return false;
-    }
-    
-    if (!phone) {
-        showError('Please enter your phone number.');
-        return false;
-    }
-    
-    if (!validatePhoneNumber(phone)) {
-        showError('Please enter a valid phone number.');
-        return false;
-    }
-    
-    if (!email) {
-        showError('Please enter your email address.');
-        return false;
-    }
-    
-    if (!validateEmail(email)) {
-        showError('Please enter a valid email address.');
-        return false;
-    }
-    
-    if (!yearOfStudies) {
-        showError('Please select your year of studies.');
-        return false;
-    }
-    
-    if (!courses) {
-        showError('Please list your selected courses.');
-        return false;
-    }
-    
-    if (applicationData.destination === 'campus') {
-        const tcfStatus = document.getElementById('tcfStatus')?.value;
-        if (!tcfStatus) {
-            showError('Please provide your TCF test status.');
+    // Phone validation
+    const phoneField = document.getElementById('phone');
+    if (phoneField && phoneField.value.trim()) {
+        const phone = phoneField.value.trim();
+        const phoneRegex = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{3,4}[-\s\.]?[0-9]{3,4}$/;
+        if (!phoneRegex.test(phone)) {
+            isValid = false;
+            phoneField.classList.add('input-error');
+            showError('Please enter a valid phone number.');
             return false;
         }
-        applicationData.tcfStatus = tcfStatus;
     }
     
-    // Save data
-    applicationData.firstName = firstName;
-    applicationData.lastName = lastName;
-    applicationData.birthDate = birthDate;
-    applicationData.bacDate = bacDate;
-    applicationData.phone = phone;
-    applicationData.email = email;
-    applicationData.yearOfStudies = yearOfStudies;
-    applicationData.courses = courses;
+    // For Campus France, validate TCF status
+    if (applicationData.destination === 'campus') {
+        const tcfStatus = document.getElementById('tcfStatus');
+        if (tcfStatus && !tcfStatus.value) {
+            isValid = false;
+            tcfStatus.classList.add('input-error');
+            showError('Please select your TCF test status.');
+            return false;
+        } else if (tcfStatus) {
+            tcfStatus.classList.remove('input-error');
+        }
+    }
     
-    return true;
+    if (!isValid) {
+        showError('Please fill all required fields.');
+        if (firstInvalid) firstInvalid.focus();
+    }
+    
+    return isValid;
 }
 
 /**
- * Validate document upload step
+ * Validate step 3 - Documents
  */
-function validateDocumentStep() {
-    const yearOfStudies = applicationData.yearOfStudies || document.getElementById('yearOfStudies')?.value;
-    const docList = applicationData.documentRequirements[yearOfStudies === 'Master' ? 'master' : 'bachelor'];
-    
+function validateStep3() {
+    const degree = document.getElementById('applyingDegree')?.value;
+    const docList = applicationData.documentRequirements[degree === 'Master' ? 'master' : 'bachelor'];
     const missingDocs = [];
     
     for (const doc of docList) {
@@ -271,14 +389,13 @@ function validateDocumentStep() {
         return false;
     }
     
-    applicationData.documents = uploadedDocuments;
     return true;
 }
 
 /**
- * Validate payment step
+ * Validate step 4 - Payment
  */
-function validatePaymentStep() {
+function validateStep4() {
     if (!selectedPaymentMethod) {
         showError('Please select a payment method.');
         return false;
@@ -292,172 +409,140 @@ function validatePaymentStep() {
         }
         
         const receiptFile = receiptInput.files[0];
-        if (!validateFile(receiptFile)) {
+        if (receiptFile.size > MAX_FILE_SIZE) {
+            showError('Receipt file exceeds 5MB limit.');
             return false;
         }
         
-        applicationData.receiptFile = receiptFile;
+        if (!ALLOWED_FILE_TYPES.includes(receiptFile.type)) {
+            showError('Receipt must be PDF or JPG format.');
+            return false;
+        }
     }
-    
-    applicationData.paymentMethod = selectedPaymentMethod;
-    applicationData.paymentStatus = paymentStatus;
     
     return true;
 }
 
 /**
- * Validate signature step
+ * Validate step 5 - Signature
  */
-function validateSignatureStep() {
-    const privacyChecked = document.getElementById('privacyPolicy')?.checked;
-    if (!privacyChecked) {
+function validateStep5() {
+    const privacyChecked = document.getElementById('privacyPolicy');
+    if (!privacyChecked || !privacyChecked.checked) {
         showError('Please read and agree to the Privacy Policy and Contract.');
         return false;
     }
     
-    const canvas = document.getElementById('signatureCanvas');
-    if (!canvas) {
-        showError('Please provide your digital signature.');
-        return false;
-    }
-    
-    const isCanvasEmpty = isCanvasBlank(canvas);
-    if (isCanvasEmpty) {
+    if (!signatureData) {
         showError('Please provide your digital signature by drawing in the signature area.');
         return false;
     }
     
-    // Get signature as image data
-    const signatureData = canvas.toDataURL();
-    applicationData.signature = signatureData;
-    
     return true;
-}
-
-/**
- * Check if canvas is blank
- * @param {HTMLCanvasElement} canvas - Canvas element
- * @returns {boolean} True if canvas is blank
- */
-function isCanvasBlank(canvas) {
-    const context = canvas.getContext('2d');
-    const pixelBuffer = new Uint32Array(
-        context.getImageData(0, 0, canvas.width, canvas.height).data.buffer
-    );
-    return !pixelBuffer.some(color => color !== 0);
 }
 
 /**
  * Save current step data
  */
 function saveCurrentStepData() {
-    switch(currentStep) {
-        case 2:
-            savePersonalInfoData();
-            break;
-        case 3:
-            // Documents already saved in upload handler
-            break;
-        case 4:
-            // Payment data already saved in handlers
-            break;
+    if (currentStep === 2) {
+        applicationData.firstName = document.getElementById('firstName')?.value.trim();
+        applicationData.lastName = document.getElementById('lastName')?.value.trim();
+        applicationData.birthDate = document.getElementById('birthDate')?.value;
+        applicationData.bacDate = document.getElementById('bacDate')?.value;
+        applicationData.phone = document.getElementById('phone')?.value.trim();
+        applicationData.email = document.getElementById('email')?.value.trim();
+        applicationData.yearOfStudies = document.getElementById('applyingDegree')?.value;
+        applicationData.courses = document.getElementById('courses')?.value.trim();
+        
+        if (applicationData.destination === 'campus') {
+            applicationData.tcfStatus = document.getElementById('tcfStatus')?.value;
+        }
     }
-}
-
-/**
- * Save personal information to state
- */
-function savePersonalInfoData() {
-    applicationData.firstName = document.getElementById('firstName')?.value.trim();
-    applicationData.lastName = document.getElementById('lastName')?.value.trim();
-    applicationData.birthDate = document.getElementById('birthDate')?.value;
-    applicationData.bacDate = document.getElementById('bacDate')?.value;
-    applicationData.phone = document.getElementById('phone')?.value.trim();
-    applicationData.email = document.getElementById('email')?.value.trim();
-    applicationData.yearOfStudies = document.getElementById('yearOfStudies')?.value;
-    applicationData.courses = document.getElementById('courses')?.value.trim();
 }
 
 /**
  * Update step display
  */
 function updateStepDisplay() {
+    const steps = [null, 'step1', 'step2', 'step3', 'step4', 'step5'];
+    
     for (let i = 1; i <= totalSteps; i++) {
         const stepElement = document.querySelector(`.step[data-step="${i}"]`);
-        const formElement = document.getElementById(`step${i}`);
+        const formElement = document.getElementById(steps[i]);
         
         if (i === currentStep) {
             if (stepElement) {
                 stepElement.classList.add('active');
                 stepElement.classList.remove('completed');
             }
-            if (formElement) {
-                formElement.classList.remove('hidden');
-            }
+            if (formElement) formElement.classList.remove('hidden');
         } else if (i < currentStep) {
             if (stepElement) {
                 stepElement.classList.add('completed');
                 stepElement.classList.remove('active');
             }
-            if (formElement) {
-                formElement.classList.add('hidden');
-            }
+            if (formElement) formElement.classList.add('hidden');
         } else {
             if (stepElement) {
                 stepElement.classList.remove('active', 'completed');
             }
-            if (formElement) {
-                formElement.classList.add('hidden');
-            }
+            if (formElement) formElement.classList.add('hidden');
         }
     }
     
-    // Scroll to top of form
+    // Scroll to top
     const container = document.querySelector('.container');
-    if (container) {
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 /**
  * Setup form field listeners
  */
 function setupFormListeners() {
-    const yearOfStudies = document.getElementById('yearOfStudies');
-    if (yearOfStudies) {
-        yearOfStudies.addEventListener('change', () => {
+    // Applying degree change
+    const applyingDegree = document.getElementById('applyingDegree');
+    if (applyingDegree) {
+        applyingDegree.addEventListener('change', () => {
             updateDocumentRequirements();
         });
     }
     
-    // Real-time validation for email and phone
-    const emailInput = document.getElementById('email');
-    if (emailInput) {
-        emailInput.addEventListener('blur', () => {
-            if (emailInput.value && !validateEmail(emailInput.value)) {
-                showError('Please enter a valid email address.');
-            }
+    // Real-time validation for step 1
+    const confirmCertified = document.getElementById('confirmCertified');
+    const confirmFinal = document.getElementById('confirmFinal');
+    const confirmTcf = document.getElementById('confirmTcf');
+    
+    if (confirmCertified) confirmCertified.addEventListener('change', validateStep1);
+    if (confirmFinal) confirmFinal.addEventListener('change', validateStep1);
+    if (confirmTcf) confirmTcf.addEventListener('change', validateStep1);
+    
+    // Privacy policy enables submit
+    const privacyPolicy = document.getElementById('privacyPolicy');
+    const submitBtn = document.getElementById('submitApplication');
+    if (privacyPolicy && submitBtn) {
+        privacyPolicy.addEventListener('change', (e) => {
+            submitBtn.disabled = !e.target.checked;
         });
     }
     
-    const phoneInput = document.getElementById('phone');
-    if (phoneInput) {
-        phoneInput.addEventListener('blur', () => {
-            if (phoneInput.value && !validatePhoneNumber(phoneInput.value)) {
-                showError('Please enter a valid phone number (e.g., +213 XX XX XX XX XX).');
-            }
+    // Clear error on input
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('input', () => {
+            input.classList.remove('input-error');
         });
-    }
+    });
 }
 
 /**
  * Update document requirements based on study level
  */
 function updateDocumentRequirements() {
-    const yearOfStudies = document.getElementById('yearOfStudies')?.value;
+    const applyingDegree = document.getElementById('applyingDegree')?.value;
     const masterDocsDiv = document.getElementById('masterDocs');
     
-    if (yearOfStudies === 'Master') {
+    if (applyingDegree === 'Master') {
         if (masterDocsDiv) masterDocsDiv.classList.remove('hidden');
     } else {
         if (masterDocsDiv) masterDocsDiv.classList.add('hidden');
@@ -468,100 +553,83 @@ function updateDocumentRequirements() {
  * Setup document upload handlers
  */
 function setupDocumentUploads() {
+    // Attach handlers to existing file uploads
+    attachUploadHandlers();
+}
+
+/**
+ * Attach upload handlers to file upload elements
+ */
+function attachUploadHandlers() {
     document.querySelectorAll('.file-upload').forEach(upload => {
         const input = upload.querySelector('input[type="file"]');
-        const docId = upload.getAttribute('data-doc') || generateDocId(upload);
+        const docId = upload.getAttribute('data-id');
         
-        if (input) {
-            upload.addEventListener('click', () => {
-                input.click();
+        if (input && !input.hasAttribute('data-handler-attached')) {
+            input.setAttribute('data-handler-attached', 'true');
+            
+            upload.addEventListener('click', (e) => {
+                if (e.target !== input) input.click();
             });
             
             input.addEventListener('change', (e) => {
-                handleFileUpload(e, docId, upload);
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                if (!validateFile(file)) {
+                    input.value = '';
+                    return;
+                }
+                
+                uploadedDocuments[docId] = file;
+                
+                // Update UI
+                const fileList = upload.nextElementSibling;
+                if (fileList && fileList.classList.contains('file-list')) {
+                    fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0, 30)}</span><button onclick="removeDocument('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
+                }
+                
+                upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File uploaded: ${file.name.substring(0, 25)}</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
+                const newInput = upload.querySelector('input');
+                if (newInput) {
+                    newInput.setAttribute('data-id', docId);
+                    newInput.addEventListener('change', arguments.callee);
+                }
             });
         }
     });
 }
 
 /**
- * Handle file upload
- * @param {Event} event - File input change event
- * @param {string} docId - Document identifier
- * @param {HTMLElement} uploadElement - Upload container element
- */
-function handleFileUpload(event, docId, uploadElement) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    if (!validateFile(file)) {
-        event.target.value = '';
-        return;
-    }
-    
-    uploadedDocuments[docId] = file;
-    
-    // Update UI to show uploaded file
-    const fileList = uploadElement.nextElementSibling;
-    if (fileList && fileList.classList.contains('file-list')) {
-        fileList.innerHTML = '';
-        const fileItem = document.createElement('div');
-        fileItem.className = 'file-item';
-        fileItem.innerHTML = `
-            <span><i class="fas fa-file"></i> ${file.name.substring(0, 30)}${file.name.length > 30 ? '...' : ''}</span>
-            <button onclick="removeDocument('${docId}', this)"><i class="fas fa-trash"></i></button>
-        `;
-        fileList.appendChild(fileItem);
-    }
-    
-    // Update upload area appearance
-    uploadElement.innerHTML = `
-        <i class="fas fa-check-circle"></i>
-        <p>File uploaded: ${file.name.substring(0, 30)}</p>
-        <input type="file" accept=".pdf,.jpg,.jpeg" style="display: none;">
-    `;
-    
-    // Re-attach event listener to new input
-    const newInput = uploadElement.querySelector('input');
-    if (newInput) {
-        newInput.addEventListener('change', (e) => {
-            handleFileUpload(e, docId, uploadElement);
-        });
-    }
-}
-
-/**
  * Remove uploaded document
- * @param {string} docId - Document identifier
- * @param {HTMLElement} buttonElement - Remove button element
  */
-function removeDocument(docId, buttonElement) {
+window.removeDocument = function(docId, button) {
     delete uploadedDocuments[docId];
-    const fileItem = buttonElement.closest('.file-item');
+    const fileItem = button.closest('.file-item');
     if (fileItem) fileItem.remove();
     
-    // Reset upload area
-    const uploadElement = buttonElement.closest('.form-group')?.querySelector('.file-upload');
-    if (uploadElement) {
-        const originalHtml = uploadElement.getAttribute('data-original') || `
-            <i class="fas fa-cloud-upload-alt"></i>
-            <p>Click to upload document</p>
-            <input type="file" accept=".pdf,.jpg,.jpeg" style="display: none;">
-        `;
-        uploadElement.innerHTML = originalHtml;
-        const newInput = uploadElement.querySelector('input');
+    const upload = document.querySelector(`.file-upload[data-id="${docId}"]`);
+    if (upload) {
+        const docName = upload.closest('.form-group')?.querySelector('label')?.innerText?.replace('*', '').trim() || 'document';
+        upload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i><p>Click to upload ${docName}</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
+        const newInput = upload.querySelector('input');
         if (newInput) {
+            newInput.setAttribute('data-id', docId);
             newInput.addEventListener('change', (e) => {
-                handleFileUpload(e, docId, uploadElement);
+                const file = e.target.files[0];
+                if (file && validateFile(file)) {
+                    uploadedDocuments[docId] = file;
+                    const fileList = upload.nextElementSibling;
+                    if (fileList) fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0, 30)}</span><button onclick="removeDocument('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
+                    upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File uploaded</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
+                }
             });
         }
     }
-}
+};
 
 /**
- * Validate file before upload
- * @param {File} file - File to validate
- * @returns {boolean} Validation result
+ * Validate file
  */
 function validateFile(file) {
     if (file.size > MAX_FILE_SIZE) {
@@ -575,19 +643,6 @@ function validateFile(file) {
     }
     
     return true;
-}
-
-/**
- * Generate document ID from upload element
- * @param {HTMLElement} uploadElement - Upload container
- * @returns {string} Document ID
- */
-function generateDocId(uploadElement) {
-    const label = uploadElement.closest('.form-group')?.querySelector('label')?.innerText;
-    if (label) {
-        return label.toLowerCase().replace(/[^a-z0-9]/g, '_');
-    }
-    return 'doc_' + Date.now();
 }
 
 /**
@@ -628,109 +683,39 @@ function setupPaymentHandlers() {
     const receiptFile = document.getElementById('receiptFile');
     
     if (receiptUploadArea && receiptFile) {
-        receiptUploadArea.addEventListener('click', () => {
-            receiptFile.click();
-        });
+        receiptUploadArea.addEventListener('click', () => receiptFile.click());
         
         receiptFile.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file && validateFile(file)) {
                 receiptUploadArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded successfully</p>';
+                applicationData.receiptFile = file;
             }
         });
     }
 }
 
 /**
- * Initialize signature canvas
+ * Load destination-specific content
  */
-function initSignatureCanvas() {
-    const canvas = document.getElementById('signatureCanvas');
-    if (!canvas) return;
-    
-    let ctx = canvas.getContext('2d');
-    let drawing = false;
-    
-    function resizeCanvas() {
-        const container = canvas.parentElement;
-        const width = container.clientWidth - 32;
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        canvas.width = width;
-        canvas.height = 150;
-        ctx.putImageData(imageData, 0, 0);
-        ctx.strokeStyle = '#2c2b28';
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
+function loadDestinationContent(destination) {
+    // Update form titles and labels
+    const bacLabel = document.querySelector('label[for="bacDate"]');
+    if (bacLabel) {
+        bacLabel.innerHTML = 'Baccalaureate Date of Completion <span class="required">*</span>';
     }
     
-    function startDrawing(e) {
-        drawing = true;
-        const pos = getCanvasCoordinates(e);
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-    }
-    
-    function draw(e) {
-        if (!drawing) return;
-        e.preventDefault();
-        const pos = getCanvasCoordinates(e);
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-    }
-    
-    function stopDrawing() {
-        drawing = false;
-    }
-    
-    function getCanvasCoordinates(e) {
-        const rect = canvas.getBoundingClientRect();
-        let clientX, clientY;
-        
-        if (e.touches) {
-            clientX = e.touches[0].clientX;
-            clientY = e.touches[0].clientY;
-        } else {
-            clientX = e.clientX;
-            clientY = e.clientY;
-        }
-        
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        
-        return {
-            x: (clientX - rect.left) * scaleX,
-            y: (clientY - rect.top) * scaleY
-        };
-    }
-    
-    canvas.addEventListener('mousedown', startDrawing);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', stopDrawing);
-    canvas.addEventListener('mouseleave', stopDrawing);
-    canvas.addEventListener('touchstart', startDrawing);
-    canvas.addEventListener('touchmove', draw);
-    canvas.addEventListener('touchend', stopDrawing);
-    
-    ctx.strokeStyle = '#2c2b28';
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    
-    window.addEventListener('resize', resizeCanvas);
-    setTimeout(resizeCanvas, 100);
-    
-    const clearBtn = document.getElementById('clearSignature');
-    if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        });
+    const degreeLabel = document.querySelector('label[for="applyingDegree"]');
+    if (degreeLabel) {
+        degreeLabel.innerHTML = 'Applying Degree <span class="required">*</span>';
     }
 }
 
 /**
- * Submit application form
+ * Submit application
  */
 async function submitApplication() {
-    if (!validateSignatureStep()) return;
+    if (!validateStep5()) return;
     
     const submitBtn = document.getElementById('submitApplication');
     if (submitBtn) {
@@ -739,29 +724,32 @@ async function submitApplication() {
     }
     
     try {
-        // Generate application number
-        const appNumber = generateLocalApplicationNumber(applicationData.destination);
+        const appNumber = generateApplicationNumber(applicationData.destination);
+        applicationData.applicationNumber = appNumber;
+        applicationData.signature = signatureData;
         
-        // Prepare email content
-        const emailHtml = generateApplicationEmail(applicationData, appNumber);
-        
-        // In production, send to Supabase and email via Resend
+        // In production, send to Supabase
         console.log('Application Data:', applicationData);
-        console.log('Application Number:', appNumber);
-        console.log('Email Content:', emailHtml);
         
-        // Show success message
-        showSuccess(`Application submitted successfully!\n\nApplication Number: ${appNumber}\n\nA confirmation email has been sent to ${applicationData.email}\n\nYou have 3 days to complete payment, otherwise your application will be automatically refused.`);
+        // Show success modal
+        const successModal = document.getElementById('successModal');
+        const successAppNumber = document.getElementById('successAppNumber');
+        if (successModal && successAppNumber) {
+            successAppNumber.innerHTML = `<strong>Application Number: ${appNumber}</strong>`;
+            successModal.style.display = 'flex';
+        }
         
-        // Redirect to home after 5 seconds
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 5000);
+        // Redirect on OK
+        const successOkBtn = document.getElementById('successOkBtn');
+        if (successOkBtn) {
+            successOkBtn.onclick = () => {
+                window.location.href = 'index.html';
+            };
+        }
         
     } catch (error) {
         console.error('Submission error:', error);
         showError('Failed to submit application. Please try again or contact support.');
-        
         if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerHTML = 'Submit Application';
@@ -770,11 +758,9 @@ async function submitApplication() {
 }
 
 /**
- * Generate local application number (demo)
- * @param {string} destination - Application destination
- * @returns {string} Application number
+ * Generate application number
  */
-function generateLocalApplicationNumber(destination) {
+function generateApplicationNumber(destination) {
     const prefix = destination === 'italy' ? 'IT' : 'CF';
     const year = new Date().getFullYear();
     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -782,105 +768,16 @@ function generateLocalApplicationNumber(destination) {
 }
 
 /**
- * Generate application confirmation email HTML
- * @param {Object} data - Application data
- * @param {string} appNumber - Application number
- * @returns {string} HTML email content
- */
-function generateApplicationEmail(data, appNumber) {
-    return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Application Confirmation - Bougie Immigration</title>
-        </head>
-        <body style="font-family: Arial, sans-serif; background-color: #f4eddb; padding: 20px;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; padding: 30px;">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h1 style="color: #2c2b28;">Bougie Immigration</h1>
-                    <p style="color: #6b6a66;">Application Confirmation</p>
-                </div>
-                <hr style="border-color: #dcdad5;">
-                <p>Dear ${data.firstName} ${data.lastName},</p>
-                <p>Thank you for submitting your application. Your application has been received and is being processed.</p>
-                <p><strong>Application Number:</strong> ${appNumber}</p>
-                <p><strong>Destination:</strong> ${data.destination === 'italy' ? 'Italy' : 'Campus France'}</p>
-                <p><strong>Year of Studies:</strong> ${data.yearOfStudies}</p>
-                <p><strong>Submission Date:</strong> ${new Date().toLocaleDateString()}</p>
-                <p><strong>Payment Status:</strong> ${data.paymentStatus === 'paid_pending' ? 'Receipt Uploaded - Pending Verification' : 'Pending Payment'}</p>
-                <p>You have 3 days to complete your payment. If payment is not received within this period, your application will be automatically refused.</p>
-                <p>You can check your application status at any time using your application number on our website.</p>
-                <hr style="border-color: #dcdad5;">
-                <p style="color: #6b6a66; font-size: 12px;">This is an automated message. Please do not reply to this email.</p>
-                <p style="color: #6b6a66; font-size: 12px;">Bougie Immigration - Professional Study Immigration Services</p>
-            </div>
-        </body>
-        </html>
-    `;
-}
-
-/**
  * Show error message
- * @param {string} message - Error message
  */
 function showError(message) {
     alert(message);
 }
 
-/**
- * Show success message
- * @param {string} message - Success message
- */
-function showSuccess(message) {
-    alert(message);
-}
-
-/**
- * Validate email format
- * @param {string} email - Email to validate
- * @returns {boolean} Valid email
- */
-function validateEmail(email) {
-    const re = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/;
-    return re.test(email);
-}
-
-/**
- * Validate phone number format
- * @param {string} phone - Phone number to validate
- * @returns {boolean} Valid phone number
- */
-function validatePhoneNumber(phone) {
-    const re = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{3,4}[-\s\.]?[0-9]{3,4}$/;
-    return re.test(phone);
-}
-
-/**
- * Load destination-specific content
- * @param {string} destination - 'italy' or 'campus'
- */
-function loadDestinationContent(destination) {
-    const titleElement = document.querySelector('.form-title');
-    if (titleElement) {
-        if (destination === 'italy') {
-            titleElement.innerHTML = 'Italy Study Application <span class="language-badge">Certified Documents Required</span>';
-        } else {
-            titleElement.innerHTML = 'Campus France Application <span class="language-badge">French Translation Required</span>';
-        }
-    }
-    
-    // Update document requirements display
-    updateDocumentRequirements();
-}
-
-// Export functions for use in HTML
-window.ApplicationForm = {
-    init: initApplicationForm,
-    submit: submitApplication,
-    removeDocument: removeDocument,
-    validateFile: validateFile
-};
+// Export for global access
+window.initApplicationForm = initApplicationForm;
+window.submitApplication = submitApplication;
+window.removeDocument = removeDocument;
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
