@@ -171,6 +171,27 @@ function setupPrivacyPolicyModal() {
     }
 }
 
+
+function createUploadSection(containerId, docs) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    docs.forEach(doc => {
+        const div = document.createElement('div');
+        div.className = 'form-group';
+        div.innerHTML = `
+            <label>${doc.name} <span class="required">*</span></label>
+            <div class="file-upload" data-id="${doc.id}">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Click to upload</p>
+                <input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none">
+            </div>
+            <div class="file-list" id="list-${doc.id}"></div>
+        `;
+        container.appendChild(div);
+    });
+    attachUploadHandlers();
+}
 /**
  * Initialize signature canvas
  */
