@@ -139,11 +139,17 @@ async function searchApplication() {
             .eq('application_number', appNumber)
             .single();
         
-        if (error || !data) {
-            showError(`Application number "${appNumber}" not found. Please check and try again.`);
-        } else {
+        if (error) {
+            if (error.code === 'PGRST116') {
+                showError(`Application number "${appNumber}" not found. Please check and try again.`);
+            } else {
+                throw error;
+            }
+        } else if (data) {
             displayApplication(data);
             currentApplication = data;
+        } else {
+            showError(`Application number "${appNumber}" not found. Please check and try again.`);
         }
         
     } catch (error) {
@@ -217,11 +223,12 @@ function buildTimeline(application) {
             description: 'Payment has been verified and received.'
         });
     } else if (application.payment_status === 'pending') {
+        const deadlineText = application.payment_deadline ? formatDate(application.payment_deadline) : 'within 3 days';
         timelineItems.push({
             title: 'Payment Pending',
             date: application.payment_deadline,
             icon: 'fa-clock',
-            description: `Payment required within 3 days of submission. Deadline: ${formatDate(application.payment_deadline)}`
+            description: `Payment required within 3 days of submission. Deadline: ${deadlineText}`
         });
     }
     
@@ -401,6 +408,9 @@ function showError(message) {
     if (elements.errorMessage && elements.errorText) {
         elements.errorText.textContent = message;
         elements.errorMessage.classList.add('show');
+    }
+    if (elements.resultContainer) {
+        elements.resultContainer.classList.remove('show');
     }
 }
 
