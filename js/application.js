@@ -242,6 +242,19 @@ function initSignatureCanvas() {
     }
 }
 
+
+/** qlawi
+*/
+const startBtn = document.getElementById('startBtn');
+if (startBtn) {
+    startBtn.addEventListener('click', () => {
+        if (validateStep1()) {
+            currentStep = 2;
+            updateStepDisplay();
+        }
+    });
+}
+
 /**
  * Setup step navigation
  */
