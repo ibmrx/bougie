@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Approved - Bougie Immigration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4eddb;
+            line-height: 1.6;
+            color: #2c2b28;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .email-header {
+            background: linear-gradient(135deg, #2c2b28 0%, #4a4945 100%);
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .logo {
+            margin-bottom: 1rem;
+        }
+        
+        .logo img {
+            max-width: 80px;
+            height: auto;
+        }
+        
+        .email-header h1 {
+            color: #f4eddb;
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        
+        .email-header p {
+            color: #dcdad5;
+            font-size: 0.9rem;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            background-color: #27ae60;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .email-body {
+            padding: 2rem;
+        }
+        
+        .greeting {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            color: #2c2b28;
+        }
+        
+        .greeting strong {
+            color: #9b8e6e;
+        }
+        
+        .message {
+            margin-bottom: 2rem;
+            color: #6b6a66;
+        }
+        
+        .info-card {
+            background-color: #f4eddb;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        
+        .info-card h3 {
+            color: #2c2b28;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #9b8e6e;
+            display: inline-block;
+        }
+        
+        .info-row {
+            display: flex;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #dcdad5;
+        }
+        
+        .info-label {
+            width: 140px;
+            font-weight: 600;
+            color: #2c2b28;
+        }
+        
+        .info-value {
+            flex: 1;
+            color: #6b6a66;
+        }
+        
+        .info-value code {
+            background-color: #ffffff;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+        
+        .next-steps {
+            background-color: #e8f5e9;
+            border-left: 4px solid #27ae60;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+        }
+        
+        .next-steps h4 {
+            color: #27ae60;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .next-steps ul {
+            margin-left: 1.5rem;
+            color: #2c2b28;
+        }
+        
+        .next-steps li {
+            margin: 0.5rem 0;
+        }
+        
+        .button {
+            display: inline-block;
+            background-color: #2c2b28;
+            color: #f4eddb;
+            text-decoration: none;
+            padding: 0.875rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            margin: 1rem 0;
+            transition: background-color 0.3s ease;
+        }
+        
+        .button:hover {
+            background-color: #4a4945;
+        }
+        
+        .button-secondary {
+            background-color: #dcdad5;
+            color: #2c2b28;
+            margin-left: 1rem;
+        }
+        
+        .button-secondary:hover {
+            background-color: #c0bcb4;
+        }
+        
+        .contact-info {
+            background-color: #faf9f5;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+        }
+        
+        .contact-info p {
+            margin: 0.5rem 0;
+        }
+        
+        .contact-info a {
+            color: #9b8e6e;
+            text-decoration: none;
+        }
+        
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+        
+        .email-footer {
+            background-color: #dcdad5;
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #6b6a66;
+        }
+        
+        .email-footer a {
+            color: #2c2b28;
+            text-decoration: none;
+        }
+        
+        .email-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        hr {
+            border: none;
+            border-top: 1px solid #dcdad5;
+            margin: 1rem 0;
+        }
+        
+        @media (max-width: 600px) {
+            .info-row {
+                flex-direction: column;
+            }
+            
+            .info-label {
+                width: 100%;
+                margin-bottom: 0.25rem;
+            }
+            
+            .button {
+                display: block;
+                text-align: center;
+                margin: 1rem 0;
+            }
+            
+            .button-secondary {
+                margin-left: 0;
+            }
+            
+            .email-body {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+            <div class="logo">
+                <img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Bougie Immigration" style="max-width: 70px;">
+            </div>
+            <h1>Application Approved</h1>
+            <p>Congratulations on your admission!</p>
+            <div class="status-badge">
+                <span>✓ APPROVED</span>
+            </div>
+        </div>
+        
+        <!-- Body -->
+        <div class="email-body">
+            <div class="greeting">
+                Dear <strong>{{firstName}} {{lastName}}</strong>,
+            </div>
+            
+            <div class="message">
+                <p>We are delighted to inform you that your application has been <strong>approved</strong> by our review committee. Your application demonstrated strong qualifications and we are excited to support you in your journey to study abroad.</p>
+            </div>
+            
+            <!-- Application Details -->
+            <div class="info-card">
+                <h3>Application Details</h3>
+                <div class="info-row">
+                    <div class="info-label">Application Number:</div>
+                    <div class="info-value"><code>{{applicationNumber}}</code></div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Destination:</div>
+                    <div class="info-value">{{destination}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Study Level:</div>
+                    <div class="info-value">{{studyLevel}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Submitted Date:</div>
+                    <div class="info-value">{{submittedDate}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Approval Date:</div>
+                    <div class="info-value">{{approvalDate}}</div>
+                </div>
+            </div>
+            
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h4>Next Steps</h4>
+                <ul>
+                    <li><strong>Visa Application:</strong> We will begin preparing your visa application documents. Our team will contact you within 3-5 business days.</li>
+                    <li><strong>University Registration:</strong> You will receive instructions for university registration and enrollment.</li>
+                    <li><strong>Pre-departure Orientation:</strong> We will schedule a pre-departure orientation session to help you prepare for your journey.</li>
+                    <li><strong>Accommodation:</strong> If you need assistance with finding accommodation, please let us know.</li>
+                </ul>
+            </div>
+            
+            <!-- Required Documents -->
+            <div class="info-card">
+                <h3>Documents to Prepare</h3>
+                <p>Please ensure you have the following documents ready for the visa application process:</p>
+                <ul style="margin: 1rem 0 0 1.5rem; color: #6b6a66;">
+                    <li>Valid passport (valid for at least 6 months beyond your intended stay)</li>
+                    <li>Recent passport-sized photographs</li>
+                    <li>Original acceptance letter (to be provided by us)</li>
+                    <li>Proof of financial means</li>
+                    <li>Health insurance documentation</li>
+                    <li>Academic transcripts and certificates (originals)</li>
+                </ul>
+            </div>
+            
+            <!-- Contact Information -->
+            <div class="contact-info">
+                <p><strong>Need Assistance?</strong></p>
+                <p>If you have any questions or need clarification about the next steps, please don't hesitate to contact us:</p>
+                <p>
+                    📞 Phone: <a href="tel:0770614198">07 70 61 41 98</a><br>
+                    📧 Email: <a href="mailto:benlassousmohamedreda@gmail.com">benlassousmohamedreda@gmail.com</a><br>
+                    📱 Instagram: <a href="https://instagram.com/bougie_immigration06">@bougie_immigration06</a>
+                </p>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div style="text-align: center; margin: 1.5rem 0;">
+                <a href="{{statusUrl}}" class="button">Check Application Status</a>
+                <a href="{{contactUrl}}" class="button button-secondary">Contact Support</a>
+            </div>
+            
+            <hr>
+            
+            <div style="font-size: 0.85rem; color: #9b8e6e; text-align: center;">
+                <p><strong>Bougie Immigration</strong><br>
+                Professional Study Immigration Services</p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="email-footer">
+            <p>This is an automated message from Bougie Immigration. Please do not reply directly to this email.</p>
+            <p>If you need assistance, please contact us at <a href="mailto:benlassousmohamedreda@gmail.com">benlassousmohamedreda@gmail.com</a> or call <a href="tel:0770614198">07 70 61 41 98</a>.</p>
+            <p>&copy; {{currentYear}} Bougie Immigration. All rights reserved.</p>
+        </div>
+    </div>
+    
+    <script>
+        // This script demonstrates how to populate the template with dynamic data
+        // In production, this would be handled by the server-side email system
+        
+        function populateApprovalEmail(data) {
+            const placeholders = {
+                '{{firstName}}': data.firstName || 'Student',
+                '{{lastName}}': data.lastName || '',
+                '{{applicationNumber}}': data.applicationNumber || 'N/A',
+                '{{destination}}': data.destination || 'Italy',
+                '{{studyLevel}}': data.studyLevel || 'Bachelor',
+                '{{submittedDate}}': data.submittedDate || formatDate(new Date()),
+                '{{approvalDate}}': data.approvalDate || formatDate(new Date()),
+                '{{statusUrl}}': data.statusUrl || 'https://bougie-immigration.com/status.html',
+                '{{contactUrl}}': data.contactUrl || 'https://bougie-immigration.com/index.html#contact',
+                '{{currentYear}}': new Date().getFullYear().toString()
+            };
+            
+            let html = document.body.innerHTML;
+            for (const [placeholder, value] of Object.entries(placeholders)) {
+                html = html.replace(new RegExp(placeholder, 'g'), value);
+            }
+            
+            return html;
+        }
+        
+        function formatDate(date) {
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+        
+        // Example usage (for demonstration)
+        console.log('Approval email template ready');
+        console.log('Use populateApprovalEmail() to fill with dynamic data');
+    </script>
+</body>
+</html>
