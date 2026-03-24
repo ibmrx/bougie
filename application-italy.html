@@ -490,7 +490,8 @@ validateStep1();
         document.querySelectorAll('.nextBtn').forEach(btn => {
             btn.addEventListener('click', () => {
                 let valid = true;
-                if (currentStep === 2) valid = validateStep2();
+                if (currentStep === 1) valid = validateStep1();
+                else if (currentStep === 2) valid = validateStep2();
                 else if (currentStep === 3) valid = validateStep3();
                 else if (currentStep === 4) valid = validateStep4();
                 if (valid && currentStep < 5) { currentStep++; updateSteps(); }
