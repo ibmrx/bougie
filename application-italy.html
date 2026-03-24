@@ -8,9 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="js/google-drive.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Same styles as before */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f4eddb 0%, #e8e0ce 100%); min-height: 100vh; color: #2c2b28; }
         .header { background-color: #dcdad5; padding: 1rem 5%; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
@@ -19,7 +18,7 @@
         .logo img { height: 50px; width: auto; }
         .logo-text { font-size: 1.3rem; font-weight: 700; color: #2c2b28; }
         .logo-text span { font-weight: 400; color: #6b6a66; }
-        .back-link { color: #2c2b28; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; }
+        .back-link { color: #2c2b28; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s; }
         .back-link:hover { color: #9b8e6e; }
         .container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem 3rem; }
         .progress-steps { display: flex; justify-content: space-between; margin-bottom: 2rem; background: #fff; padding: 1.5rem; border-radius: 16px; flex-wrap: wrap; }
@@ -35,7 +34,7 @@
         .form-group { margin-bottom: 1.25rem; }
         .form-group label { display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.9rem; }
         .form-group label .required { color: #e74c3c; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.75rem 1rem; border: 1px solid #dcdad5; border-radius: 12px; font-family: inherit; font-size: 1rem; transition: all 0.3s; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.75rem 1rem; border: 1px solid #dcdad5; border-radius: 12px; font-family: inherit; font-size: 1rem; transition: all 0.3s; background: #fff; }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #9b8e6e; box-shadow: 0 0 0 3px rgba(155,142,110,0.1); }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
         .file-upload { border: 2px dashed #dcdad5; border-radius: 12px; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.3s; background: #faf9f5; }
@@ -44,7 +43,7 @@
         .file-upload p { color: #6b6a66; font-size: 0.8rem; }
         .file-list { margin-top: 0.5rem; }
         .file-item { background: #f4eddb; padding: 0.5rem 0.75rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.85rem; }
-        .file-item button { background: none; border: none; color: #e74c3c; cursor: pointer; }
+        .file-item button { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 1rem; }
         .checkbox-group { margin: 1rem 0; padding: 1rem; background: #faf9f5; border-radius: 12px; }
         .checkbox-group label { display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; font-weight: normal; }
         .checkbox-group input { width: 18px; height: 18px; margin-top: 0.125rem; cursor: pointer; }
@@ -53,6 +52,7 @@
         .payment-option { border: 2px solid #dcdad5; border-radius: 12px; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.3s; }
         .payment-option.selected { border-color: #2c2b28; background: #f4eddb; }
         .payment-option i { font-size: 1.5rem; margin-bottom: 0.5rem; color: #9b8e6e; }
+        .payment-option h4 { margin-bottom: 0.25rem; }
         .button-group { display: flex; justify-content: space-between; gap: 1rem; margin-top: 1.5rem; }
         .btn { padding: 0.75rem 1.5rem; border-radius: 50px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; font-size: 0.9rem; transition: all 0.3s; }
         .btn-primary { background: #2c2b28; color: #f4eddb; }
@@ -67,18 +67,27 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; justify-content: center; align-items: center; }
         .modal-content { background: white; border-radius: 24px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
         .modal-header { padding: 1rem 1.5rem; border-bottom: 1px solid #dcdad5; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { font-size: 1.25rem; }
+        .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
         .modal-body { padding: 1.5rem; font-size: 0.9rem; line-height: 1.6; }
         .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #dcdad5; text-align: right; }
         .success-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; display: none; justify-content: center; align-items: center; }
         .success-card { background: white; border-radius: 24px; padding: 2rem; text-align: center; max-width: 400px; width: 90%; }
         .success-card i { font-size: 4rem; color: #27ae60; margin-bottom: 1rem; }
         .input-error { border-color: #e74c3c !important; }
-        .google-drive-status { margin: 1rem 0; padding: 0.75rem; border-radius: 8px; background: #faf9f5; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
         @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .payment-options { grid-template-columns: 1fr; } .progress-steps { flex-direction: column; gap: 0.75rem; } .step { display: flex; align-items: center; gap: 1rem; } .step-number { margin: 0; } }
     </style>
 </head>
 <body>
-    <header class="header"><div class="header-container"><div class="logo"><img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Logo"><div class="logo-text">Bougie <span>Immigration</span></div></div><a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Home</a></div></header>
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <img src="https://uploads.onecompiler.io/437muad7y/44hafv45b/blogo.jpg" alt="Bougie Immigration Logo">
+                <div class="logo-text">Bougie <span>Immigration</span></div>
+            </div>
+            <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Home</a>
+        </div>
+    </header>
 
     <div class="container">
         <div class="progress-steps">
@@ -89,65 +98,129 @@
             <div class="step" data-step="5"><div class="step-number">5</div><div class="step-label">Signature</div></div>
         </div>
 
-        <!-- Step 1 -->
+        <!-- Step 1: Confirmation -->
         <div id="step1" class="form-card">
             <h2 class="form-title">Italy Study Application</h2>
-            <div class="warning-box"><i class="fas fa-exclamation-triangle"></i> All documents must be certified by the Ministry of Education and Foreign Affairs. Submission is final.</div>
-            <div class="checkbox-group"><label><input type="checkbox" id="confirmCertified"> I confirm all information is correct and all documents are certified by the Ministry of Education and Foreign Affairs.</label></div>
-            <div class="checkbox-group"><label><input type="checkbox" id="confirmFinal"> I understand submission is final and cannot be modified.</label></div>
+            <div class="warning-box"><i class="fas fa-exclamation-triangle"></i> All documents must be certified by the Ministry of Education and Foreign Affairs. Submission is final and cannot be modified.</div>
+            <div class="checkbox-group"><label><input type="checkbox" id="confirmCertified"> I confirm that all information provided is correct and all documents are certified by the Ministry of Education and Foreign Affairs as required.</label></div>
+            <div class="checkbox-group"><label><input type="checkbox" id="confirmFinal"> I understand that this submission is final and I cannot go back or modify my application after submission.</label></div>
             <div class="button-group"><button id="startBtn" class="btn btn-primary" disabled>Start Application</button></div>
         </div>
 
-        <!-- Step 2 -->
+        <!-- Step 2: Personal Information -->
         <div id="step2" class="form-card hidden">
             <h2 class="form-title">Applicant Information</h2>
             <div class="form-subtitle">Please provide your personal details</div>
-            <div class="form-row"><div class="form-group"><label>First Name <span class="required">*</span></label><input type="text" id="firstName"></div><div class="form-group"><label>Last Name <span class="required">*</span></label><input type="text" id="lastName"></div></div>
-            <div class="form-row"><div class="form-group"><label>Birth Date <span class="required">*</span></label><input type="date" id="birthDate"></div><div class="form-group"><label>Role</label><input type="text" value="Student" readonly style="background:#f4eddb"></div></div>
-            <div class="form-row"><div class="form-group"><label>Baccalaureate Date <span class="required">*</span></label><input type="month" id="bacDate"></div><div class="form-group"><label>Applying Degree <span class="required">*</span></label><select id="degree"><option value="">Select</option><option value="Bachelor">Bachelor</option><option value="Master">Master</option></select></div></div>
-            <div class="form-row"><div class="form-group"><label>Phone <span class="required">*</span></label><input type="tel" id="phone" placeholder="+213 XX XX XX XX XX"></div><div class="form-group"><label>Email <span class="required">*</span></label><input type="email" id="email"></div></div>
-            <div class="form-group"><label>Selected Courses <span class="required">*</span></label><textarea id="courses" rows="3"></textarea></div>
+            <div class="form-row">
+                <div class="form-group"><label>First Name <span class="required">*</span></label><input type="text" id="firstName" placeholder="Enter your first name"></div>
+                <div class="form-group"><label>Last Name <span class="required">*</span></label><input type="text" id="lastName" placeholder="Enter your last name"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Birth Date <span class="required">*</span></label><input type="date" id="birthDate"></div>
+                <div class="form-group"><label>Role</label><input type="text" value="Student" readonly style="background:#f4eddb"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Baccalaureate Date of Completion <span class="required">*</span></label><input type="month" id="bacDate"></div>
+                <div class="form-group"><label>Applying Degree <span class="required">*</span></label><select id="degree"><option value="">Select</option><option value="Bachelor">Bachelor</option><option value="Master">Master</option></select></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Phone Number <span class="required">*</span></label><input type="tel" id="phone" placeholder="+213 XX XX XX XX XX"></div>
+                <div class="form-group"><label>Email <span class="required">*</span></label><input type="email" id="email" placeholder="you@example.com"></div>
+            </div>
+            <div class="form-group"><label>Selected Courses <span class="required">*</span></label><textarea id="courses" rows="3" placeholder="List the courses you are applying for..."></textarea></div>
             <div class="button-group"><button class="btn btn-secondary prevBtn">Previous</button><button class="btn btn-primary nextBtn">Next</button></div>
         </div>
 
-        <!-- Step 3 -->
+        <!-- Step 3: Document Upload -->
         <div id="step3" class="form-card hidden">
             <h2 class="form-title">Document Upload</h2>
             <div class="form-subtitle">PDF or JPG, max 5MB each - Certified documents required</div>
-            
-            <!-- Google Drive Status -->
-            <div id="googleDriveStatus" style="margin: 1rem 0;"></div>
-            
             <div id="bachelorDocs"></div>
             <div id="masterDocs" class="hidden"></div>
             <div class="button-group"><button class="btn btn-secondary prevBtn">Previous</button><button class="btn btn-primary nextBtn">Next</button></div>
         </div>
 
-        <!-- Step 4 -->
+        <!-- Step 4: Payment -->
         <div id="step4" class="form-card hidden">
             <h2 class="form-title">Payment</h2>
-            <div class="form-subtitle">Total: 35,000 DA</div>
-            <div class="payment-options"><div class="payment-option" data-payment="ccp"><i class="fas fa-university"></i><h4>CCP</h4><p>40253214 Clé 56</p></div><div class="payment-option" data-payment="baridimob"><i class="fas fa-mobile-alt"></i><h4>Baridimob</h4><p>00799999004025321435</p></div></div>
-            <div class="button-group"><button id="payNowBtn" class="btn btn-primary">Pay Now - Upload Receipt</button><button id="payLaterBtn" class="btn btn-secondary">Pay Later</button></div>
-            <div id="receiptUpload" class="hidden"><div class="file-upload" id="receiptArea"><i class="fas fa-cloud-upload-alt"></i><p>Upload receipt</p><input type="file" id="receiptFile" accept=".pdf,.jpg,.jpeg" style="display:none"></div></div>
-            <div class="bank-details"><p><strong>CCP:</strong> 40253214 Clé 56</p><p><strong>Baridimob:</strong> 00799999004025321435</p><div class="warning-box" style="margin-top:0.5rem"><i class="fas fa-clock"></i> 3 days to complete payment</div></div>
+            <div class="form-subtitle">Total Service Fee: 35,000 DA</div>
+            <div class="payment-options">
+                <div class="payment-option" data-payment="ccp"><i class="fas fa-university"></i><h4>CCP</h4><p>40253214 Clé 56</p></div>
+                <div class="payment-option" data-payment="baridimob"><i class="fas fa-mobile-alt"></i><h4>Baridimob</h4><p>00799999004025321435</p></div>
+            </div>
+            <div class="button-group">
+                <button id="payNowBtn" class="btn btn-primary">Pay Now - Upload Receipt</button>
+                <button id="payLaterBtn" class="btn btn-secondary">Pay Later - Contact Agency</button>
+            </div>
+            <div id="receiptUpload" class="hidden">
+                <div class="file-upload" id="receiptArea"><i class="fas fa-cloud-upload-alt"></i><p>Click to upload payment receipt</p><input type="file" id="receiptFile" accept=".pdf,.jpg,.jpeg" style="display:none"></div>
+            </div>
+            <div class="bank-details">
+                <p><strong>CCP:</strong> 40253214 Clé 56</p>
+                <p><strong>Baridimob:</strong> 00799999004025321435</p>
+                <div class="warning-box" style="margin-top:0.5rem"><i class="fas fa-clock"></i> You have 3 days to complete payment, otherwise your application will be automatically refused.</div>
+            </div>
             <div class="button-group"><button class="btn btn-secondary prevBtn">Previous</button><button class="btn btn-primary nextBtn" id="paymentNextBtn" disabled>Next</button></div>
         </div>
 
-        <!-- Step 5 -->
+        <!-- Step 5: Contract & Signature -->
         <div id="step5" class="form-card hidden">
-            <h2 class="form-title">Contract & Signature</h2>
-            <div class="checkbox-group"><label><input type="checkbox" id="privacyPolicy"> I agree to the <a href="#" id="viewContract" style="color:#9b8e6e">Privacy Policy and Contract</a></label></div>
-            <div class="signature-area"><label>Digital Signature <span class="required">*</span></label><canvas id="signatureCanvas"></canvas><button id="clearSignature" class="btn btn-secondary" style="margin-top:0.5rem; padding:0.5rem 1rem">Clear</button><p style="font-size:0.75rem; margin-top:0.5rem">Draw your signature</p></div>
+            <h2 class="form-title">Contract & Digital Signature</h2>
+            <div class="form-subtitle">Please review and sign the contract</div>
+            <div class="checkbox-group"><label><input type="checkbox" id="privacyPolicy"> I have read and agree to the <a href="#" id="viewContract" style="color:#9b8e6e">Privacy Policy and Contract</a></label></div>
+            <div class="signature-area">
+                <label>Digital Signature <span class="required">*</span></label>
+                <canvas id="signatureCanvas"></canvas>
+                <button id="clearSignature" class="btn btn-secondary" style="margin-top:0.5rem; padding:0.5rem 1rem">Clear Signature</button>
+                <p style="font-size:0.75rem; margin-top:0.5rem">Draw your signature with mouse or finger</p>
+            </div>
             <div class="button-group"><button class="btn btn-secondary prevBtn">Previous</button><button id="submitBtn" class="btn btn-primary" disabled>Submit Application</button></div>
         </div>
     </div>
 
-    <div id="contractModal" class="modal-overlay"><div class="modal-content"><div class="modal-header"><h3>Contract</h3><button id="closeContractBtn" style="background:none;border:none;font-size:1.5rem">&times;</button></div><div class="modal-body"><p><strong>Objet du contrat :</strong> Le bureau Bougie Immigration s'engage a accompagner l'etudiant dans :</p><ul><li>La recherche de trois (03) universites en Italie</li><li>La preparation et la soumission de la demande d'admission</li><li>La recherche d'opportunites de bourses d'etudes</li></ul><p><strong>Paiement :</strong> 35,000 DA - non-remboursable.</p><p>Les frais d'admission des universites sont a la charge de l'etudiant.</p></div><div class="modal-footer"><button id="acceptContractBtn" class="btn btn-primary">I Understand</button></div></div></div>
+    <!-- Contract Modal -->
+    <div id="contractModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Contract Agreement</h3><button id="closeContractBtn" class="modal-close">&times;</button></div>
+            <div class="modal-body">
+                <p><strong>Objet du contrat :</strong> Le bureau Bougie Immigration s'engage a accompagner l'etudiant dans :</p>
+                <ul><li>La recherche de trois (03) universites en Italie</li><li>La preparation et la soumission de la demande d'admission aupres de ces universites</li><li>La recherche d'opportunites de bourses d'etudes</li></ul>
+                <p><strong>Paiement :</strong> 35,000 DA - non-remboursable.</p>
+                <p>Les frais d'admission des universites sont a la charge exclusive de l'etudiant.</p>
+            </div>
+            <div class="modal-footer"><button id="acceptContractBtn" class="btn btn-primary">I Understand</button></div>
+        </div>
+    </div>
 
-    <div id="successModal" class="success-overlay"><div class="success-card"><i class="fas fa-check-circle"></i><h3>Application Submitted!</h3><p id="successAppNumber"></p><p>Confirmation email sent.</p><button id="successOkBtn" class="btn btn-primary" style="margin-top:1rem">OK</button></div></div>
+    <!-- Success Modal -->
+    <div id="successModal" class="success-overlay">
+        <div class="success-card">
+            <i class="fas fa-check-circle"></i>
+            <h3>Application Submitted Successfully!</h3>
+            <p id="successAppNumber"></p>
+            <p>A confirmation email has been sent to your email address.</p>
+            <p>You have 3 days to complete payment.</p>
+            <button id="successOkBtn" class="btn btn-primary" style="margin-top:1rem">OK</button>
+        </div>
+    </div>
 
     <script>
+        // ==================== SUPABASE CONFIGURATION ====================
+        const SUPABASE_URL = 'https://qpprzcckolmdyabnmgol.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwcHJ6Y2Nrb2xtZHlhYm5tZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjA5MTYsImV4cCI6MjA4OTkzNjkxNn0.Pp9fTdklyomxmG6wsb8FBzyhLXaXEx983ofdaiPG_So';
+        
+        let supabase = null;
+        
+        function initSupabase() {
+            if (typeof supabaseJs !== 'undefined') {
+                supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } else if (typeof window.supabase !== 'undefined') {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+            return supabase;
+        }
+        initSupabase();
+
         // ==================== STATE ====================
         let currentStep = 1;
         let selectedFiles = {};
@@ -155,7 +228,6 @@
         let paymentStatus = null;
         let signatureData = null;
         let canvas, ctx, drawing = false;
-        let uploadedFileUrls = {};
 
         // ==================== DOCUMENT REQUIREMENTS ====================
         const bachelorDocs = [
@@ -168,46 +240,28 @@
             { id: 'bacTranscriptTranslated', name: 'Baccalaureate Transcript (certified translated)' },
             { id: 'englishProof', name: 'English Proof (IELTS/TOEFL)' }
         ];
-        const masterDocs = [...bachelorDocs, 
+        const masterDocs = [
+            ...bachelorDocs,
             { id: 'bachelorCertOriginal', name: 'Bachelor Certificate (certified original)' },
             { id: 'bachelorCertTranslated', name: 'Bachelor Certificate (certified translated)' },
-            { id: 'bachelorTranscript', name: 'Bachelor Transcript - 3 years (certified original & translated)' }
+            { id: 'bachelorTranscriptOriginal', name: 'Bachelor Transcript (certified original)' },
+            { id: 'bachelorTranscriptTranslated', name: 'Bachelor Transcript (certified translated)' }
         ];
 
         // ==================== STEP 1 VALIDATION ====================
-        const chkCertified = document.getElementById('confirmCertified');
-        const chkFinal = document.getElementById('confirmFinal');
+        const confirmCertified = document.getElementById('confirmCertified');
+        const confirmFinal = document.getElementById('confirmFinal');
         const startBtn = document.getElementById('startBtn');
 
         function validateStep1() {
-            const allChecked = chkCertified.checked && chkFinal.checked;
+            const allChecked = confirmCertified.checked && confirmFinal.checked;
             startBtn.disabled = !allChecked;
             return allChecked;
         }
 
-        chkCertified.addEventListener('change', validateStep1);
-        chkFinal.addEventListener('change', validateStep1);
+        confirmCertified.addEventListener('change', validateStep1);
+        confirmFinal.addEventListener('change', validateStep1);
         validateStep1();
-
-        // ==================== GOOGLE DRIVE INTEGRATION ====================
-        function updateGoogleDriveStatus() {
-            const statusDiv = document.getElementById('googleDriveStatus');
-            if (statusDiv) {
-                if (window.GoogleDrive && window.GoogleDrive.isSignedIn()) {
-                    statusDiv.innerHTML = `
-                        <i class="fas fa-check-circle" style="color: #27ae60;"></i>
-                        <span>Connected to Google Drive - Your documents will be stored securely</span>
-                        <button onclick="window.GoogleDrive.signOut()" class="btn btn-secondary" style="padding: 0.25rem 0.75rem;">Disconnect</button>
-                    `;
-                } else {
-                    statusDiv.innerHTML = `
-                        <i class="fab fa-google" style="color: #4285F4;"></i>
-                        <span>Connect Google Drive to upload your documents</span>
-                        <button onclick="window.GoogleDrive.signIn()" class="btn btn-primary" style="padding: 0.25rem 0.75rem;">Connect Google Drive</button>
-                    `;
-                }
-            }
-        }
 
         // ==================== DOCUMENT UPLOAD UI ====================
         function createUploadSection(containerId, docs) {
@@ -217,9 +271,15 @@
             docs.forEach(doc => {
                 const div = document.createElement('div');
                 div.className = 'form-group';
-                div.innerHTML = `<label>${doc.name} <span class="required">*</span></label>
-                    <div class="file-upload" data-id="${doc.id}"><i class="fas fa-cloud-upload-alt"></i><p>Click to upload</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none"></div>
-                    <div class="file-list" id="list-${doc.id}"></div>`;
+                div.innerHTML = `
+                    <label>${doc.name} <span class="required">*</span></label>
+                    <div class="file-upload" data-id="${doc.id}">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload</p>
+                        <input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none">
+                    </div>
+                    <div class="file-list" id="list-${doc.id}"></div>
+                `;
                 container.appendChild(div);
             });
             attachUploadHandlers();
@@ -235,15 +295,14 @@
                 input.addEventListener('change', (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
-                    if (file.size > 5 * 1024 * 1024) { alert('Max 5MB'); input.value = ''; return; }
-                    if (!['application/pdf','image/jpeg','image/jpg'].includes(file.type)) { alert('PDF or JPG only'); input.value = ''; return; }
+                    if (file.size > 5 * 1024 * 1024) { alert('File exceeds 5MB limit'); input.value = ''; return; }
+                    if (!['application/pdf','image/jpeg','image/jpg','image/png'].includes(file.type)) { alert('Only PDF, JPG, or PNG files are allowed'); input.value = ''; return; }
                     
-                    // Store file for later upload
                     selectedFiles[docId] = file;
                     
                     const fileList = upload.nextElementSibling;
                     fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0,30)}</span><button onclick="removeDoc('${docId}')"><i class="fas fa-trash"></i></button></div>`;
-                    upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File ready for upload</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
+                    upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File ready: ${file.name.substring(0,25)}</p><input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none">`;
                     const newInput = upload.querySelector('input');
                     if (newInput) newInput.setAttribute('data-attached', 'true');
                 });
@@ -252,10 +311,9 @@
 
         window.removeDoc = function(docId) {
             delete selectedFiles[docId];
-            delete uploadedFileUrls[docId];
             const upload = document.querySelector(`.file-upload[data-id="${docId}"]`);
             if (upload) {
-                upload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i><p>Click to upload</p><input type="file" accept=".pdf,.jpg,.jpeg" style="display:none">`;
+                upload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i><p>Click to upload</p><input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none">`;
                 const fileList = upload.nextElementSibling;
                 if (fileList) fileList.innerHTML = '';
             }
@@ -266,51 +324,97 @@
             canvas = document.getElementById('signatureCanvas');
             if (!canvas) return;
             ctx = canvas.getContext('2d');
-            function resize() {
-                const w = canvas.parentElement.clientWidth - 32;
-                canvas.width = w;
+            
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                const width = container.clientWidth - 32;
+                canvas.width = width;
                 canvas.height = 150;
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(0, 0, w, 150);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, width, 150);
                 ctx.strokeStyle = '#2c2b28';
                 ctx.lineWidth = 2;
                 ctx.lineCap = 'round';
-                if (signatureData) { const img = new Image(); img.onload = () => ctx.drawImage(img, 0, 0); img.src = signatureData; }
+                if (signatureData) {
+                    const img = new Image();
+                    img.onload = () => ctx.drawImage(img, 0, 0);
+                    img.src = signatureData;
+                }
             }
-            function start(e) { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }
-            function draw(e) { if (!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }
-            function stop() { drawing = false; signatureData = canvas.toDataURL(); }
-            function getPos(e) {
+            
+            function getCoordinates(e) {
                 const rect = canvas.getBoundingClientRect();
                 const scaleX = canvas.width / rect.width;
                 const scaleY = canvas.height / rect.height;
-                let cx, cy;
-                if (e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
-                else { cx = e.clientX; cy = e.clientY; }
-                return { x: (cx - rect.left) * scaleX, y: (cy - rect.top) * scaleY };
+                let clientX, clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                return {
+                    x: (clientX - rect.left) * scaleX,
+                    y: (clientY - rect.top) * scaleY
+                };
             }
-            canvas.addEventListener('mousedown', start);
+            
+            function startDrawing(e) {
+                drawing = true;
+                const pos = getCoordinates(e);
+                ctx.beginPath();
+                ctx.moveTo(pos.x, pos.y);
+            }
+            
+            function draw(e) {
+                if (!drawing) return;
+                e.preventDefault();
+                const pos = getCoordinates(e);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+            }
+            
+            function stopDrawing() {
+                drawing = false;
+                signatureData = canvas.toDataURL();
+            }
+            
+            canvas.addEventListener('mousedown', startDrawing);
             canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stop);
-            canvas.addEventListener('mouseleave', stop);
-            canvas.addEventListener('touchstart', start);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
+            canvas.addEventListener('touchstart', startDrawing);
             canvas.addEventListener('touchmove', draw);
-            canvas.addEventListener('touchend', stop);
-            window.addEventListener('resize', resize);
-            resize();
-            document.getElementById('clearSignature').onclick = () => { ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height); signatureData=null; };
+            canvas.addEventListener('touchend', stopDrawing);
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            document.getElementById('clearSignature').onclick = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                signatureData = null;
+            };
         }
 
         // ==================== VALIDATION ====================
         function validateStep2() {
-            const fields = ['firstName','lastName','birthDate','bacDate','degree','phone','email','courses'];
+            const fields = ['firstName', 'lastName', 'birthDate', 'bacDate', 'degree', 'phone', 'email', 'courses'];
             for (let id of fields) {
                 const el = document.getElementById(id);
-                if (!el.value.trim()) { alert('Please fill all fields'); el.focus(); return false; }
+                if (!el.value.trim()) {
+                    alert(`Please fill in ${id.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
+                    el.focus();
+                    return false;
+                }
                 el.classList.remove('input-error');
             }
             const email = document.getElementById('email').value;
-            if (!/^[^\s@]+@([^\s@]+\.)+[^\s@]+$/.test(email)) { alert('Invalid email'); return false; }
+            if (!/^[^\s@]+@([^\s@]+\.)+[^\s@]+$/.test(email)) {
+                alert('Please enter a valid email address');
+                return false;
+            }
             return true;
         }
 
@@ -318,39 +422,63 @@
             const degree = document.getElementById('degree').value;
             const required = degree === 'Master' ? masterDocs : bachelorDocs;
             const missing = required.filter(d => !selectedFiles[d.id]);
-            if (missing.length) { alert(`Please select files for: ${missing.map(d=>d.name).join(', ')}`); return false; }
-            
-            if (!window.GoogleDrive || !window.GoogleDrive.isSignedIn()) {
-                alert('Please connect to Google Drive first to upload your documents.');
+            if (missing.length) {
+                alert(`Please upload: ${missing.map(d => d.name).join(', ')}`);
                 return false;
             }
             return true;
         }
 
         function validateStep4() {
-            if (!paymentMethod) { alert('Select payment method'); return false; }
+            if (!paymentMethod) {
+                alert('Please select a payment method.');
+                return false;
+            }
             if (paymentStatus === 'paid_pending') {
                 const receipt = document.getElementById('receiptFile').files[0];
-                if (!receipt) { alert('Upload receipt'); return false; }
+                if (!receipt) {
+                    alert('Please upload your payment receipt.');
+                    return false;
+                }
+                if (receipt.size > 5 * 1024 * 1024) {
+                    alert('Receipt file exceeds 5MB limit.');
+                    return false;
+                }
             }
             return true;
         }
 
         function validateStep5() {
-            if (!document.getElementById('privacyPolicy').checked) { alert('Accept contract'); return false; }
-            if (!signatureData) { alert('Provide signature'); return false; }
+            if (!document.getElementById('privacyPolicy').checked) {
+                alert('Please read and agree to the Privacy Policy and Contract.');
+                return false;
+            }
+            if (!signatureData) {
+                alert('Please provide your digital signature.');
+                return false;
+            }
             return true;
         }
 
         // ==================== STEP NAVIGATION ====================
         function updateSteps() {
-            for (let i=1;i<=5;i++) {
+            for (let i = 1; i <= 5; i++) {
                 const step = document.querySelector(`.step[data-step="${i}"]`);
                 const form = document.getElementById(`step${i}`);
-                if (i === currentStep) { step.classList.add('active'); step.classList.remove('completed'); form.classList.remove('hidden'); }
-                else if (i < currentStep) { step.classList.add('completed'); step.classList.remove('active'); form.classList.add('hidden'); }
-                else { step.classList.remove('active','completed'); form.classList.add('hidden'); }
+                if (i === currentStep) {
+                    step.classList.add('active');
+                    step.classList.remove('completed');
+                    form.classList.remove('hidden');
+                } else if (i < currentStep) {
+                    step.classList.add('completed');
+                    step.classList.remove('active');
+                    form.classList.add('hidden');
+                } else {
+                    step.classList.remove('active', 'completed');
+                    form.classList.add('hidden');
+                }
             }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         document.querySelectorAll('.nextBtn').forEach(btn => {
@@ -362,13 +490,15 @@
                 if (valid && currentStep < 5) { currentStep++; updateSteps(); }
             });
         });
+        
         document.querySelectorAll('.prevBtn').forEach(btn => {
             btn.addEventListener('click', () => { if (currentStep > 1) { currentStep--; updateSteps(); } });
         });
+        
         document.getElementById('startBtn').onclick = () => { currentStep = 2; updateSteps(); };
         document.getElementById('privacyPolicy').onchange = (e) => { document.getElementById('submitBtn').disabled = !e.target.checked; };
 
-        // ==================== PAYMENT ====================
+        // ==================== PAYMENT HANDLERS ====================
         document.querySelectorAll('.payment-option').forEach(opt => {
             opt.onclick = () => {
                 document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
@@ -376,94 +506,129 @@
                 paymentMethod = opt.getAttribute('data-payment');
             };
         });
-        document.getElementById('payNowBtn').onclick = () => { paymentStatus = 'paid_pending'; document.getElementById('receiptUpload').classList.remove('hidden'); document.getElementById('paymentNextBtn').disabled = false; };
-        document.getElementById('payLaterBtn').onclick = () => { paymentStatus = 'pending'; document.getElementById('receiptUpload').classList.add('hidden'); document.getElementById('paymentNextBtn').disabled = false; };
+        
+        document.getElementById('payNowBtn').onclick = () => {
+            paymentStatus = 'paid_pending';
+            document.getElementById('receiptUpload').classList.remove('hidden');
+            document.getElementById('paymentNextBtn').disabled = false;
+        };
+        
+        document.getElementById('payLaterBtn').onclick = () => {
+            paymentStatus = 'pending';
+            document.getElementById('receiptUpload').classList.add('hidden');
+            document.getElementById('paymentNextBtn').disabled = false;
+        };
+        
         document.getElementById('receiptArea').onclick = () => document.getElementById('receiptFile').click();
 
         // ==================== CONTRACT MODAL ====================
-        document.getElementById('viewContract').onclick = (e) => { e.preventDefault(); document.getElementById('contractModal').style.display = 'flex'; };
+        document.getElementById('viewContract').onclick = (e) => {
+            e.preventDefault();
+            document.getElementById('contractModal').style.display = 'flex';
+        };
         document.getElementById('closeContractBtn').onclick = () => document.getElementById('contractModal').style.display = 'none';
         document.getElementById('acceptContractBtn').onclick = () => document.getElementById('contractModal').style.display = 'none';
 
         // ==================== DEGREE CHANGE ====================
         document.getElementById('degree').onchange = (e) => {
             const masterDiv = document.getElementById('masterDocs');
-            if (e.target.value === 'Master') { masterDiv.classList.remove('hidden'); createUploadSection('masterDocs', masterDocs); }
-            else { masterDiv.classList.add('hidden'); createUploadSection('bachelorDocs', bachelorDocs); }
+            if (e.target.value === 'Master') {
+                masterDiv.classList.remove('hidden');
+                createUploadSection('masterDocs', masterDocs);
+            } else {
+                masterDiv.classList.add('hidden');
+                createUploadSection('bachelorDocs', bachelorDocs);
+            }
         };
 
-        // ==================== SEND EMAIL VIA RESEND ====================
-        async function sendEmail(email, subject, htmlContent) {
-            const resendApiKey = 're_UGbnfq94_KrG2rVQMhkbiGSkTGH9P62iR';
+        // ==================== SUPABASE STORAGE UPLOAD ====================
+        async function uploadToSupabase(file, applicationNumber, docType) {
+            if (!supabase) {
+                throw new Error('Supabase not initialized');
+            }
+            
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${applicationNumber}/${docType}_${Date.now()}.${fileExt}`;
+            
+            const { data, error } = await supabase.storage
+                .from('documents')
+                .upload(fileName, file);
+            
+            if (error) throw error;
+            
+            const { data: urlData } = supabase.storage
+                .from('documents')
+                .getPublicUrl(fileName);
+            
+            return urlData.publicUrl;
+        }
+
+        async function uploadAllDocuments(applicationNumber) {
+            const results = {};
+            const filesToUpload = Object.entries(selectedFiles);
+            
+            for (const [docId, file] of filesToUpload) {
+                try {
+                    const url = await uploadToSupabase(file, applicationNumber, docId);
+                    results[docId] = url;
+                    console.log(`Uploaded ${docId}: ${url}`);
+                } catch (error) {
+                    console.error(`Failed to upload ${docId}:`, error);
+                    results[docId] = { error: error.message };
+                }
+            }
+            
+            const receiptFile = document.getElementById('receiptFile').files[0];
+            if (receiptFile && paymentStatus === 'paid_pending') {
+                try {
+                    const url = await uploadToSupabase(receiptFile, applicationNumber, 'payment_receipt');
+                    results['payment_receipt'] = url;
+                } catch (error) {
+                    results['payment_receipt'] = { error: error.message };
+                }
+            }
+            
+            return results;
+        }
+
+        // ==================== SEND EMAIL ====================
+        async function sendEmail(to, subject, html) {
+            const RESEND_API_KEY = 're_UGbnfq94_KrG2rVQMhkbiGSkTGH9P62iR';
             try {
                 const response = await fetch('https://api.resend.com/emails', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${resendApiKey}`,
+                        'Authorization': `Bearer ${RESEND_API_KEY}`,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         from: 'Bougie Immigration <onboarding@resend.dev>',
-                        to: [email],
+                        to: [to],
                         subject: subject,
-                        html: htmlContent
+                        html: html
                     })
                 });
-                const result = await response.json();
-                console.log('Email sent:', result);
-                return result;
+                return await response.json();
             } catch (error) {
                 console.error('Email error:', error);
                 return null;
             }
         }
 
-        // ==================== UPLOAD TO GOOGLE DRIVE ====================
-        async function uploadToGoogleDrive(applicationNumber) {
-            const filesToUpload = [];
-            for (const [docId, file] of Object.entries(selectedFiles)) {
-                filesToUpload.push({
-                    file: file,
-                    documentType: docId
-                });
-            }
-            
-            // Also add receipt if uploaded
-            const receiptFile = document.getElementById('receiptFile').files[0];
-            if (receiptFile && paymentStatus === 'paid_pending') {
-                filesToUpload.push({
-                    file: receiptFile,
-                    documentType: 'payment_receipt'
-                });
-            }
-            
-            const results = await window.GoogleDrive.uploadMultiple(
-                filesToUpload,
-                applicationNumber,
-                (completed, total, docType, result) => {
-                    console.log(`Uploaded ${docType}: ${completed}/${total}`);
-                }
-            );
-            
-            return results;
-        }
-
-        // ==================== SUBMIT ====================
+        // ==================== SUBMIT APPLICATION ====================
         document.getElementById('submitBtn').onclick = async () => {
             if (!validateStep5()) return;
             
-            const appNumber = 'IT-' + new Date().getFullYear() + '-' + Math.random().toString(36).substring(2,8).toUpperCase();
+            const appNumber = 'IT-' + new Date().getFullYear() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
             const now = new Date();
-            const deadline = new Date(now.getTime() + 3*24*60*60*1000);
+            const deadline = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
             
-            // Show loading state
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading documents...';
             
             try {
-                // Upload files to Google Drive
-                const uploadResults = await uploadToGoogleDrive(appNumber);
+                const uploadResults = await uploadAllDocuments(appNumber);
                 
                 const application = {
                     id: Date.now().toString(),
@@ -486,12 +651,10 @@
                     payment_deadline: deadline.toISOString()
                 };
                 
-                // Save to localStorage
                 let applications = JSON.parse(localStorage.getItem('bougie_applications') || '[]');
                 applications.push(application);
                 localStorage.setItem('bougie_applications', JSON.stringify(applications));
                 
-                // Send confirmation email
                 const emailHtml = `
                     <!DOCTYPE html><html><body style="font-family:Arial;padding:20px">
                     <h2>Application Confirmation - Italy</h2>
@@ -501,7 +664,6 @@
                     <p><strong>Destination:</strong> Italy</p>
                     <p><strong>Payment Deadline:</strong> ${deadline.toLocaleDateString()}</p>
                     <p>You have 3 days to complete payment.</p>
-                    <p>Check status: <a href="status.html">Status Page</a></p>
                     <p>Thank you,<br>Bougie Immigration Team</p>
                     </body></html>
                 `;
@@ -513,7 +675,7 @@
                 
             } catch (error) {
                 console.error('Submission error:', error);
-                alert('Failed to upload documents to Google Drive. Please make sure you are connected and try again.');
+                alert('Failed to upload documents. Please try again.');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Submit Application';
             }
@@ -525,47 +687,6 @@
         createUploadSection('bachelorDocs', bachelorDocs);
         initCanvas();
         updateSteps();
-        
-        // Setup Google Drive status update
-        window.onGoogleDriveSignIn = function(signedIn) {
-            updateGoogleDriveStatus();
-        };
-        
-        // Check Google Drive status periodically
-        setInterval(() => {
-            if (window.GoogleDrive) {
-                updateGoogleDriveStatus();
-            }
-        }, 1000);
-        
-        updateGoogleDriveStatus();
-
-            // Make sure Google Drive functions are globally available
-    window.ensureGoogleDrive = function() {
-        if (!window.GoogleDrive) {
-            console.log('Waiting for Google Drive to load...');
-            setTimeout(window.ensureGoogleDrive, 500);
-            return;
-        }
-        
-        if (!window.GoogleDrive.isSignedIn()) {
-            window.GoogleDrive.signIn();
-        } else {
-            alert('Already connected to Google Drive');
-        }
-    };
-    
-    // Add a manual trigger if needed
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.google-drive-connect')) {
-            e.preventDefault();
-            if (window.GoogleDrive) {
-                window.GoogleDrive.signIn();
-            } else {
-                alert('Google Drive is loading, please wait...');
-            }
-        }
-    });
     </script>
 </body>
 </html>
