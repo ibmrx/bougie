@@ -457,7 +457,7 @@
 
     // ==================== APPROVE / REJECT ====================
     async function approveApplication(id) {
-        const app = applications.find(a => a.id === id);
+        const app = applications.find(a => a.id == id);
         if (!app) return;
         if (!confirm(`Approve application ${app.application_number}? Email will be sent to ${app.email}.`)) return;
     
