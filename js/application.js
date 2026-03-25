@@ -737,23 +737,29 @@ function setupPaymentHandlers() {
         });
     }
     
-    const receiptUploadArea = document.getElementById('receiptArea');
-    const receiptFile = document.getElementById('receiptFile');
+  const receiptUploadArea = document.getElementById('receiptArea');
+  const receiptFile = document.getElementById('receiptFile');
 
-    if (receiptUploadArea && receiptFile) {
-        receiptUploadArea.clickHandler = (e) => { e.stopPropagation(); receiptFile.click();
-        });
-        
-        receiptFile.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file && validateFile(file)) {
-                receiptUploadArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded successfully</p>';
-                applicationData.receiptFile = file;
-            }
-        });
-    }
+if (receiptUploadArea && receiptFile) {
+    // Remove any existing click listeners
+    receiptUploadArea.onclick = null;
+    
+    // Set new click handler
+    receiptUploadArea.onclick = (e) => {
+        e.stopPropagation();
+        receiptFile.click();
+    };
+    
+    receiptFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file && validateFile(file)) {
+            receiptUploadArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded successfully</p>';
+            applicationData.receiptFile = file;
+        }
+    });
 }
 
+    
 function loadDestinationContent(destination) {
     const bacLabel = document.querySelector('label[for="bacDate"]');
     if (bacLabel) {
