@@ -34,6 +34,58 @@ function initSupabase() {
 // Initialize immediately
 initSupabase();
 
+async function uploadToSupabase(file, applicationNumber, docType) {
+    if (!supabaseClient && !initSupabaseStorage()) {
+        throw new Error('Supabase not initialized');
+    }
+    
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${applicationNumber}/${docType}_${Date.now()}.${fileExt}`;
+    
+    const { error } = await supabaseClient.storage
+        .from('documents')
+        .upload(fileName, file);
+    
+    if (error) throw error;
+    
+    const { data } = supabaseClient.storage
+        .from('documents')
+        .getPublicUrl(fileName);
+    
+    return data.publicUrl;
+}
+
+async function uploadMultipleDocuments(files, applicationNumber, onProgress) {
+    if (!supabaseClient && !initSupabaseStorage()) {
+        throw new Error('Supabase not initialized');
+    }
+    
+    const results = {};
+    let completed = 0;
+    const total = files.length;
+    
+    for (const item of files) {
+        try {
+            const url = await uploadToSupabase(item.file, applicationNumber, item.documentType);
+            results[item.documentType] = url;
+            completed++;
+            if (onProgress) onProgress(completed, total, item.documentType, { success: true, url });
+        } catch (error) {
+            results[item.documentType] = { error: error.message };
+            completed++;
+            if (onProgress) onProgress(completed, total, item.documentType, { success: false, error: error.message });
+        }
+    }
+    
+    return results;
+}
+
+window.SupabaseStorage = {
+    init: initSupabaseStorage,
+    upload: uploadToSupabase,
+    uploadMultiple: uploadMultipleDocuments
+};
+
 // Document requirements based on destination and study level
 const DOCUMENT_REQUIREMENTS = {
     italy: {
@@ -903,15 +955,17 @@ async function submitApplication() {
         localStorage.setItem('bougie_applications', JSON.stringify(applications));
         
         const destinationName = applicationData.destination === 'italy' ? 'Italy' : 'Campus France';
-        const emailHtml = await loadEmailTemplate('application-confirmation', {
-            firstName: application.first_name,
-            lastName: application.last_name,
-            applicationNumber: appNumber,
-            destination: destinationName,
-            paymentDeadline: deadline.toLocaleDateString()
-        });
+const emailHtml = await loadEmailTemplate('application-confirmation', {
+    firstName: application.first_name,
+    lastName: application.last_name,
+    applicationNumber: appNumber,
+    destination: 'Campus France',
+    paymentDeadline: deadline.toLocaleDateString()
+});
 
-        await sendEmail(application.email, 'Application Confirmation - Bougie Immigration', emailHtml);
+await sendEmail(application.email, 'Application Confirmation - Bougie Immigration', emailHtml);
+        
+        await sendEmail(application.email, `Application Confirmation - Bougie Immigration`, emailHtml);
         
         const successAppNumber = document.getElementById('successAppNumber');
         if (successAppNumber) {
@@ -921,14 +975,6 @@ async function submitApplication() {
         const successModal = document.getElementById('successModal');
         if (successModal) {
             successModal.style.display = 'flex';
-            
-            // MOVE THE OK BUTTON HANDLER INSIDE HERE
-            const successOkBtn = document.getElementById('successOkBtn');
-            if (successOkBtn) {
-                successOkBtn.onclick = () => {
-                    window.location.href = 'index.html';
-                };
-            }
         }
         
     } catch (error) {
@@ -938,7 +984,8 @@ async function submitApplication() {
         submitBtn.innerHTML = 'Submit Application';
     }
 }
- /**
+
+/**
  * Show error message
  */
 function showError(message) {
@@ -959,6 +1006,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitBtn = document.getElementById('submitBtn');
     if (submitBtn) {
         submitBtn.addEventListener('click', submitApplication);
+    }
+
+    const successOkBtn = document.getElementById('successOkBtn');
+    if (successOkBtn) {
+        successOkBtn.onclick = () => {
+            window.location.href = 'index.html';
+        };
     }
     
 });
