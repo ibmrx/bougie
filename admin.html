@@ -117,7 +117,7 @@
             <div id="tableContent" style="display: none;">
                 <table class="applications-table">
                     <thead>
-                        <tr><th># Application</th><th>Full Name</th><th>Baccalaureate</th><th>Phone</th><th>Email</th><th>Destination</th><th>Status</th><th>Actions</th>
+                        <tr><th>Application #</th><th>Full Name</th><th>Baccalaureate</th><th>Phone</th><th>Email</th><th>Destination</th><th>Status</th><th>Actions</th>
                     </thead>
                     <tbody id="applicationsTableBody"></tbody>
                 </table>
@@ -140,388 +140,359 @@
             </div>
         </div>
     </div>
+
     <script>
-    let applications = [];
-    let filteredApplications = [];
-    let currentFilters = { status: 'all', destination: 'all', search: '' };
-    let currentModalApp = null;
+        let applications = [];
+        let filteredApplications = [];
+        let currentFilters = { status: 'all', destination: 'all', search: '' };
+        let currentModalApp = null;
 
-    const elements = {
-        totalCount: document.getElementById('totalCount'),
-        pendingCount: document.getElementById('pendingCount'),
-        approvedCount: document.getElementById('approvedCount'),
-        rejectedCount: document.getElementById('rejectedCount'),
-        statusFilter: document.getElementById('statusFilter'),
-        destinationFilter: document.getElementById('destinationFilter'),
-        searchInput: document.getElementById('searchInput'),
-        downloadAllBtn: document.getElementById('downloadAllBtn'),
-        logoutBtn: document.getElementById('logoutBtn'),
-        applicationsTableBody: document.getElementById('applicationsTableBody'),
-        loadingState: document.getElementById('loadingState'),
-        tableContent: document.getElementById('tableContent'),
-        emptyState: document.getElementById('emptyState'),
-        detailModal: document.getElementById('detailModal'),
-        modalBody: document.getElementById('modalBody'),
-        modalApproveBtn: document.getElementById('modalApproveBtn'),
-        modalRejectBtn: document.getElementById('modalRejectBtn'),
-        adminName: document.getElementById('adminName')
-    };
-
-    function checkAuth() {
-        const isLoggedIn = sessionStorage.getItem('admin_logged_in');
-        if (!isLoggedIn || isLoggedIn !== 'true') {
-            window.location.href = 'login.html';
-            return false;
-        }
-        const adminUsername = sessionStorage.getItem('admin_username') || 'Admin';
-        if (elements.adminName) elements.adminName.textContent = `Welcome, ${adminUsername}`;
-        return true;
-    }
-
-    function deleteApplication(applicationId) {
-        const app = applications.find(a => a.id === applicationId);
-        if (!app) return;
-        if (confirm(`Are you sure you want to DELETE application ${app.application_number}? This action cannot be undone.`)) {
-            applications = applications.filter(a => a.id !== applicationId);
-            localStorage.setItem('bougie_applications', JSON.stringify(applications));
-            applyFilters();
-            showNotification(`Application ${app.application_number} deleted.`, 'warning');
-        }
-    }
-
-    function loadApplications() {
-        showLoading(true);
-        try {
-            const stored = localStorage.getItem('bougie_applications');
-            applications = stored ? JSON.parse(stored) : [];
-            applyFilters();
-        } catch (error) {
-            console.error('Error loading applications:', error);
-            showNotification('Failed to load applications', 'error');
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    function saveApplications() {
-        localStorage.setItem('bougie_applications', JSON.stringify(applications));
-    }
-
-    function applyFilters() {
-        filteredApplications = applications.filter(app => {
-            const matchesStatus = currentFilters.status === 'all' || app.application_status === currentFilters.status;
-            const matchesDestination = currentFilters.destination === 'all' || app.destination === currentFilters.destination;
-            const search = currentFilters.search.toLowerCase();
-            const fullName = `${app.first_name || ''} ${app.last_name || ''}`.toLowerCase();
-            const matchesSearch = search === '' || 
-                fullName.includes(search) ||
-                (app.email || '').toLowerCase().includes(search) ||
-                (app.application_number || '').toLowerCase().includes(search);
-            return matchesStatus && matchesDestination && matchesSearch;
-        });
-        updateStats();
-        renderTable();
-    }
-
-    function updateStats() {
-        const total = filteredApplications.length;
-        const pending = filteredApplications.filter(a => a.application_status === 'pending').length;
-        const approved = filteredApplications.filter(a => a.application_status === 'approved').length;
-        const rejected = filteredApplications.filter(a => a.application_status === 'rejected').length;
-        if (elements.totalCount) elements.totalCount.textContent = total;
-        if (elements.pendingCount) elements.pendingCount.textContent = pending;
-        if (elements.approvedCount) elements.approvedCount.textContent = approved;
-        if (elements.rejectedCount) elements.rejectedCount.textContent = rejected;
-    }
-
-    function formatDate(dateString) {
-        if (!dateString) return 'N/A';
-        try {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-        } catch { return dateString; }
-    }
-
-    function formatMonthYear(dateString) {
-        if (!dateString) return 'N/A';
-        try {
-            const [year, month] = dateString.split('-');
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            return `${months[parseInt(month)-1]} ${year}`;
-        } catch { return dateString; }
-    }
-
-    function getDestinationDisplay(destination) {
-        if (destination === 'italy') return 'Italy';
-        if (destination === 'campus_france') return 'Campus France';
-        return destination || 'N/A';
-    }
-
-    function getStatusBadge(status) {
-        const config = {
-            pending: { icon: 'fa-clock', class: 'status-pending', text: 'Pending' },
-            approved: { icon: 'fa-check-circle', class: 'status-approved', text: 'Approved' },
-            rejected: { icon: 'fa-times-circle', class: 'status-rejected', text: 'Rejected' }
+        const elements = {
+            totalCount: document.getElementById('totalCount'),
+            pendingCount: document.getElementById('pendingCount'),
+            approvedCount: document.getElementById('approvedCount'),
+            rejectedCount: document.getElementById('rejectedCount'),
+            statusFilter: document.getElementById('statusFilter'),
+            destinationFilter: document.getElementById('destinationFilter'),
+            searchInput: document.getElementById('searchInput'),
+            downloadAllBtn: document.getElementById('downloadAllBtn'),
+            logoutBtn: document.getElementById('logoutBtn'),
+            applicationsTableBody: document.getElementById('applicationsTableBody'),
+            loadingState: document.getElementById('loadingState'),
+            tableContent: document.getElementById('tableContent'),
+            emptyState: document.getElementById('emptyState'),
+            detailModal: document.getElementById('detailModal'),
+            modalBody: document.getElementById('modalBody'),
+            modalApproveBtn: document.getElementById('modalApproveBtn'),
+            modalRejectBtn: document.getElementById('modalRejectBtn'),
+            adminName: document.getElementById('adminName')
         };
-        const c = config[status] || config.pending;
-        return `<span class="status-badge ${c.class}"><i class="fas ${c.icon}"></i> ${c.text}</span>`;
-    }
 
-    function formatDocumentName(key) {
-        return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).replace(/_/g, ' ');
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    }
-
-    function renderTable() {
-        if (!elements.applicationsTableBody) return;
-        if (filteredApplications.length === 0) {
-            elements.applicationsTableBody.innerHTML = '';
-            if (elements.emptyState) elements.emptyState.style.display = 'block';
-            return;
-        }
-        if (elements.emptyState) elements.emptyState.style.display = 'none';
-        
-        elements.applicationsTableBody.innerHTML = filteredApplications.map(app => `
-            <tr>
-                <td><code style="font-size:0.8rem">${escapeHtml(app.application_number || 'N/A')}</code></td>
-                <td><strong>${escapeHtml(app.first_name || '')} ${escapeHtml(app.last_name || '')}</strong></td>
-                <td>${formatMonthYear(app.bac_date)}</td>
-                <td>${escapeHtml(app.phone || 'N/A')}</td>
-                <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis">${escapeHtml(app.email || 'N/A')}</td>
-                <td>${getDestinationDisplay(app.destination)}</td>
-                <td>${getStatusBadge(app.application_status)}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-icon btn-view" onclick="viewApplication('${app.id}')" title="View Details"><i class="fas fa-eye"></i></button>
-                        ${app.application_status === 'pending' ? `
-                            <button class="btn-icon btn-approve" onclick="approveApplication('${app.id}')" title="Approve"><i class="fas fa-check"></i></button>
-                            <button class="btn-icon btn-reject" onclick="rejectApplication('${app.id}')" title="Reject"><i class="fas fa-times"></i></button>
-                        ` : ''}
-                        <button class="btn-icon btn-delete" onclick="deleteApplication('${app.id}')" title="Delete"><i class="fas fa-trash"></i></button>
-                    </div>
-                </td>
-             </tr>
-        `).join('');
-    }
-
-    // ==================== EMAILJS FUNCTIONS ====================
-    async function sendApprovalEmail(app) {
-        const templateParams = {
-            to_email: app.email,
-            reply_to: app.email,
-            subject: 'Application Approved - Bougie Immigration',
-            firstName: app.first_name,
-            lastName: app.last_name,
-            applicationNumber: app.application_number,
-            applicationStatus: 'Approved',
-            destination: app.destination === 'italy' ? 'Italy' : 'Campus France',
-            yearOfStudies: app.year_of_study,
-            submissionDate: new Date(app.created_at).toLocaleDateString(),
-            paymentStatus: app.payment_status === 'paid' ? 'Paid' : 'Pending',
-            paymentDeadline: new Date(app.payment_deadline).toLocaleDateString(),
-            statusCheckUrl: 'https://bougie-five.vercel.app/status.html',
-            currentYear: new Date().getFullYear()
-        };
-        
-        try {
-            const response = await emailjs.send('service_rbx0k6d', 'template_m4pm26p', templateParams);
-            console.log('Approval email sent:', response);
+        function checkAuth() {
+            const isLoggedIn = sessionStorage.getItem('admin_logged_in');
+            if (!isLoggedIn || isLoggedIn !== 'true') {
+                window.location.href = 'login.html';
+                return false;
+            }
+            const adminUsername = sessionStorage.getItem('admin_username') || 'Admin';
+            if (elements.adminName) elements.adminName.textContent = `Welcome, ${adminUsername}`;
             return true;
-        } catch (error) {
-            console.error('Approval email failed:', error);
-            return false;
         }
-    }
 
-    async function sendRejectionEmail(app, reason) {
-        const templateParams = {
-            to_email: app.email,
-            reply_to: app.email,
-            subject: 'Application Status Update - Bougie Immigration',
-            firstName: app.first_name,
-            lastName: app.last_name,
-            applicationNumber: app.application_number,
-            applicationStatus: 'Rejected',
-            destination: app.destination === 'italy' ? 'Italy' : 'Campus France',
-            yearOfStudies: app.year_of_study,
-            submissionDate: new Date(app.created_at).toLocaleDateString(),
-            paymentStatus: app.payment_status === 'paid' ? 'Paid' : 'Pending',
-            paymentDeadline: new Date(app.payment_deadline).toLocaleDateString(),
-            statusCheckUrl: 'https://bougie-five.vercel.app/status.html',
-            currentYear: new Date().getFullYear(),
-            rejectionReason: reason
-        };
-        
-        try {
-            const response = await emailjs.send('service_rbx0k6d', 'template_m4pm26p', templateParams);
-            console.log('Rejection email sent:', response);
-            return true;
-        } catch (error) {
-            console.error('Rejection email failed:', error);
-            return false;
-        }
-    }
-
-    // ==================== VIEW APPLICATION DETAILS ====================
-    function viewApplication(id) {
-    const app = applications.find(a => a.id === id);
-    if (!app) return;
-    currentModalApp = app;
-    
-    // Build documents HTML
-    let documentsHtml = '';
-    if (app.documents && Object.keys(app.documents).length > 0) {
-        documentsHtml = '<div class="documents-list"><div class="detail-label" style="margin-bottom: 0.5rem;">Uploaded Documents</div>';
-        for (const [docType, docUrl] of Object.entries(app.documents)) {
-            if (typeof docUrl === 'string' && docUrl.startsWith('http')) {
-                const isImage = docUrl.match(/\.(jpg|jpeg|png|gif|webp)/i);
-                const isPdf = docUrl.match(/\.pdf$/i);
-                
-                documentsHtml += `
-                    <div class="doc-item">
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                            <span><i class="fas fa-file"></i> ${formatDocumentName(docType)}</span>
-                            <div>
-                                <a href="${docUrl}" target="_blank" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-external-link-alt"></i> View</a>
-                                <a href="${docUrl}" download class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-download"></i> Download</a>
-                            </div>
-                        </div>`;
-                
-                if (isImage) {
-                    documentsHtml += `<img src="${docUrl}" style="max-width: 100%; max-height: 150px; margin-top: 0.5rem; border-radius: 8px;" />`;
-                } else if (isPdf) {
-                    documentsHtml += `<iframe src="${docUrl}" style="width: 100%; height: 200px; margin-top: 0.5rem; border: 1px solid #dcdad5; border-radius: 8px;"></iframe>`;
-                }
-                
-                documentsHtml += `</div>`;
+        function deleteApplication(applicationId) {
+            const app = applications.find(a => a.id === applicationId);
+            if (!app) return;
+            if (confirm(`Are you sure you want to DELETE application ${app.application_number}? This action cannot be undone.`)) {
+                applications = applications.filter(a => a.id !== applicationId);
+                localStorage.setItem('bougie_applications', JSON.stringify(applications));
+                applyFilters();
+                showNotification(`Application ${app.application_number} deleted.`, 'warning');
             }
         }
-        documentsHtml += '</div>';
-    } else {
-        documentsHtml = '<div class="documents-list"><div class="detail-label">Uploaded Documents</div><p>No documents uploaded</p></div>';
-    }
-    
-    // Build modal body
-    if (elements.modalBody) {
-        elements.modalBody.innerHTML = `
-            <div class="detail-row"><div class="detail-label">Application Number</div><div class="detail-value"><code>${escapeHtml(app.application_number)}</code></div></div>
-            <div class="detail-row"><div class="detail-label">Full Name</div><div class="detail-value">${escapeHtml(app.first_name)} ${escapeHtml(app.last_name)}</div></div>
-            <div class="detail-row"><div class="detail-label">Birth Date</div><div class="detail-value">${formatDate(app.birth_date)}</div></div>
-            <div class="detail-row"><div class="detail-label">Email</div><div class="detail-value">${escapeHtml(app.email)}</div></div>
-            <div class="detail-row"><div class="detail-label">Phone</div><div class="detail-value">${escapeHtml(app.phone)}</div></div>
-            <div class="detail-row"><div class="detail-label">Baccalaureate</div><div class="detail-value">${formatMonthYear(app.bac_date)}</div></div>
-            <div class="detail-row"><div class="detail-label">Applying Degree</div><div class="detail-value">${escapeHtml(app.year_of_study)}</div></div>
-            <div class="detail-row"><div class="detail-label">Destination</div><div class="detail-value">${getDestinationDisplay(app.destination)}</div></div>
-            <div class="detail-row"><div class="detail-label">Courses</div><div class="detail-value">${escapeHtml(app.courses)}</div></div>
-            <div class="detail-row"><div class="detail-label">Payment Status</div><div class="detail-value"><span class="status-badge ${app.payment_status === 'paid' ? 'status-approved' : 'status-pending'}">${app.payment_status === 'paid' ? 'Paid' : 'Pending'}</span></div></div>
-            <div class="detail-row"><div class="detail-label">Submitted</div><div class="detail-value">${formatDate(app.created_at)}</div></div>
-            ${app.tcf_status ? `<div class="detail-row"><div class="detail-label">TCF Status</div><div class="detail-value">${escapeHtml(app.tcf_status)}</div></div>` : ''}
-            ${app.admin_notes ? `<div class="detail-row"><div class="detail-label">Admin Notes</div><div class="detail-value">${escapeHtml(app.admin_notes)}</div></div>` : ''}
-            ${documentsHtml}
-        `;
-    }
-    
-    // Update modal buttons
-    if (elements.modalApproveBtn && elements.modalRejectBtn) {
-        if (app.application_status === 'pending') {
-            elements.modalApproveBtn.style.display = 'inline-flex';
-            elements.modalRejectBtn.style.display = 'inline-flex';
-            elements.modalApproveBtn.onclick = () => approveApplication(app.id);
-            elements.modalRejectBtn.onclick = () => rejectApplication(app.id);
-        } else {
-            elements.modalApproveBtn.style.display = 'none';
-            elements.modalRejectBtn.style.display = 'none';
+
+        function loadApplications() {
+            showLoading(true);
+            try {
+                const stored = localStorage.getItem('bougie_applications');
+                applications = stored ? JSON.parse(stored) : [];
+                applyFilters();
+            } catch (error) {
+                console.error('Error loading applications:', error);
+                showNotification('Failed to load applications', 'error');
+            } finally {
+                showLoading(false);
+            }
         }
-    }
-    
-    if (elements.detailModal) elements.detailModal.style.display = 'flex';
+
+        function saveApplications() {
+            localStorage.setItem('bougie_applications', JSON.stringify(applications));
+        }
+
+        function applyFilters() {
+            filteredApplications = applications.filter(app => {
+                const matchesStatus = currentFilters.status === 'all' || app.application_status === currentFilters.status;
+                const matchesDestination = currentFilters.destination === 'all' || app.destination === currentFilters.destination;
+                const search = currentFilters.search.toLowerCase();
+                const fullName = `${app.first_name || ''} ${app.last_name || ''}`.toLowerCase();
+                const matchesSearch = search === '' || 
+                    fullName.includes(search) ||
+                    (app.email || '').toLowerCase().includes(search) ||
+                    (app.application_number || '').toLowerCase().includes(search);
+                return matchesStatus && matchesDestination && matchesSearch;
+            });
+            updateStats();
+            renderTable();
+        }
+
+        function updateStats() {
+            const total = filteredApplications.length;
+            const pending = filteredApplications.filter(a => a.application_status === 'pending').length;
+            const approved = filteredApplications.filter(a => a.application_status === 'approved').length;
+            const rejected = filteredApplications.filter(a => a.application_status === 'rejected').length;
+            if (elements.totalCount) elements.totalCount.textContent = total;
+            if (elements.pendingCount) elements.pendingCount.textContent = pending;
+            if (elements.approvedCount) elements.approvedCount.textContent = approved;
+            if (elements.rejectedCount) elements.rejectedCount.textContent = rejected;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            } catch { return dateString; }
+        }
+
+        function formatMonthYear(dateString) {
+            if (!dateString) return 'N/A';
+            try {
+                const [year, month] = dateString.split('-');
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${months[parseInt(month)-1]} ${year}`;
+            } catch { return dateString; }
+        }
+
+        function getDestinationDisplay(destination) {
+            if (destination === 'italy') return 'Italy';
+            if (destination === 'campus_france') return 'Campus France';
+            return destination || 'N/A';
+        }
+
+        function getStatusBadge(status) {
+            const config = {
+                pending: { icon: 'fa-clock', class: 'status-pending', text: 'Pending' },
+                approved: { icon: 'fa-check-circle', class: 'status-approved', text: 'Approved' },
+                rejected: { icon: 'fa-times-circle', class: 'status-rejected', text: 'Rejected' }
+            };
+            const c = config[status] || config.pending;
+            return `<span class="status-badge ${c.class}"><i class="fas ${c.icon}"></i> ${c.text}</span>`;
+        }
+
+        function formatDocumentName(key) {
+            return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).replace(/_/g, ' ');
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function renderTable() {
+            if (!elements.applicationsTableBody) return;
+            if (filteredApplications.length === 0) {
+                elements.applicationsTableBody.innerHTML = '';
+                if (elements.emptyState) elements.emptyState.style.display = 'block';
+                return;
+            }
+            if (elements.emptyState) elements.emptyState.style.display = 'none';
+            
+            elements.applicationsTableBody.innerHTML = filteredApplications.map(app => `
+                <tr>
+                    <td><code style="font-size:0.8rem">${escapeHtml(app.application_number || 'N/A')}</code></td>
+                    <td><strong>${escapeHtml(app.first_name || '')} ${escapeHtml(app.last_name || '')}</strong></td>
+                    <td>${formatMonthYear(app.bac_date)}</td>
+                    <td>${escapeHtml(app.phone || 'N/A')}</td>
+                    <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis">${escapeHtml(app.email || 'N/A')}</td>
+                    <td>${getDestinationDisplay(app.destination)}</td>
+                    <td>${getStatusBadge(app.application_status)}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon btn-view" onclick="viewApplication('${app.id}')" title="View Details"><i class="fas fa-eye"></i></button>
+                            ${app.application_status === 'pending' ? `
+                                <button class="btn-icon btn-approve" onclick="approveApplication('${app.id}')" title="Approve"><i class="fas fa-check"></i></button>
+                                <button class="btn-icon btn-reject" onclick="rejectApplication('${app.id}')" title="Reject"><i class="fas fa-times"></i></button>
+                            ` : ''}
+                            <button class="btn-icon btn-delete" onclick="deleteApplication('${app.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function viewApplication(id) {
+            const app = applications.find(a => a.id === id);
+            if (!app) return;
+            currentModalApp = app;
+            
+            let documentsHtml = '';
+            if (app.documents && Object.keys(app.documents).length > 0) {
+                documentsHtml = '<div class="documents-list"><div class="detail-label" style="margin-bottom: 0.5rem;">Uploaded Documents</div>';
+                for (const [docType, docUrl] of Object.entries(app.documents)) {
+                    if (typeof docUrl === 'string' && docUrl.startsWith('http')) {
+                        const isImage = docUrl.match(/\.(jpg|jpeg|png|gif|webp)/i);
+                        documentsHtml += `
+                            <div class="doc-item">
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                                    <span><i class="fas fa-file"></i> ${formatDocumentName(docType)}</span>
+                                    <div>
+                                        <a href="${docUrl}" target="_blank" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-external-link-alt"></i> View</a>
+                                        <a href="${docUrl}" download class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-download"></i> Download</a>
+                                    </div>
+                                </div>
+                                ${isImage ? `<img src="${docUrl}" style="max-width: 100%; max-height: 150px; margin-top: 0.5rem; border-radius: 8px;" />` : ''}
+                            </div>
+                        `;
+                    }
+                }
+                documentsHtml += '</div>';
+            }
+            
+            if (elements.modalBody) {
+                elements.modalBody.innerHTML = `
+                    <div class="detail-row"><div class="detail-label">Application Number</div><div class="detail-value"><code>${escapeHtml(app.application_number)}</code></div></div>
+                    <div class="detail-row"><div class="detail-label">Full Name</div><div class="detail-value">${escapeHtml(app.first_name)} ${escapeHtml(app.last_name)}</div></div>
+                    <div class="detail-row"><div class="detail-label">Birth Date</div><div class="detail-value">${formatDate(app.birth_date)}</div></div>
+                    <div class="detail-row"><div class="detail-label">Email</div><div class="detail-value">${escapeHtml(app.email)}</div></div>
+                    <div class="detail-row"><div class="detail-label">Phone</div><div class="detail-value">${escapeHtml(app.phone)}</div></div>
+                    <div class="detail-row"><div class="detail-label">Baccalaureate</div><div class="detail-value">${formatMonthYear(app.bac_date)}</div></div>
+                    <div class="detail-row"><div class="detail-label">Applying Degree</div><div class="detail-value">${escapeHtml(app.year_of_study)}</div></div>
+                    <div class="detail-row"><div class="detail-label">Destination</div><div class="detail-value">${getDestinationDisplay(app.destination)}</div></div>
+                    <div class="detail-row"><div class="detail-label">Courses</div><div class="detail-value">${escapeHtml(app.courses)}</div></div>
+                    <div class="detail-row"><div class="detail-label">Payment Status</div><div class="detail-value"><span class="status-badge ${app.payment_status === 'paid' ? 'status-approved' : 'status-pending'}">${app.payment_status === 'paid' ? 'Paid' : 'Pending'}</span></div></div>
+                    <div class="detail-row"><div class="detail-label">Submitted</div><div class="detail-value">${formatDate(app.created_at)}</div></div>
+                    ${app.tcf_status ? `<div class="detail-row"><div class="detail-label">TCF Status</div><div class="detail-value">${escapeHtml(app.tcf_status)}</div></div>` : ''}
+                    ${app.admin_notes ? `<div class="detail-row"><div class="detail-label">Admin Notes</div><div class="detail-value">${escapeHtml(app.admin_notes)}</div></div>` : ''}
+                    ${documentsHtml}
+                `;
+            }
+            
+            if (elements.modalApproveBtn && elements.modalRejectBtn) {
+                if (app.application_status === 'pending') {
+                    elements.modalApproveBtn.style.display = 'inline-flex';
+                    elements.modalRejectBtn.style.display = 'inline-flex';
+                    elements.modalApproveBtn.onclick = () => approveApplication(app.id);
+                    elements.modalRejectBtn.onclick = () => rejectApplication(app.id);
+                } else {
+                    elements.modalApproveBtn.style.display = 'none';
+                    elements.modalRejectBtn.style.display = 'none';
+                }
+            }
+            if (elements.detailModal) elements.detailModal.style.display = 'flex';
+        }
+
+                async function approveApplication(id) {
+            const app = applications.find(a => a.id === id);
+            if (!app) return;
+            if (!confirm(`Approve application ${app.application_number}? Email will be sent to ${app.email}.`)) return;
+            
+            app.application_status = 'approved';
+            app.decision_date = new Date().toISOString();
+            saveApplications();
+            
+            await sendApprovalEmail(app);
+            
+            showNotification(`Application ${app.application_number} approved. Email sent.`, 'success');
+            loadApplications();
+            closeModal();
+        }
+
+            async function rejectApplication(id) {
+            const app = applications.find(a => a.id === id);
+            if (!app) return;
+            const reason = prompt('Please provide a reason for rejection:');
+            if (!reason) return;
+            
+            app.application_status = 'rejected';
+            app.admin_notes = reason;
+            app.decision_date = new Date().toISOString();
+            saveApplications();
+            
+            await sendRejectionEmail(app, reason);
+            
+            showNotification(`Application ${app.application_number} rejected. Email sent.`, 'warning');
+            loadApplications();
+            closeModal();
 }
-
-    // ==================== APPROVE / REJECT ====================
-    async function approveApplication(id) {
-        const app = applications.find(a => a.id === id);
-        if (!app) return;
-        if (!confirm(`Approve application ${app.application_number}? Email will be sent to ${app.email}.`)) return;
         
-        app.application_status = 'approved';
-        app.decision_date = new Date().toISOString();
-        saveApplications();
-        
-        await sendApprovalEmail(app);
-        
-        showNotification(`Application ${app.application_number} approved. Email sent.`, 'success');
-        loadApplications();
-        closeModal();
-    }
+        async function approveApplication(id) {
+            const app = applications.find(a => a.id === id);
+            if (!app) return;
+            if (!confirm(`Approve application ${app.application_number}? Email will be sent to ${app.email}.`)) return;
+            app.application_status = 'approved';
+            app.decision_date = new Date().toISOString();
+            saveApplications();
+            await sendStatusEmail(app, 'approved');
+            showNotification(`Application ${app.application_number} approved. Email sent.`, 'success');
+            loadApplications();
+            closeModal();
+        }
 
-    async function rejectApplication(id) {
-        const app = applications.find(a => a.id === id);
-        if (!app) return;
-        const reason = prompt('Please provide a reason for rejection:');
-        if (!reason) return;
-        
-        app.application_status = 'rejected';
-        app.admin_notes = reason;
-        app.decision_date = new Date().toISOString();
-        saveApplications();
-        
-        await sendRejectionEmail(app, reason);
-        
-        showNotification(`Application ${app.application_number} rejected. Email sent.`, 'warning');
-        loadApplications();
-        closeModal();
-    }
+        async function rejectApplication(id) {
+            const app = applications.find(a => a.id === id);
+            if (!app) return;
+            const reason = prompt('Please provide a reason for rejection:');
+            if (!reason) return;
+            app.application_status = 'rejected';
+            app.admin_notes = reason;
+            app.decision_date = new Date().toISOString();
+            saveApplications();
+            await sendStatusEmail(app, 'rejected', reason);
+            showNotification(`Application ${app.application_number} rejected. Email sent.`, 'warning');
+            loadApplications();
+            closeModal();
+        }
 
-    function exportData() {
-        const dataStr = JSON.stringify(applications, null, 2);
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `bougie_applications_${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-        showNotification('Export completed', 'success');
-    }
+        async function sendStatusEmail(app, status, reason = null) {
+            const RESEND_API_KEY = 're_UGbnfq94_KrG2rVQMhkbiGSkTGH9P62iR';
+            const destination = getDestinationDisplay(app.destination);
+            const subject = status === 'approved' ? 'Application Approved - Bougie Immigration' : 'Application Status Update - Bougie Immigration';
+            const html = status === 'approved' 
+                ? `<h2>Application Approved!</h2><p>Dear ${app.first_name},</p><p>Congratulations! Your application has been approved.</p><p><strong>Application Number:</strong> ${app.application_number}</p><p><strong>Destination:</strong> ${destination}</p>`
+                : `<h2>Application Status Update</h2><p>Dear ${app.first_name},</p><p>Your application was not approved.</p><p><strong>Reason:</strong> ${escapeHtml(reason)}</p>`;
+            try {
+                await fetch('https://api.resend.com/emails', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ from: 'Bougie Immigration <onboarding@resend.dev>', to: [app.email], subject, html })
+                });
+            } catch (error) { console.error('Email error:', error); }
+        }
 
-    function showLoading(show) {
-        if (elements.loadingState) elements.loadingState.style.display = show ? 'flex' : 'none';
-        if (elements.tableContent) elements.tableContent.style.display = show ? 'none' : 'block';
-    }
+        function exportData() {
+            const dataStr = JSON.stringify(applications, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bougie_applications_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showNotification('Export completed', 'success');
+        }
 
-    function showNotification(message, type = 'info') {
-        const colors = { success: '#27ae60', error: '#e74c3c', warning: '#f39c12', info: '#3498db' };
-        const notification = document.createElement('div');
-        notification.className = 'notification';
-        notification.style.background = colors[type];
-        notification.style.color = 'white';
-        notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i><span>${escapeHtml(message)}</span><button style="background:none;border:none;color:white;margin-left:10px;cursor:pointer">&times;</button>`;
-        document.body.appendChild(notification);
-        notification.querySelector('button').onclick = () => notification.remove();
-        setTimeout(() => notification.remove(), 5000);
-    }
+        function showLoading(show) {
+            if (elements.loadingState) elements.loadingState.style.display = show ? 'flex' : 'none';
+            if (elements.tableContent) elements.tableContent.style.display = show ? 'none' : 'block';
+        }
 
-    function closeModal() { if (elements.detailModal) elements.detailModal.style.display = 'none'; }
-    function logout() { sessionStorage.clear(); window.location.href = 'login.html'; }
+        function showNotification(message, type = 'info') {
+            const colors = { success: '#27ae60', error: '#e74c3c', warning: '#f39c12', info: '#3498db' };
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.style.background = colors[type];
+            notification.style.color = 'white';
+            notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i><span>${escapeHtml(message)}</span><button style="background:none;border:none;color:white;margin-left:10px;cursor:pointer">&times;</button>`;
+            document.body.appendChild(notification);
+            notification.querySelector('button').onclick = () => notification.remove();
+            setTimeout(() => notification.remove(), 5000);
+        }
 
-    if (elements.statusFilter) elements.statusFilter.addEventListener('change', (e) => { currentFilters.status = e.target.value; applyFilters(); });
-    if (elements.destinationFilter) elements.destinationFilter.addEventListener('change', (e) => { currentFilters.destination = e.target.value; applyFilters(); });
-    if (elements.searchInput) elements.searchInput.addEventListener('input', (e) => { currentFilters.search = e.target.value; applyFilters(); });
-    if (elements.downloadAllBtn) elements.downloadAllBtn.addEventListener('click', exportData);
-    if (elements.logoutBtn) elements.logoutBtn.addEventListener('click', logout);
-    window.onclick = (e) => { if (e.target === elements.detailModal) closeModal(); };
-    window.viewApplication = viewApplication;
-    window.approveApplication = approveApplication;
-    window.rejectApplication = rejectApplication;
-    window.deleteApplication = deleteApplication;
-    window.closeModal = closeModal;
+        function closeModal() { if (elements.detailModal) elements.detailModal.style.display = 'none'; }
+        function logout() { sessionStorage.clear(); window.location.href = 'login.html'; }
 
-    if (checkAuth()) loadApplications();
-</script>
-    
+        if (elements.statusFilter) elements.statusFilter.addEventListener('change', (e) => { currentFilters.status = e.target.value; applyFilters(); });
+        if (elements.destinationFilter) elements.destinationFilter.addEventListener('change', (e) => { currentFilters.destination = e.target.value; applyFilters(); });
+        if (elements.searchInput) elements.searchInput.addEventListener('input', (e) => { currentFilters.search = e.target.value; applyFilters(); });
+        if (elements.downloadAllBtn) elements.downloadAllBtn.addEventListener('click', exportData);
+        if (elements.logoutBtn) elements.logoutBtn.addEventListener('click', logout);
+        window.onclick = (e) => { if (e.target === elements.detailModal) closeModal(); };
+        window.viewApplication = viewApplication;
+        window.approveApplication = approveApplication;
+        window.rejectApplication = rejectApplication;
+        window.deleteApplication = deleteApplication;
+        window.closeModal = closeModal;
+
+        if (checkAuth()) loadApplications();
+    </script>
 </body>
 </html>
