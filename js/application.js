@@ -494,20 +494,8 @@ function validateStep4() {
     }
     
     if (paymentStatus === 'paid_pending') {
-        const receiptInput = document.getElementById('receiptFile');
-        if (!receiptInput || !receiptInput.files || receiptInput.files.length === 0) {
+        if (!applicationData.receiptUrl) {
             showError('Please upload your payment receipt.');
-            return false;
-        }
-        
-        const receiptFile = receiptInput.files[0];
-        if (receiptFile.size > MAX_FILE_SIZE) {
-            showError('Receipt file exceeds 5MB limit.');
-            return false;
-        }
-        
-        if (!ALLOWED_FILE_TYPES.includes(receiptFile.type)) {
-            showError('Receipt must be PDF, JPG, or PNG format.');
             return false;
         }
     }
