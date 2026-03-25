@@ -648,6 +648,7 @@ function attachUploadHandlers() {
             input.setAttribute('data-attached', 'true');
             
             upload.addEventListener('click', (e) => {
+                e.stopPropagation();
                 if (e.target !== input) input.click();
             });
             
@@ -738,18 +739,24 @@ function setupPaymentHandlers() {
     
     const receiptUploadArea = document.getElementById('receiptArea');
     const receiptFile = document.getElementById('receiptFile');
-    
+
     if (receiptUploadArea && receiptFile) {
-        receiptUploadArea.addEventListener('click', () => receiptFile.click());
-        
-        receiptFile.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file && validateFile(file)) {
-                receiptUploadArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded successfully</p>';
-                applicationData.receiptFile = file;
-            }
-        });
-    }
+    // Copy the working pattern from passport upload
+    receiptUploadArea.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (e.target !== receiptFile) {
+            receiptFile.click();
+        }
+    });
+}
+    
+    receiptFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file && validateFile(file)) {
+            receiptUploadArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded successfully</p>';
+            applicationData.receiptFile = file;
+        }
+    });
 }
 
 function loadDestinationContent(destination) {
