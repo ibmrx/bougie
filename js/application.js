@@ -713,6 +713,7 @@ function setupPaymentHandlers() {
     const receiptUpload = document.getElementById('receiptUpload');
     const paymentNextBtn = document.getElementById('paymentNextBtn');
     
+    // Payment method selection
     paymentOptions.forEach(option => {
         option.addEventListener('click', () => {
             paymentOptions.forEach(opt => opt.classList.remove('selected'));
@@ -721,6 +722,7 @@ function setupPaymentHandlers() {
         });
     });
     
+    // Pay Now button
     if (payNowBtn) {
         payNowBtn.addEventListener('click', () => {
             paymentStatus = 'paid_pending';
@@ -729,6 +731,7 @@ function setupPaymentHandlers() {
         });
     }
     
+    // Pay Later button
     if (payLaterBtn) {
         payLaterBtn.addEventListener('click', () => {
             paymentStatus = 'pending';
@@ -737,37 +740,40 @@ function setupPaymentHandlers() {
         });
     }
     
+    // Receipt upload area
     const receiptUploadArea = document.getElementById('receiptArea');
     const receiptFile = document.getElementById('receiptFile');
 
     if (receiptUploadArea && receiptFile) {
+        // Click on the upload area triggers the file input
         receiptUploadArea.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (e.target !== receiptFile) {
-                receiptFile.click();
-            }
+            receiptFile.click();
         });
         
+        // When a file is selected, validate and store it
         receiptFile.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    // Same validation as passport upload
-    if (file.size > MAX_FILE_SIZE) {
-        alert(`File "${file.name}" exceeds 5MB limit.`);
-        receiptFile.value = '';
-        return;
-    }
-    
-    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-        alert(`File "${file.name}" is not allowed. Please upload PDF, JPG, or PNG files.`);
-        receiptFile.value = '';
-        return;
-    }
-    
-    receiptUploadArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded successfully</p>';
-    applicationData.receiptFile = file;
-});
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Validate file size (max 5MB)
+            if (file.size > MAX_FILE_SIZE) {
+                alert(`File "${file.name}" exceeds 5MB limit.`);
+                receiptFile.value = '';  // Clear the input
+                return;
+            }
+            
+            // Validate file type (same as other documents)
+            if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+                alert(`File "${file.name}" is not allowed. Please upload PDF, JPG, or PNG files.`);
+                receiptFile.value = '';
+                return;
+            }
+            
+            // Success: update UI and store the file
+            receiptUploadArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded successfully</p>';
+            applicationData.receiptFile = file;
+        });
     }
 }
 
