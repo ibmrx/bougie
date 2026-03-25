@@ -831,13 +831,12 @@ async function uploadToSupabaseStorage(applicationNumber) {
 }
 
 // ==================== EMAILJS EMAIL FUNCTION ====================
-// ==================== EMAILJS SEND FUNCTION ====================
 async function sendConfirmationEmail(application, appNumber, deadline) {
     const destinationName = application.destination === 'italy' ? 'Italy' : 'Campus France';
     
     const templateParams = {
         to_email: application.email,
-        reply_to: 'benlassousmohamedreda@gmail.com',
+        reply_to: application.email,  // ← CHANGE THIS - user's email, not yours
         subject: 'Application Confirmation - Bougie Immigration',
         firstName: application.first_name,
         lastName: application.last_name,
@@ -852,16 +851,9 @@ async function sendConfirmationEmail(application, appNumber, deadline) {
         currentYear: new Date().getFullYear()
     };
     
-    try {
-        const response = await emailjs.send('service_rbx0k6d', 'template_m4pm26p', templateParams);
-        console.log('Confirmation email sent:', response);
-        return true;
-    } catch (error) {
-        console.error('Email failed:', error);
-        return false;
-    }
+    await emailjs.send('service_rbx0k6d', 'template_m4pm26p', templateParams);
 }
-/**
+
  * Submit application
  */
 async function submitApplication() {
