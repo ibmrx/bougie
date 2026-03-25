@@ -813,10 +813,12 @@ async function submitApplication() {
             application_status: 'pending',
             payment_status: paymentStatus || 'pending',
             payment_method: selectedPaymentMethod,
-            documents: uploadResults,
+            documents: {
+               ...uploadResults,
+            payment_receipt: applicationData.receiptUrl || null
+            },
             signature: signatureData,
             created_at: now.toISOString(),
-            payment_receipt: applicationData.receiptUrl || null 
             payment_deadline: deadline.toISOString()
         };
         
