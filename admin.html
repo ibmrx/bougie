@@ -168,6 +168,19 @@
             adminName: document.getElementById('adminName')
         };
 
+            const isImage = docUrl.match(/\.(jpg|jpeg|png|gif|webp)/i);
+            const isPdf = docUrl.match(/\.pdf$/i);
+
+            if (isImage) {
+                documentsHtml += `<img src="${docUrl}" style="max-width: 100%; max-height: 150px; margin-top: 0.5rem; border-radius: 8px;" />`;
+            } else if (isPdf) {
+                documentsHtml += `
+                    <div style="margin-top: 0.5rem;">
+                        <iframe src="${docUrl}" style="width: 100%; height: 200px; border: 1px solid #dcdad5; border-radius: 8px;"></iframe>
+                    </div>
+                `;
+            }
+        
         function checkAuth() {
             const isLoggedIn = sessionStorage.getItem('admin_logged_in');
             if (!isLoggedIn || isLoggedIn !== 'true') {
