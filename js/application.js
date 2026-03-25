@@ -647,8 +647,9 @@ function attachUploadHandlers() {
         if (input && !input.hasAttribute('data-attached')) {
             input.setAttribute('data-attached', 'true');
             
-            upload.addEventListener('click', (e) => {
-                if (e.target !== input) input.click();
+        upload.addEventListener('click', (e) {
+            e.stopPropagation();
+            if (e.target !== input) input.click();
             });
             
             input.addEventListener('change', (e) => {
@@ -738,9 +739,12 @@ function setupPaymentHandlers() {
     
     const receiptUploadArea = document.getElementById('receiptArea');
     const receiptFile = document.getElementById('receiptFile');
-    
+
     if (receiptUploadArea && receiptFile) {
-        receiptUploadArea.addEventListener('click', () => receiptFile.click());
+        receiptUploadArea.addEventListener('click', (e) => {
+            e.stopPropagation();
+            receiptFile.click();
+        });
         
         receiptFile.addEventListener('change', (e) => {
             const file = e.target.files[0];
