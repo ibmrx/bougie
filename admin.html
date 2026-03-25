@@ -588,7 +588,10 @@ function formatMonthYear(dateString) {
     window.closeModal = closeModal;
 
     // ==================== INITIALIZE ====================
-    if (checkAuth()) loadApplications();
+    if (checkAuth()) {
+    loadApplications();
+    startAutoRefresh();
+}
     </script>
 </body>
 </html>
