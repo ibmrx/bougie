@@ -322,34 +322,43 @@
             `).join('');
         }
 
-        function viewApplication(id) {
-            const app = applications.find(a => a.id === id);
-            if (!app) return;
-            currentModalApp = app;
-            
-            let documentsHtml = '';
-            if (app.documents && Object.keys(app.documents).length > 0) {
-                documentsHtml = '<div class="documents-list"><div class="detail-label" style="margin-bottom: 0.5rem;">Uploaded Documents</div>';
-                for (const [docType, docUrl] of Object.entries(app.documents)) {
-                    if (typeof docUrl === 'string' && docUrl.startsWith('http')) {
-                        const isImage = docUrl.match(/\.(jpg|jpeg|png|gif|webp)/i);
-                        documentsHtml += `
-                            <div class="doc-item">
-                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                                    <span><i class="fas fa-file"></i> ${formatDocumentName(docType)}</span>
-                                    <div>
-                                        <a href="${docUrl}" target="_blank" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-external-link-alt"></i> View</a>
-                                        <a href="${docUrl}" download class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-download"></i> Download</a>
-                                    </div>
-                                </div>
-                                ${isImage ? `<img src="${docUrl}" style="max-width: 100%; max-height: 150px; margin-top: 0.5rem; border-radius: 8px;" />` : ''}
+            function viewApplication(id) {
+    const app = applications.find(a => a.id === id);
+    if (!app) return;
+    currentModalApp = app;
+    
+    let documentsHtml = '';
+    if (app.documents && Object.keys(app.documents).length > 0) {
+        documentsHtml = '<div class="documents-list"><div class="detail-label" style="margin-bottom: 0.5rem;">Uploaded Documents</div>';
+        for (const [docType, docUrl] of Object.entries(app.documents)) {
+            if (typeof docUrl === 'string' && docUrl.startsWith('http')) {
+                const isImage = docUrl.match(/\.(jpg|jpeg|png|gif|webp)/i);
+                const isPdf = docUrl.match(/\.pdf$/i);
+                
+                documentsHtml += `
+                    <div class="doc-item">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                            <span><i class="fas fa-file"></i> ${formatDocumentName(docType)}</span>
+                            <div>
+                                <a href="${docUrl}" target="_blank" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-external-link-alt"></i> View</a>
+                                <a href="${docUrl}" download class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-download"></i> Download</a>
                             </div>
-                        `;
-                    }
+                        </div>`;
+                
+                // Show preview for images
+                if (isImage) {
+                    documentsHtml += `<img src="${docUrl}" style="max-width: 100%; max-height: 150px; margin-top: 0.5rem; border-radius: 8px;" />`;
                 }
-                documentsHtml += '</div>';
+                // Show embed preview for PDFs
+                else if (isPdf) {
+                    documentsHtml += `<iframe src="${docUrl}" style="width: 100%; height: 200px; margin-top: 0.5rem; border: 1px solid #dcdad5; border-radius: 8px;"></iframe>`;
+                }
+                
+                documentsHtml += `</div>`;
             }
-            
+        }
+        documentsHtml += '</div>';
+    }
             if (elements.modalBody) {
                 elements.modalBody.innerHTML = `
                     <div class="detail-row"><div class="detail-label">Application Number</div><div class="detail-value"><code>${escapeHtml(app.application_number)}</code></div></div>
