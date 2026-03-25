@@ -373,55 +373,47 @@
 
     // ==================== EMAILJS FUNCTIONS ====================
     async function sendApprovalEmail(app) {
-        const templateParams = {
-            firstName: app.first_name,
-            lastName: app.last_name,
-            applicationNumber: app.application_number,
-            applicationStatus: 'Approved',
-            destination: app.destination === 'italy' ? 'Italy' : 'Campus France',
-            yearOfStudies: app.year_of_study,
-            submissionDate: new Date(app.created_at).toLocaleDateString(),
-            paymentStatus: app.payment_status === 'paid' ? 'Paid' : 'Pending',
-            paymentDeadline: new Date(app.payment_deadline).toLocaleDateString(),
-            statusCheckUrl: 'https://bougie-five.vercel.app/status.html',
-            currentYear: new Date().getFullYear()
-        };
-        
-        try {
-            const response = await emailjs.send('service_rbx0k6d', 'template_m4pm26p', templateParams);
-            console.log('Approval email sent:', response);
-            return true;
-        } catch (error) {
-            console.error('Approval email failed:', error);
-            return false;
-        }
-    }
+    const templateParams = {
+        to_email: app.email,                    // Recipient
+        reply_to: 'benlassousmohamedreda@gmail.com',  // Reply-to address
+        subject: 'Application Approved - Bougie Immigration',
+        firstName: app.first_name,
+        lastName: app.last_name,
+        applicationNumber: app.application_number,
+        applicationStatus: 'Approved',
+        destination: app.destination === 'italy' ? 'Italy' : 'Campus France',
+        yearOfStudies: app.year_of_study,
+        submissionDate: new Date(app.created_at).toLocaleDateString(),
+        paymentStatus: app.payment_status === 'paid' ? 'Paid' : 'Pending',
+        paymentDeadline: new Date(app.payment_deadline).toLocaleDateString(),
+        statusCheckUrl: 'https://bougie-five.vercel.app/status.html',
+        currentYear: new Date().getFullYear()
+    };
+    
+    await emailjs.send('service_rbx0k6d', 'template_m4pm26p', templateParams);
+}
 
-    async function sendRejectionEmail(app, reason) {
-        const templateParams = {
-            firstName: app.first_name,
-            lastName: app.last_name,
-            applicationNumber: app.application_number,
-            applicationStatus: 'Rejected',
-            destination: app.destination === 'italy' ? 'Italy' : 'Campus France',
-            yearOfStudies: app.year_of_study,
-            submissionDate: new Date(app.created_at).toLocaleDateString(),
-            paymentStatus: app.payment_status === 'paid' ? 'Paid' : 'Pending',
-            paymentDeadline: new Date(app.payment_deadline).toLocaleDateString(),
-            statusCheckUrl: 'https://bougie-five.vercel.app/status.html',
-            currentYear: new Date().getFullYear(),
-            rejectionReason: reason
-        };
-        
-        try {
-            const response = await emailjs.send('service_rbx0k6d', 'template_m4pm26p', templateParams);
-            console.log('Rejection email sent:', response);
-            return true;
-        } catch (error) {
-            console.error('Rejection email failed:', error);
-            return false;
-        }
-    }
+async function sendRejectionEmail(app, reason) {
+    const templateParams = {
+        to_email: app.email,
+        reply_to: 'benlassousmohamedreda@gmail.com',
+        subject: 'Application Status Update - Bougie Immigration',
+        firstName: app.first_name,
+        lastName: app.last_name,
+        applicationNumber: app.application_number,
+        applicationStatus: 'Rejected',
+        destination: app.destination === 'italy' ? 'Italy' : 'Campus France',
+        yearOfStudies: app.year_of_study,
+        submissionDate: new Date(app.created_at).toLocaleDateString(),
+        paymentStatus: app.payment_status === 'paid' ? 'Paid' : 'Pending',
+        paymentDeadline: new Date(app.payment_deadline).toLocaleDateString(),
+        statusCheckUrl: 'https://bougie-five.vercel.app/status.html',
+        currentYear: new Date().getFullYear(),
+        rejectionReason: reason
+    };
+    
+    await emailjs.send('service_rbx0k6d', 'template_m4pm26p', templateParams);
+}
 
     async function approveApplication(id) {
         const app = applications.find(a => a.id === id);
