@@ -131,12 +131,12 @@ function initApplicationForm(destination) {
 
     // Start button handler
     const startBtn = document.getElementById('startBtn');
-    if (startBtn) {
-        startBtn.addEventListener('click', () => {
-            if (validateStep1()) {
-                currentStep = 2;
-                updateStepDisplay();
-            }
+if (startBtn) {
+    startBtn.onclick = function() {
+        if (validateStep1()) {
+            currentStep = 2;
+            updateStepDisplay();
+        }
         });
     }
 } 
