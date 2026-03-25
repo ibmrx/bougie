@@ -21,7 +21,27 @@
             color: #2c2b28;
             line-height: 1.5;
         }
+        /* Make sure everything fits on mobile */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
 
+.container, .header-container, .status-card, .form-card {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+img, video, iframe {
+    max-width: 100%;
+    height: auto;
+}
+
+table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+}
         /* Navigation */
         .navbar {
             background-color: #dcdad5;
