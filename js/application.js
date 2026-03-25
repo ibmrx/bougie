@@ -15,69 +15,24 @@ let signatureData = null;
 let canvas, ctx, drawing = false;
 let uploadResults = {};
 
-// ==================== SUPABASE STORAGE FUNCTIONS ====================
-let supabaseClient = null;
+// ==================== SUPABASE CLIENT ====================
+const SUPABASE_URL = 'https://qpprzcckolmdyabnmgol.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwcHJ6Y2Nrb2xtZHlhYm5tZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjA5MTYsImV4cCI6MjA4OTkzNjkxNn0.Pp9fTdklyomxmG6wsb8FBzyhLXaXEx983ofdaiPG_So';
 
-function initSupabaseStorage() {
-    if (supabase) {
-        supabaseClient = supabase;
+let supabase = null;
+
+function initSupabase() {
+    if (typeof supabaseJs !== 'undefined') {
+        supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } else if (typeof window.supabase !== 'undefined') {
-        supabaseClient = window.supabase;
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
-    return supabaseClient;
+    console.log('Supabase initialized:', supabase ? 'Yes' : 'No');
+    return supabase;
 }
 
-async function uploadToSupabase(file, applicationNumber, docType) {
-    if (!supabaseClient && !initSupabaseStorage()) {
-        throw new Error('Supabase not initialized');
-    }
-    
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${applicationNumber}/${docType}_${Date.now()}.${fileExt}`;
-    
-    const { error } = await supabaseClient.storage
-        .from('documents')
-        .upload(fileName, file);
-    
-    if (error) throw error;
-    
-    const { data } = supabaseClient.storage
-        .from('documents')
-        .getPublicUrl(fileName);
-    
-    return data.publicUrl;
-}
-
-async function uploadMultipleDocuments(files, applicationNumber, onProgress) {
-    if (!supabaseClient && !initSupabaseStorage()) {
-        throw new Error('Supabase not initialized');
-    }
-    
-    const results = {};
-    let completed = 0;
-    const total = files.length;
-    
-    for (const item of files) {
-        try {
-            const url = await uploadToSupabase(item.file, applicationNumber, item.documentType);
-            results[item.documentType] = url;
-            completed++;
-            if (onProgress) onProgress(completed, total, item.documentType, { success: true, url });
-        } catch (error) {
-            results[item.documentType] = { error: error.message };
-            completed++;
-            if (onProgress) onProgress(completed, total, item.documentType, { success: false, error: error.message });
-        }
-    }
-    
-    return results;
-}
-
-window.SupabaseStorage = {
-    init: initSupabaseStorage,
-    upload: uploadToSupabase,
-    uploadMultiple: uploadMultipleDocuments
-};
+// Initialize immediately
+initSupabase();
 
 // Document requirements based on destination and study level
 const DOCUMENT_REQUIREMENTS = {
@@ -816,33 +771,45 @@ async function uploadToSupabaseStorage(applicationNumber) {
     const filesToUpload = [];
     
     for (const [docId, file] of Object.entries(selectedFiles)) {
-        filesToUpload.push({
-            file: file,
-            documentType: docId
-        });
+        filesToUpload.push({ file: file, documentType: docId });
     }
     
     const receiptFile = document.getElementById('receiptFile')?.files[0];
     if (receiptFile && paymentStatus === 'paid_pending') {
-        filesToUpload.push({
-            file: receiptFile,
-            documentType: 'payment_receipt'
-        });
+        filesToUpload.push({ file: receiptFile, documentType: 'payment_receipt' });
     }
     
     if (filesToUpload.length === 0) return {};
     
-    if (!window.SupabaseStorage) {
-        throw new Error('Supabase Storage not available. Please check your connection.');
+    if (!supabase) {
+        throw new Error('Supabase not initialized');
     }
     
-    const results = await window.SupabaseStorage.uploadMultiple(
-        filesToUpload,
-        applicationNumber,
-        (completed, total, docType, result) => {
-            console.log(`Uploaded ${docType}: ${completed}/${total}`);
+    const results = {};
+    
+    for (const item of filesToUpload) {
+        try {
+            const fileExt = item.file.name.split('.').pop();
+            const fileName = `${applicationNumber}/${item.documentType}_${Date.now()}.${fileExt}`;
+            
+            const { error } = await supabase.storage
+                .from('documents')
+                .upload(fileName, item.file);
+            
+            if (error) throw error;
+            
+            const { data } = supabase.storage
+                .from('documents')
+                .getPublicUrl(fileName);
+            
+            results[item.documentType] = data.publicUrl;
+            console.log(`Uploaded ${item.documentType}:`, data.publicUrl);
+            
+        } catch (error) {
+            console.error(`Failed to upload ${item.documentType}:`, error);
+            results[item.documentType] = { error: error.message };
         }
-    );
+    }
     
     return results;
 }
@@ -860,7 +827,7 @@ async function sendEmail(to, subject, html) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                from: 'Bougie Immigration <onboarding@resend.dev>',
+                from: 'Bougie Immigration <onboarding@resend.dev>', // Keep this or use verified domain
                 to: [to],
                 subject: subject,
                 html: html
@@ -873,6 +840,18 @@ async function sendEmail(to, subject, html) {
         console.error('Email error:', error);
         return null;
     }
+}
+
+async function loadEmailTemplate(templateName, data) {
+    const response = await fetch(`email-templates/${templateName}.html`);
+    let html = await response.text();
+    
+    // Replace placeholders
+    for (const [key, value] of Object.entries(data)) {
+        html = html.replace(new RegExp(`{{${key}}}`, 'g'), value);
+    }
+    
+    return html;
 }
 
 /**
@@ -924,20 +903,15 @@ async function submitApplication() {
         localStorage.setItem('bougie_applications', JSON.stringify(applications));
         
         const destinationName = applicationData.destination === 'italy' ? 'Italy' : 'Campus France';
-        const emailHtml = `
-            <!DOCTYPE html><html><body style="font-family:Arial;padding:20px">
-            <h2>Application Confirmation - ${destinationName}</h2>
-            <p>Dear ${application.first_name} ${application.last_name},</p>
-            <p>Your application has been submitted successfully.</p>
-            <p><strong>Application Number:</strong> ${appNumber}</p>
-            <p><strong>Destination:</strong> ${destinationName}</p>
-            <p><strong>Payment Deadline:</strong> ${deadline.toLocaleDateString()}</p>
-            <p>You have 3 days to complete payment.</p>
-            <p>Thank you,<br>Bougie Immigration Team</p>
-            </body></html>
-        `;
-        
-        await sendEmail(application.email, `Application Confirmation - Bougie Immigration`, emailHtml);
+        const emailHtml = await loadEmailTemplate('application-confirmation', {
+            firstName: application.first_name,
+            lastName: application.last_name,
+            applicationNumber: appNumber,
+            destination: destinationName,
+            paymentDeadline: deadline.toLocaleDateString()
+        });
+
+        await sendEmail(application.email, 'Application Confirmation - Bougie Immigration', emailHtml);
         
         const successAppNumber = document.getElementById('successAppNumber');
         if (successAppNumber) {
@@ -947,6 +921,14 @@ async function submitApplication() {
         const successModal = document.getElementById('successModal');
         if (successModal) {
             successModal.style.display = 'flex';
+            
+            // MOVE THE OK BUTTON HANDLER INSIDE HERE
+            const successOkBtn = document.getElementById('successOkBtn');
+            if (successOkBtn) {
+                successOkBtn.onclick = () => {
+                    window.location.href = 'index.html';
+                };
+            }
         }
         
     } catch (error) {
@@ -956,8 +938,7 @@ async function submitApplication() {
         submitBtn.innerHTML = 'Submit Application';
     }
 }
-
-/**
+ /**
  * Show error message
  */
 function showError(message) {
@@ -979,4 +960,5 @@ document.addEventListener('DOMContentLoaded', () => {
     if (submitBtn) {
         submitBtn.addEventListener('click', submitApplication);
     }
+    
 });
