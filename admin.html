@@ -189,11 +189,11 @@
         }
     }
 
-    function loadApplications() {
+    async function loadApplications() {
         showLoading(true);
         try {
-            const stored = localStorage.getItem('bougie_applications');
-            applications = stored ? JSON.parse(stored) : [];
+            const data = await fetch('https://sheetdb.io/api/v1/bfop7u9vgn5lp').then(res => res.json());
+            applications = data;
             applyFilters();
         } catch (error) {
             console.error('Error loading applications:', error);
