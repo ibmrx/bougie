@@ -123,12 +123,10 @@
                             <th>Birth Date</th>
                             <th>Baccalaureate</th>
                             <th>Phone</th>
-                            <th>Email</th>
                             <th>Destination</th>
                             <th>Status</th>
                             <th>Actions</th>
-                        </tr>
-                    </thead>
+                        </thead>
                     <tbody id="applicationsTableBody"></tbody>
                 </table>
                 <div id="emptyState" class="empty-state" style="display: none;"><i class="fas fa-folder-open"></i><p>No applications found</p></div>
@@ -299,14 +297,13 @@
         
         elements.applicationsTableBody.innerHTML = filteredApplications.map((app, index) => `
             <tr>
-                <td><code>${escapeHtml(app.application_number || 'N/A')}</code></td>
-                <td><strong>${escapeHtml(app.first_name || '')} ${escapeHtml(app.last_name || '')}</strong></td>
-                <td>${formatMonthYear(app.bac_date)}</td>
-                <td>${formatMonthYear(app.birth_date)}</td>
-                <td>${escapeHtml(app.phone || 'N/A')}<td>
-                <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis">${escapeHtml(app.email || 'N/A')}<td>
-                <td>${getDestinationDisplay(app.destination)}<td>
-                <td>${getStatusBadge(app.application_status)}<td>
+            <td><code>${escapeHtml(app.application_number || 'N/A')}</code></td>
+            <td><strong>${escapeHtml(app.first_name || '')} ${escapeHtml(app.last_name || '')}</strong></td>
+            <td>${formatDate(app.birth_date)}</td>
+            <td>${formatMonthYear(app.bac_date)}</td>
+            <td>${escapeHtml(app.phone || 'N/A')}</td>
+            <td>${getDestinationDisplay(app.destination)}</td>
+            <td>${getStatusBadge(app.application_status)}</td>
                 <td>
                     <div class="action-buttons">
                         <button class="btn-icon btn-view" onclick="viewApplication(${index})" title="View Details"><i class="fas fa-eye"></i></button>
