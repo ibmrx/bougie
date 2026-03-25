@@ -131,22 +131,19 @@ function initApplicationForm(destination) {
 
     // Start button handler
     const startBtn = document.getElementById('startBtn');
-if (startBtn) {
-    startBtn.addEventListener('click', () => {
-        console.log("Start clicked");
+document.addEventListener('DOMContentLoaded', () => {
+    const startBtn = document.getElementById('startBtn');
 
-        if (!validateStep1()) return;
+    if (startBtn) {
+        startBtn.addEventListener('click', () => {
+            console.log("CLICK WORKS");
 
-        // Hide step1
-        document.getElementById('step1').classList.add('hidden');
+            currentStep = 2;
+            updateStepDisplay();
+        });
+    }
+});
 
-        // Show step2
-        document.getElementById('step2').classList.remove('hidden');
-
-        currentStep = 2;
-        updateStepDisplay();
-    });
-}
 
 
 /**
