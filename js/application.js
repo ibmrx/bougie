@@ -23,9 +23,7 @@ async function saveToSheet(application) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(application)
     });
-    const result = await response.json();
-    console.log('Saved to Google Sheet:', result);
-    return result;
+    return await response.json();
 }
 
 async function loadFromSheet() {
@@ -802,6 +800,8 @@ async function submitApplication() {
         application.id = Date.now().toString();
 
         const SHEETDB_URL = 'https://sheetdb.io/api/v1/bfop7u9vgn5lp';
+        console.log('Save result:', saveResult);
+
         
         const response = await fetch(SHEETDB_URL, {
             method: 'POST',
