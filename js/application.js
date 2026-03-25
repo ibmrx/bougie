@@ -137,9 +137,8 @@ if (startBtn) {
             currentStep = 2;
             updateStepDisplay();
         }
-        });
-    }
-} 
+    };
+}
 
 /**
  * Setup privacy policy modal
