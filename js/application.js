@@ -798,7 +798,9 @@ async function submitApplication() {
         if (applicationData.destination === 'campus') {
             application.tcf_status = document.getElementById('tcfStatus')?.value;
         }
-        
+    
+        application.id = Date.now().toString();
+
         const SHEETDB_URL = 'https://sheetdb.io/api/v1/bfop7u9vgn5lp';
         
         const response = await fetch(SHEETDB_URL, {
