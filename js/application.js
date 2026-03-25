@@ -1,6 +1,7 @@
 /**
  * Bougie Immigration - Application Form Handler
  * Manages multi-step application forms for Italy and Campus France
+ * Handles form validation, document uploads to Supabase, and submission
  */
 
 // Global state
@@ -14,23 +15,71 @@ let signatureData = null;
 let canvas, ctx, drawing = false;
 let uploadResults = {};
 
-// ==================== SUPABASE CLIENT ====================
-const SUPABASE_URL = 'https://qpprzcckolmdyabnmgol.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwcHJ6Y2Nrb2xtZHlhYm5tZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjA5MTYsImV4cCI6MjA4OTkzNjkxNn0.Pp9fTdklyomxmG6wsb8FBzyhLXaXEx983ofdaiPG_So';
+// ==================== SUPABASE STORAGE FUNCTIONS ====================
+let supabaseClient = null;
 
-let supabase = null;
-
-function initSupabase() {
-    if (typeof supabaseJs !== 'undefined') {
-        supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    } else if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+function initSupabaseStorage() {
+    if (supabase) {
+        supabaseClient = supabase;
+    } else if (typeof window.supabase !== 'undefined') {
+        supabaseClient = window.supabase;
     }
-    console.log('Supabase initialized:', supabase ? 'Yes' : 'No');
-    return supabase;
+    return supabaseClient;
 }
 
-// Document requirements
+async function uploadToSupabase(file, applicationNumber, docType) {
+    if (!supabaseClient && !initSupabaseStorage()) {
+        throw new Error('Supabase not initialized');
+    }
+    
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${applicationNumber}/${docType}_${Date.now()}.${fileExt}`;
+    
+    const { error } = await supabaseClient.storage
+        .from('documents')
+        .upload(fileName, file);
+    
+    if (error) throw error;
+    
+    const { data } = supabaseClient.storage
+        .from('documents')
+        .getPublicUrl(fileName);
+    
+    return data.publicUrl;
+}
+
+async function uploadMultipleDocuments(files, applicationNumber, onProgress) {
+    if (!supabaseClient && !initSupabaseStorage()) {
+        throw new Error('Supabase not initialized');
+    }
+    
+    const results = {};
+    let completed = 0;
+    const total = files.length;
+    
+    for (const item of files) {
+        try {
+            const url = await uploadToSupabase(item.file, applicationNumber, item.documentType);
+            results[item.documentType] = url;
+            completed++;
+            if (onProgress) onProgress(completed, total, item.documentType, { success: true, url });
+        } catch (error) {
+            results[item.documentType] = { error: error.message };
+            completed++;
+            if (onProgress) onProgress(completed, total, item.documentType, { success: false, error: error.message });
+        }
+    }
+    
+    return results;
+}
+
+window.SupabaseStorage = {
+    init: initSupabaseStorage,
+    upload: uploadToSupabase,
+    uploadMultiple: uploadMultipleDocuments
+};
+
+// Document requirements based on destination and study level
 const DOCUMENT_REQUIREMENTS = {
     italy: {
         bachelor: [
@@ -86,34 +135,64 @@ const DOCUMENT_REQUIREMENTS = {
     }
 };
 
+// File validation
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
 
+/**
+ * Initialize application form
+ * @param {string} destination - 'italy' or 'campus'
+ */
 function initApplicationForm(destination) {
     applicationData.destination = destination;
     applicationData.documentRequirements = DOCUMENT_REQUIREMENTS[destination];
     
+    // Setup step navigation
     setupStepNavigation();
+    
+    // Setup form field listeners
     setupFormListeners();
+    
+    // Setup document upload handlers
     setupDocumentUploads();
+    
+    // Setup payment handlers
     setupPaymentHandlers();
+    
+    // Setup signature canvas
     initSignatureCanvas();
+    
+    // Setup privacy policy modal
     setupPrivacyPolicyModal();
+    
+    // Load destination-specific content
     loadDestinationContent(destination);
 
+    // Create initial document upload section for bachelor
     createUploadSection('bachelorDocs', DOCUMENT_REQUIREMENTS[destination].bachelor);
+    
+    // Initial validation for step 1
     validateStep1();
 
+    // Start button handler
     const startBtn = document.getElementById('startBtn');
     if (startBtn) {
         startBtn.addEventListener('click', () => {
-            if (!validateStep1()) return;
-            currentStep = 2;
-            updateStepDisplay();
+            if (validateStep1()) {
+                currentStep = 2;
+                updateStepDisplay();
+            }
         });
     }
-}
 
+        if (window.SupabaseStorage) {
+        window.SupabaseStorage.init();
+    }
+    
+} 
+/**
+ * Setup privacy policy modal
+ */
 function setupPrivacyPolicyModal() {
     const viewContract = document.getElementById('viewContract');
     const contractModal = document.getElementById('contractModal');
@@ -139,6 +218,7 @@ function setupPrivacyPolicyModal() {
         });
     }
     
+    // Close modal when clicking outside
     if (contractModal) {
         contractModal.addEventListener('click', (e) => {
             if (e.target === contractModal) {
@@ -147,6 +227,7 @@ function setupPrivacyPolicyModal() {
         });
     }
 }
+
 
 function createUploadSection(containerId, docs) {
     const container = document.getElementById(containerId);
@@ -168,7 +249,9 @@ function createUploadSection(containerId, docs) {
     });
     attachUploadHandlers();
 }
-
+/**
+ * Initialize signature canvas
+ */
 function initSignatureCanvas() {
     canvas = document.getElementById('signatureCanvas');
     if (!canvas) return;
@@ -251,6 +334,10 @@ function initSignatureCanvas() {
     }
 }
 
+
+/**
+ * Setup step navigation
+ */
 function setupStepNavigation() {
     const nextButtons = document.querySelectorAll('.nextBtn');
     const prevButtons = document.querySelectorAll('.prevBtn');
@@ -277,6 +364,9 @@ function setupStepNavigation() {
     });
 }
 
+/**
+ * Validate current step
+ */
 function validateCurrentStep() {
     switch(currentStep) {
         case 1: return validateStep1();
@@ -288,24 +378,37 @@ function validateCurrentStep() {
     }
 }
 
+/**
+ * Validate step 1 - Confirmation
+ */
 function validateStep1() {
     const confirmCertified = document.getElementById('confirmCertified');
     const confirmFinal = document.getElementById('confirmFinal');
     const startBtn = document.getElementById('startBtn');
     
     let isValid = true;
+    
     if (confirmCertified && confirmFinal) {
         isValid = confirmCertified.checked && confirmFinal.checked;
+        
         if (applicationData.destination === 'campus') {
             const confirmTcf = document.getElementById('confirmTcf');
-            if (confirmTcf) isValid = isValid && confirmTcf.checked;
+            if (confirmTcf) {
+                isValid = isValid && confirmTcf.checked;
+            }
         }
     }
     
-    if (startBtn) startBtn.disabled = !isValid;
+    if (startBtn) {
+        startBtn.disabled = !isValid;
+    }
+    
     return isValid;
 }
 
+/**
+ * Validate step 2 - Personal Information
+ */
 function validateStep2() {
     const fields = ['firstName', 'lastName', 'birthDate', 'bacDate', 'degree', 'phone', 'email', 'courses'];
     let isValid = true;
@@ -324,8 +427,9 @@ function validateStep2() {
     
     const emailField = document.getElementById('email');
     if (emailField && emailField.value.trim()) {
+        const email = emailField.value.trim();
         const emailRegex = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/;
-        if (!emailRegex.test(emailField.value.trim())) {
+        if (!emailRegex.test(email)) {
             isValid = false;
             emailField.classList.add('input-error');
             showError('Please enter a valid email address.');
@@ -340,6 +444,8 @@ function validateStep2() {
             tcfStatus.classList.add('input-error');
             showError('Please select your TCF test status.');
             return false;
+        } else if (tcfStatus) {
+            tcfStatus.classList.remove('input-error');
         }
     }
     
@@ -347,9 +453,13 @@ function validateStep2() {
         showError('Please fill all required fields.');
         if (firstInvalid) firstInvalid.focus();
     }
+    
     return isValid;
 }
 
+/**
+ * Validate step 3 - Documents
+ */
 function validateStep3() {
     const degree = document.getElementById('degree')?.value;
     const docList = applicationData.documentRequirements[degree === 'Master' ? 'master' : 'bachelor'];
@@ -365,9 +475,13 @@ function validateStep3() {
         showError(`Please upload the following required documents:\n${missingDocs.join('\n')}`);
         return false;
     }
+    
     return true;
 }
 
+/**
+ * Validate step 4 - Payment
+ */
 function validateStep4() {
     if (!selectedPaymentMethod) {
         showError('Please select a payment method.');
@@ -380,23 +494,43 @@ function validateStep4() {
             showError('Please upload your payment receipt.');
             return false;
         }
+        
+        const receiptFile = receiptInput.files[0];
+        if (receiptFile.size > MAX_FILE_SIZE) {
+            showError('Receipt file exceeds 5MB limit.');
+            return false;
+        }
+        
+        if (!ALLOWED_FILE_TYPES.includes(receiptFile.type)) {
+            showError('Receipt must be PDF, JPG, or PNG format.');
+            return false;
+        }
     }
+    
     return true;
 }
 
+/**
+ * Validate step 5 - Signature
+ */
 function validateStep5() {
     const privacyChecked = document.getElementById('privacyPolicy');
     if (!privacyChecked || !privacyChecked.checked) {
         showError('Please read and agree to the Privacy Policy and Contract.');
         return false;
     }
+    
     if (!signatureData) {
-        showError('Please provide your digital signature.');
+        showError('Please provide your digital signature by drawing in the signature area.');
         return false;
     }
+    
     return true;
 }
 
+/**
+ * Save current step data
+ */
 function saveCurrentStepData() {
     if (currentStep === 2) {
         applicationData.firstName = document.getElementById('firstName')?.value.trim();
@@ -407,28 +541,65 @@ function saveCurrentStepData() {
         applicationData.email = document.getElementById('email')?.value.trim();
         applicationData.yearOfStudies = document.getElementById('degree')?.value;
         applicationData.courses = document.getElementById('courses')?.value.trim();
+        
         if (applicationData.destination === 'campus') {
             applicationData.tcfStatus = document.getElementById('tcfStatus')?.value;
         }
     }
 }
 
+/**
+ * Update step display
+ */
 function updateStepDisplay() {
-    const steps = ['step1', 'step2', 'step3', 'step4', 'step5'];
-    steps.forEach((id, index) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        if (index + 1 === currentStep) el.classList.remove('hidden');
-        else el.classList.add('hidden');
-    });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const steps = [null, 'step1', 'step2', 'step3', 'step4', 'step5'];
+    
+    for (let i = 1; i <= totalSteps; i++) {
+        const stepElement = document.querySelector(`.step[data-step="${i}"]`);
+        const formElement = document.getElementById(steps[i]);
+        
+        if (i === currentStep) {
+            if (stepElement) {
+                stepElement.classList.add('active');
+                stepElement.classList.remove('completed');
+            }
+            if (formElement) formElement.classList.remove('hidden');
+        } else if (i < currentStep) {
+            if (stepElement) {
+                stepElement.classList.add('completed');
+                stepElement.classList.remove('active');
+            }
+            if (formElement) formElement.classList.add('hidden');
+        } else {
+            if (stepElement) {
+                stepElement.classList.remove('active', 'completed');
+            }
+            if (formElement) formElement.classList.add('hidden');
+        }
+    }
+    
+    const container = document.querySelector('.container');
+    if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+/**
+ * Setup form field listeners
+ */
 function setupFormListeners() {
-    const degreeSelect = document.getElementById('degree');
-    if (degreeSelect) {
-        degreeSelect.addEventListener('change', updateDocumentRequirements);
+    const applyingDegree = document.getElementById('degree');
+    if (applyingDegree) {
+        applyingDegree.addEventListener('change', () => {
+            updateDocumentRequirements();
+        });
     }
+    
+    const confirmCertified = document.getElementById('confirmCertified');
+    const confirmFinal = document.getElementById('confirmFinal');
+    const confirmTcf = document.getElementById('confirmTcf');
+    
+    if (confirmCertified) confirmCertified.addEventListener('change', validateStep1);
+    if (confirmFinal) confirmFinal.addEventListener('change', validateStep1);
+    if (confirmTcf) confirmTcf.addEventListener('change', validateStep1);
     
     const privacyPolicy = document.getElementById('privacyPolicy');
     const submitBtn = document.getElementById('submitBtn');
@@ -437,56 +608,49 @@ function setupFormListeners() {
             submitBtn.disabled = !e.target.checked;
         });
     }
+    
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('input', () => {
+            input.classList.remove('input-error');
+        });
+    });
 }
 
+/**
+ * Update document requirements based on study level
+ */
 function updateDocumentRequirements() {
-    const degree = document.getElementById('degree')?.value;
-    const bachelorDiv = document.getElementById('bachelorDocs');
-    const masterDiv = document.getElementById('masterDocs');
+    const applyingDegree = document.getElementById('degree')?.value;
+    const masterDocsDiv = document.getElementById('masterDocs');
     
-    if (degree === 'Master') {
-        if (bachelorDiv) bachelorDiv.classList.add('hidden');
-        if (masterDiv) {
-            masterDiv.classList.remove('hidden');
-            createUploadSection('masterDocs', applicationData.documentRequirements.master);
+    if (applyingDegree === 'Master') {
+        if (masterDocsDiv) {
+            masterDocsDiv.classList.remove('hidden');
+            // Create the master document upload boxes
+            const masterDocsList = applicationData.documentRequirements.master;
+            createUploadSection('masterDocs', masterDocsList);
         }
     } else {
-        if (masterDiv) masterDiv.classList.add('hidden');
-        if (bachelorDiv) {
-            bachelorDiv.classList.remove('hidden');
-            createUploadSection('bachelorDocs', applicationData.documentRequirements.bachelor);
+        if (masterDocsDiv) {
+            masterDocsDiv.classList.add('hidden');
+            // Recreate bachelor docs (in case user switches back)
+            const bachelorDocsList = applicationData.documentRequirements.bachelor;
+            createUploadSection('bachelorDocs', bachelorDocsList);
         }
     }
 }
 
+/**
+ * Setup document upload handlers
+ */
 function setupDocumentUploads() {
     attachUploadHandlers();
 }
 
-function handleFileChange(e) {
-    const input = e.target;
-    const docId = input.getAttribute('data-id');
-    const file = input.files[0];
-    if (!file) return;
-    
-    if (!validateFile(file)) {
-        input.value = '';
-        return;
-    }
-    
-    selectedFiles[docId] = file;
-    const upload = input.closest('.file-upload');
-    const fileList = upload.nextElementSibling;
-    
-    if (fileList && fileList.classList.contains('file-list')) {
-        fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0, 30)}</span><button type="button" onclick="removeDocument('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
-    }
-    
-    upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File ready: ${file.name.substring(0, 25)}</p><input type="file" data-id="${docId}" accept=".pdf,.jpg,.jpeg,.png" style="display:none">`;
-    const newInput = upload.querySelector('input');
-    newInput.addEventListener('change', handleFileChange);
-}
-
+/**
+ * Attach upload handlers to file upload elements
+ */
 function attachUploadHandlers() {
     document.querySelectorAll('.file-upload').forEach(upload => {
         const input = upload.querySelector('input[type="file"]');
@@ -494,45 +658,92 @@ function attachUploadHandlers() {
         
         if (input && !input.hasAttribute('data-attached')) {
             input.setAttribute('data-attached', 'true');
-            input.setAttribute('data-id', docId);
             
             upload.addEventListener('click', (e) => {
                 if (e.target !== input) input.click();
             });
             
-            input.addEventListener('change', handleFileChange);
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                if (!validateFile(file)) {
+                    input.value = '';
+                    return;
+                }
+                
+                selectedFiles[docId] = file;
+                
+                const fileList = upload.nextElementSibling;
+                if (fileList && fileList.classList.contains('file-list')) {
+                    fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0, 30)}</span><button onclick="removeDocument('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
+                }
+                
+                upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File ready: ${file.name.substring(0, 25)}</p><input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none">`;
+                const newInput = upload.querySelector('input');
+                if (newInput) {
+                    newInput.setAttribute('data-id', docId);
+                    newInput.addEventListener('change', arguments.callee);
+                }
+            });
         }
     });
 }
 
+/**
+ * Remove uploaded document
+ */
 window.removeDocument = function(docId, button) {
     delete selectedFiles[docId];
-    button.closest('.file-item').remove();
+    const fileItem = button.closest('.file-item');
+    if (fileItem) fileItem.remove();
+    
     const upload = document.querySelector(`.file-upload[data-id="${docId}"]`);
     if (upload) {
-        upload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i><p>Click to upload</p><input type="file" data-id="${docId}" accept=".pdf,.jpg,.jpeg,.png" style="display:none">`;
+        const docName = upload.closest('.form-group')?.querySelector('label')?.innerText?.replace('*', '').trim() || 'document';
+        upload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i><p>Click to upload ${docName}</p><input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none">`;
         const newInput = upload.querySelector('input');
-        newInput.addEventListener('change', handleFileChange);
+        if (newInput) {
+            newInput.setAttribute('data-id', docId);
+            newInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file && validateFile(file)) {
+                    selectedFiles[docId] = file;
+                    const fileList = upload.nextElementSibling;
+                    if (fileList) fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0, 30)}</span><button onclick="removeDocument('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
+                    upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File ready</p><input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none">`;
+                }
+            });
+        }
     }
 };
 
+/**
+ * Validate file
+ */
 function validateFile(file) {
     if (file.size > MAX_FILE_SIZE) {
         showError(`File "${file.name}" exceeds 5MB limit.`);
         return false;
     }
+    
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-        showError(`File "${file.name}" is not allowed.`);
+        showError(`File "${file.name}" is not allowed. Please upload PDF, JPG, or PNG files.`);
         return false;
     }
+    
     return true;
 }
 
+/**
+ * Setup payment handlers
+ */
 function setupPaymentHandlers() {
     const paymentOptions = document.querySelectorAll('.payment-option');
     const payNowBtn = document.getElementById('payNowBtn');
     const payLaterBtn = document.getElementById('payLaterBtn');
     const receiptUpload = document.getElementById('receiptUpload');
+    const paymentNextBtn = document.getElementById('paymentNextBtn');
     
     paymentOptions.forEach(option => {
         option.addEventListener('click', () => {
@@ -546,6 +757,7 @@ function setupPaymentHandlers() {
         payNowBtn.addEventListener('click', () => {
             paymentStatus = 'paid_pending';
             if (receiptUpload) receiptUpload.classList.remove('hidden');
+            if (paymentNextBtn) paymentNextBtn.disabled = false;
         });
     }
     
@@ -553,81 +765,210 @@ function setupPaymentHandlers() {
         payLaterBtn.addEventListener('click', () => {
             paymentStatus = 'pending';
             if (receiptUpload) receiptUpload.classList.add('hidden');
+            if (paymentNextBtn) paymentNextBtn.disabled = false;
         });
     }
     
-    const receiptArea = document.getElementById('receiptArea');
+    const receiptUploadArea = document.getElementById('receiptArea');
     const receiptFile = document.getElementById('receiptFile');
-    if (receiptArea && receiptFile) {
-        receiptArea.addEventListener('click', () => receiptFile.click());
+    
+    if (receiptUploadArea && receiptFile) {
+        receiptUploadArea.addEventListener('click', () => receiptFile.click());
+        
         receiptFile.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file && validateFile(file)) {
-                receiptArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded</p>';
+                receiptUploadArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded successfully</p>';
                 applicationData.receiptFile = file;
             }
         });
     }
 }
 
+/**
+ * Load destination-specific content
+ */
 function loadDestinationContent(destination) {
-    const title = document.getElementById('destinationTitle');
-    if (title) title.innerText = destination === 'italy' ? 'Italy Application' : 'Campus France Application';
+    const bacLabel = document.querySelector('label[for="bacDate"]');
+    if (bacLabel) {
+        bacLabel.innerHTML = 'Baccalaureate Date of Completion <span class="required">*</span>';
+    }
+    
+    const degreeLabel = document.querySelector('label[for="degree"]');
+    if (degreeLabel) {
+        degreeLabel.innerHTML = 'Applying Degree <span class="required">*</span>';
+    }
 }
 
-async function uploadToSupabaseStorage(appNumber) {
-    if (!supabase) return {};
-    const results = {};
+/**
+ * Upload files to Supabase Storage
+ */
+async function uploadToSupabaseStorage(applicationNumber) {
+    const filesToUpload = [];
+    
     for (const [docId, file] of Object.entries(selectedFiles)) {
-        const fileName = `${appNumber}/${docId}_${Date.now()}.${file.name.split('.').pop()}`;
-        const { error } = await supabase.storage.from('documents').upload(fileName, file);
-        if (!error) {
-            const { data } = supabase.storage.from('documents').getPublicUrl(fileName);
-            results[docId] = data.publicUrl;
-        }
+        filesToUpload.push({
+            file: file,
+            documentType: docId
+        });
     }
+    
+    const receiptFile = document.getElementById('receiptFile')?.files[0];
+    if (receiptFile && paymentStatus === 'paid_pending') {
+        filesToUpload.push({
+            file: receiptFile,
+            documentType: 'payment_receipt'
+        });
+    }
+    
+    if (filesToUpload.length === 0) return {};
+    
+    if (!window.SupabaseStorage) {
+        throw new Error('Supabase Storage not available. Please check your connection.');
+    }
+    
+    const results = await window.SupabaseStorage.uploadMultiple(
+        filesToUpload,
+        applicationNumber,
+        (completed, total, docType, result) => {
+            console.log(`Uploaded ${docType}: ${completed}/${total}`);
+        }
+    );
+    
     return results;
 }
 
-async function submitApplication() {
-    if (!validateStep5()) return;
-    
-    const appNumber = (applicationData.destination === 'italy' ? 'IT' : 'CF') + '-' + Date.now().toString().slice(-6);
-    const submitBtn = document.getElementById('submitBtn');
-    submitBtn.disabled = true;
-    submitBtn.innerText = 'Submitting...';
-    
+/**
+ * Send email via Resend
+ */
+async function sendEmail(to, subject, html) {
+    const RESEND_API_KEY = 're_UGbnfq94_KrG2rVQMhkbiGSkTGH9P62iR';
     try {
-        const docs = await uploadToSupabaseStorage(appNumber);
-        const application = {
-            ...applicationData,
-            application_number: appNumber,
-            documents: docs,
-            signature: signatureData,
-            created_at: new Date().toISOString()
-        };
-        
-        console.log('Final Application:', application);
-        alert(`Success! Your application number is ${appNumber}`);
-        window.location.reload();
+        const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${RESEND_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                from: 'Bougie Immigration <onboarding@resend.dev>',
+                to: [to],
+                subject: subject,
+                html: html
+            })
+        });
+        const result = await response.json();
+        console.log('Email sent:', result);
+        return result;
     } catch (error) {
-        console.error(error);
-        showError('Submission failed.');
-        submitBtn.disabled = false;
-        submitBtn.innerText = 'Submit Application';
+        console.error('Email error:', error);
+        return null;
     }
 }
 
+/**
+ * Submit application
+ */
+async function submitApplication() {
+    if (!validateStep5()) return;
+    
+    const appNumber = (applicationData.destination === 'italy' ? 'IT' : 'CF') + 
+        '-' + new Date().getFullYear() + '-' + 
+        Math.random().toString(36).substring(2, 8).toUpperCase();
+    const now = new Date();
+    const deadline = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+    
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading documents...';
+    
+    try {
+        const uploadResults = await uploadToSupabaseStorage(appNumber);
+        
+        const application = {
+            id: Date.now().toString(),
+            application_number: appNumber,
+            first_name: document.getElementById('firstName')?.value || '',
+            last_name: document.getElementById('lastName')?.value || '',
+            birth_date: document.getElementById('birthDate')?.value || '',
+            bac_date: document.getElementById('bacDate')?.value || '',
+            email: document.getElementById('email')?.value || '',
+            phone: document.getElementById('phone')?.value || '',
+            year_of_study: document.getElementById('degree')?.value || '',
+            courses: document.getElementById('courses')?.value || '',
+            destination: applicationData.destination,
+            application_status: 'pending',
+            payment_status: paymentStatus || 'pending',
+            payment_method: selectedPaymentMethod,
+            documents: uploadResults,
+            signature: signatureData,
+            created_at: now.toISOString(),
+            payment_deadline: deadline.toISOString()
+        };
+        
+        if (applicationData.destination === 'campus') {
+            application.tcf_status = document.getElementById('tcfStatus')?.value;
+        }
+        
+        let applications = JSON.parse(localStorage.getItem('bougie_applications') || '[]');
+        applications.push(application);
+        localStorage.setItem('bougie_applications', JSON.stringify(applications));
+        
+        const destinationName = applicationData.destination === 'italy' ? 'Italy' : 'Campus France';
+        const emailHtml = `
+            <!DOCTYPE html><html><body style="font-family:Arial;padding:20px">
+            <h2>Application Confirmation - ${destinationName}</h2>
+            <p>Dear ${application.first_name} ${application.last_name},</p>
+            <p>Your application has been submitted successfully.</p>
+            <p><strong>Application Number:</strong> ${appNumber}</p>
+            <p><strong>Destination:</strong> ${destinationName}</p>
+            <p><strong>Payment Deadline:</strong> ${deadline.toLocaleDateString()}</p>
+            <p>You have 3 days to complete payment.</p>
+            <p>Thank you,<br>Bougie Immigration Team</p>
+            </body></html>
+        `;
+        
+        await sendEmail(application.email, `Application Confirmation - Bougie Immigration`, emailHtml);
+        
+        const successAppNumber = document.getElementById('successAppNumber');
+        if (successAppNumber) {
+            successAppNumber.innerHTML = `<strong>Application Number: ${appNumber}</strong>`;
+        }
+        
+        const successModal = document.getElementById('successModal');
+        if (successModal) {
+            successModal.style.display = 'flex';
+        }
+        
+    } catch (error) {
+        console.error('Submission error:', error);
+        showError(`Failed to submit application: ${error.message}`);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Submit Application';
+    }
+}
+
+/**
+ * Show error message
+ */
 function showError(message) {
     alert(message);
 }
 
-// Initialize on load
+// Export for global access
+window.initApplicationForm = initApplicationForm;
+window.submitApplication = submitApplication;
+window.removeDocument = removeDocument;
+
+// Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    initSupabase();
-    const dest = document.body.getAttribute('data-destination') || 'italy';
-    initApplicationForm(dest);
+    const destination = document.body.getAttribute('data-destination') || 
+                        (window.location.pathname.includes('italy') ? 'italy' : 'campus');
+    initApplicationForm(destination);
     
     const submitBtn = document.getElementById('submitBtn');
-    if (submitBtn) submitBtn.addEventListener('click', submitApplication);
+    if (submitBtn) {
+        submitBtn.addEventListener('click', submitApplication);
+    }
 });
+like this?
