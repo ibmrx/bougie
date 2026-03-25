@@ -14,20 +14,40 @@ let canvas, ctx, drawing = false;
 let uploadResults = {};
 
 // supabase:
+// ==================== SUPABASE CLIENT ====================
 const SUPABASE_URL = 'https://rqrtzslypimcxdovqfoj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxcnR6c2x5cGltY3hkb3ZxZm9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0Mzk4MzYsImV4cCI6MjA5MDAxNTgzNn0.TfuW-nC-j_fx9-pkYDJplxoTrT88g5QyQPe7fKGq5_A';
 
 let supabase = null;
 
 function initSupabase() {
-    if (typeof supabaseJs !== 'undefined') {
-        supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    } else if (typeof window.supabase !== 'undefined') {
+    // Wait for Supabase library to load
+    if (typeof window.supabase !== 'undefined') {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase initialized successfully');
+        return supabase;
+    } else if (typeof supabaseJs !== 'undefined') {
+        supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase initialized via supabaseJs');
+        return supabase;
+    } else {
+        console.error('Supabase library not loaded yet');
+        return null;
+    }
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    initSupabase();
+});
+
+// Helper function to get supabase client
+function getSupabase() {
+    if (!supabase) {
+        return initSupabase();
     }
     return supabase;
 }
-initSupabase();
 
 //supabase finished
 
@@ -781,10 +801,16 @@ async function submitApplication() {
             application.tcf_status = document.getElementById('tcfStatus')?.value;
         }
         // supabase change
-        const { data, error } = await supabase
+        const client = getSupabase();
+        if (!client) {
+            throw new Error('Supabase client not ready. Please refresh and try again.');
+        }
+
+        const { data, error } = await client
             .from('applications')
             .insert([application])
             .select();
+        
         if (error) {
             console.error('Supabase insert error:', error);
             throw new Error(error.message);
