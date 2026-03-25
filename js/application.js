@@ -128,7 +128,7 @@ const DOCUMENT_REQUIREMENTS = {
             { id: 'bachelorCertTranslated', name: 'Bachelor Certificate (certified translated)', required: true },
             { id: 'bachelorTranscriptOriginal', name: 'Bachelor Transcript - 3 years (certified original)', required: true },
             { id: 'bachelorTranscriptTranslated', name: 'Bachelor Transcript - 3 years (certified translated)', required: true },
-            { id: 'englishProof', name: 'English Proof (IELTS/TOEFL)', required: true }
+            { id: 'englishProof', name: 'English Proof (IELTS/EnglishScore)', required: true }
         ]
     },
     campus: {
