@@ -647,7 +647,7 @@ function attachUploadHandlers() {
         if (input && !input.hasAttribute('data-attached')) {
             input.setAttribute('data-attached', 'true');
             
-        upload.addEventListener('click', (e) {
+        upload.addEventListener('click', (e) => {
             e.stopPropagation();
             if (e.target !== input) input.click();
             });
