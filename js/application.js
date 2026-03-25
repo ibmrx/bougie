@@ -799,9 +799,16 @@ async function submitApplication() {
             application.tcf_status = document.getElementById('tcfStatus')?.value;
         }
         
-        let applications = JSON.parse(localStorage.getItem('bougie_applications') || '[]');
-        applications.push(application);
-        localStorage.setItem('bougie_applications', JSON.stringify(applications));
+        const SHEETDB_URL = 'https://sheetdb.io/api/v1/bfop7u9vgn5lp';
+        
+        const response = await fetch(SHEETDB_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(application)
+        });
+        
+        const result = await response.json();
+        console.log('Saved to Google Sheet:', result);
         
         // Send confirmation email via EmailJS
         await sendConfirmationEmail(application, appNumber, deadline);
