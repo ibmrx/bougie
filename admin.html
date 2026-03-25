@@ -179,7 +179,7 @@
     }
 
     async function deleteApplication(applicationId) {
-        const app = applications.find(a => a.id === applicationId);
+        const app = applications.find(a => a.id == applicationId);
         if (!app) return;
         if (confirm(`Are you sure you want to DELETE application ${app.application_number}? This action cannot be undone.`)) {
             try {
@@ -388,7 +388,7 @@
 
     // ==================== VIEW APPLICATION DETAILS ====================
     function viewApplication(id) {
-        const app = applications.find(a => a.id === id);
+        const app = applications.find(a => a.id == id);
         if (!app) return;
         currentModalApp = app;
         
@@ -484,7 +484,7 @@
     }
 
     async function rejectApplication(id) {
-        const app = applications.find(a => a.id === id);
+        const app = applications.find(a => a.id == id);
         if (!app) return;
         const reason = prompt('Please provide a reason for rejection:');
         if (!reason) return;
