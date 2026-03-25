@@ -117,7 +117,17 @@
             <div id="tableContent" style="display: none;">
                 <table class="applications-table">
                     <thead>
-                        <tr><th># Application</th><th>Full Name</th><th>Baccalaureate</th><th>Phone</th><th>Email</th><th>Destination</th><th>Status</th><th>Actions</th>
+                        <tr>
+                            <th># Application</th>
+                            <th>Full Name</th>
+                            <th>Birth Date</th>
+                            <th>Baccalaureate</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Destination</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
                     </thead>
                     <tbody id="applicationsTableBody"></tbody>
                 </table>
@@ -289,13 +299,14 @@
         
         elements.applicationsTableBody.innerHTML = filteredApplications.map((app, index) => `
             <tr>
-                <td><code>${escapeHtml(app.application_number || 'N/A')}</code>}
-                <td><strong>${escapeHtml(app.first_name || '')} ${escapeHtml(app.last_name || '')}</strong>}
-                <td>${formatMonthYear(app.bac_date)}}
-                <td>${escapeHtml(app.phone || 'N/A')}}
-                <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis">${escapeHtml(app.email || 'N/A')} },
-                <td>${getDestinationDisplay(app.destination)} },
-                <td>${getStatusBadge(app.application_status)} },
+                <td><code>${escapeHtml(app.application_number || 'N/A')}</code></td>
+                <td><strong>${escapeHtml(app.first_name || '')} ${escapeHtml(app.last_name || '')}</strong></td>
+                <td>${formatMonthYear(app.bac_date)}</td>
+                <td>${formatMonthYear(app.birth_date)}</td>
+                <td>${escapeHtml(app.phone || 'N/A')}<td>
+                <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis">${escapeHtml(app.email || 'N/A')}<td>
+                <td>${getDestinationDisplay(app.destination)}<td>
+                <td>${getStatusBadge(app.application_status)}<td>
                 <td>
                     <div class="action-buttons">
                         <button class="btn-icon btn-view" onclick="viewApplication(${index})" title="View Details"><i class="fas fa-eye"></i></button>
