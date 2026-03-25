@@ -9,9 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script>
-        emailjs.init('7nXKeWjyHF-Mu-s2u');
-    </script>
+<script>
+    emailjs.init('7nXKeWjyHF-Mu-s2u');
+</script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background-color: #f4eddb; color: #2c2b28; }
@@ -54,6 +54,8 @@
         .btn-approve:hover { background-color: #e8f5e9; }
         .btn-reject { color: #e74c3c; }
         .btn-reject:hover { background-color: #fee; }
+        .btn-delete { color: #e74c3c; }
+        .btn-delete:hover { background-color: #fee; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: #fff; border-radius: 24px; max-width: 800px; width: 90%; max-height: 85vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid #dcdad5; }
@@ -118,7 +120,7 @@
                         <tr><th># Application</th><th>Full Name</th><th>Baccalaureate</th><th>Phone</th><th>Email</th><th>Destination</th><th>Status</th><th>Actions</th>
                     </thead>
                     <tbody id="applicationsTableBody"></tbody>
-                60
+                </table>
                 <div id="emptyState" class="empty-state" style="display: none;"><i class="fas fa-folder-open"></i><p>No applications found</p></div>
             </div>
         </div>
