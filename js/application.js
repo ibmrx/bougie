@@ -13,7 +13,25 @@ let signatureData = null;
 let canvas, ctx, drawing = false;
 let uploadResults = {};
 
-// ==================== CLOUDINARY UPLOAD ====================
+// supabase:
+const SUPABASE_URL = 'https://rqrtzslypimcxdovqfoj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxcnR6c2x5cGltY3hkb3ZxZm9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0Mzk4MzYsImV4cCI6MjA5MDAxNTgzNn0.TfuW-nC-j_fx9-pkYDJplxoTrT88g5QyQPe7fKGq5_A';
+
+let supabase = null;
+
+function initSupabase() {
+    if (typeof supabaseJs !== 'undefined') {
+        supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else if (typeof window.supabase !== 'undefined') {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+    return supabase;
+}
+initSupabase();
+
+//supabase finished
+
+
 const CLOUDINARY_CLOUD_NAME = 'dtqokf3fl'; 
 const CLOUDINARY_UPLOAD_PRESET = 'bougie_uploads';
 
@@ -722,7 +740,7 @@ function loadDestinationContent(destination) {
     }
 }
 
-// ==================== SUBMIT APPLICATION ====================
+// supabase application
 async function submitApplication() {
     if (!validateStep5()) return;
     
@@ -740,7 +758,6 @@ async function submitApplication() {
         const uploadResults = await uploadAllDocumentsToCloudinary(appNumber);
         
         const application = {
-            id: Date.now().toString(),
             application_number: appNumber,
             first_name: document.getElementById('firstName')?.value || '',
             last_name: document.getElementById('lastName')?.value || '',
@@ -763,11 +780,17 @@ async function submitApplication() {
         if (applicationData.destination === 'campus') {
             application.tcf_status = document.getElementById('tcfStatus')?.value;
         }
-        
-        let applications = JSON.parse(localStorage.getItem('bougie_applications') || '[]');
-        applications.push(application);
-        localStorage.setItem('bougie_applications', JSON.stringify(applications));
-        
+        // supabase change
+        const { data, error } = await supabase
+            .from('applications')
+            .insert([application])
+            .select();
+        if (error) {
+            console.error('Supabase insert error:', error);
+            throw new Error(error.message);
+        }
+        console.log('Application saved to Supabase:', data);
+        //supabase finished
         // Send confirmation email via EmailJS
         await sendConfirmationEmail(application, appNumber, deadline);
         
