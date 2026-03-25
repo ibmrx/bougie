@@ -129,21 +129,20 @@ function initApplicationForm(destination) {
     // Initial validation for step 1
     validateStep1();
 
-    // Start button handler
-    const startBtn = document.getElementById('startBtn');
-document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('startBtn');
 
     if (startBtn) {
         startBtn.addEventListener('click', () => {
             console.log("CLICK WORKS");
 
+            if (!validateStep1()) return;
+
             currentStep = 2;
             updateStepDisplay();
         });
     }
-});
 
+} // ✅ CLOSE initApplicationForm HERE
 
 
 /**
@@ -507,22 +506,20 @@ function saveCurrentStepData() {
  * Update step display
  */
 function updateStepDisplay() {
+    console.log("updating step:", currentStep);
+
     const steps = ['step1', 'step2', 'step3', 'step4', 'step5'];
-    
-    for (let i = 0; i < totalSteps; i++) {
-    const stepElement = document.querySelector(`.step[data-step="${i+1}"]`);
-    const formElement = document.getElementById(steps[i]);
 
-    if (i + 1 === currentStep) {
-        stepElement?.classList.add('active');
-        formElement?.classList.remove('hidden');
-    } else {
-        stepElement?.classList.remove('active');
-        formElement?.classList.add('hidden');
-    }
-}
+    steps.forEach((id, index) => {
+        const el = document.getElementById(id);
+        if (!el) return;
 
-    
+        if (index + 1 === currentStep) {
+            el.classList.remove('hidden');
+        } else {
+            el.classList.add('hidden');
+        }
+    });
     const container = document.querySelector('.container');
     if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -944,8 +941,7 @@ window.submitApplication = submitApplication;
 window.removeDocument = removeDocument;
 
 // Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    const destination = document.body.getAttribute('data-destination') || 
+const destination = document.body.getAttribute('data-destination') || 
                         (window.location.pathname.includes('italy') ? 'italy' : 'campus');
     initApplicationForm(destination);
     
