@@ -174,6 +174,9 @@ function initApplicationForm(destination) {
     // Initial validation for step 1
     validateStep1();
 
+    // Setup success modal redirect
+    setupSuccessModal();
+
     // Start button handler
     const startBtn = document.getElementById('startBtn');
     if (startBtn) {
@@ -966,6 +969,15 @@ function showError(message) {
 window.initApplicationForm = initApplicationForm;
 window.submitApplication = submitApplication;
 window.removeDocument = removeDocument;
+
+function setupSuccessModal() {
+    const successOkBtn = document.getElementById('successOkBtn');
+    if (successOkBtn) {
+        successOkBtn.onclick = () => {
+            window.location.href = 'index.html';
+        };
+    }
+}
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
