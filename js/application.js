@@ -1,7 +1,5 @@
 /**
  * Bougie Immigration - Application Form Handler
- * Manages multi-step application forms for Italy and Campus France
- * Handles form validation, document uploads to Supabase, and submission
  */
 
 // Global state
@@ -15,6 +13,7 @@ let signatureData = null;
 let canvas, ctx, drawing = false;
 let uploadResults = {};
 
+// ==================== CLOUDINARY UPLOAD ====================
 const CLOUDINARY_CLOUD_NAME = 'dtqokf3fl'; 
 const CLOUDINARY_UPLOAD_PRESET = 'bougie_uploads';
 
@@ -32,7 +31,7 @@ async function uploadToCloudinary(file, documentType) {
     );
     
     const data = await response.json();
-    return data.secure_url; // Returns direct URL like https://res.cloudinary.com/.../file.jpg
+    return data.secure_url;
 }
 
 async function uploadAllDocumentsToCloudinary(applicationNumber) {
@@ -61,7 +60,8 @@ async function uploadAllDocumentsToCloudinary(applicationNumber) {
     
     return results;
 }
-// Document requirements based on destination and study level
+
+// ==================== DOCUMENT REQUIREMENTS ====================
 const DOCUMENT_REQUIREMENTS = {
     italy: {
         bachelor: [
@@ -121,45 +121,53 @@ const DOCUMENT_REQUIREMENTS = {
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
 
-/**
- * Initialize application form
- * @param {string} destination - 'italy' or 'campus'
- */
+// ==================== EMAILJS EMAIL FUNCTION ====================
+async function sendConfirmationEmail(application, appNumber, deadline) {
+    const destinationName = application.destination === 'italy' ? 'Italy' : 'Campus France';
+    
+    const templateParams = {
+        to_email: application.email,
+        reply_to: application.email,
+        subject: 'Application Confirmation - Bougie Immigration',
+        firstName: application.first_name,
+        lastName: application.last_name,
+        applicationNumber: appNumber,
+        applicationStatus: 'Pending Review',
+        destination: destinationName,
+        yearOfStudies: application.year_of_study,
+        submissionDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+        paymentStatus: 'Pending',
+        paymentDeadline: deadline.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+        statusCheckUrl: 'https://bougie-five.vercel.app/status.html',
+        currentYear: new Date().getFullYear()
+    };
+    
+    try {
+        const response = await emailjs.send('service_rbx0k6d', 'template_m4pm26p', templateParams);
+        console.log('Confirmation email sent:', response);
+        return true;
+    } catch (error) {
+        console.error('Email failed:', error);
+        return false;
+    }
+}
+
+// ==================== FORM FUNCTIONS ====================
 function initApplicationForm(destination) {
     applicationData.destination = destination;
     applicationData.documentRequirements = DOCUMENT_REQUIREMENTS[destination];
     
-    // Setup step navigation
     setupStepNavigation();
-    
-    // Setup form field listeners
     setupFormListeners();
-    
-    // Setup document upload handlers
     setupDocumentUploads();
-    
-    // Setup payment handlers
     setupPaymentHandlers();
-    
-    // Setup signature canvas
     initSignatureCanvas();
-    
-    // Setup privacy policy modal
     setupPrivacyPolicyModal();
-    
-    // Load destination-specific content
     loadDestinationContent(destination);
-
-    // Create initial document upload section for bachelor
     createUploadSection('bachelorDocs', DOCUMENT_REQUIREMENTS[destination].bachelor);
-    
-    // Initial validation for step 1
     validateStep1();
-
-    // Setup success modal redirect
     setupSuccessModal();
 
-    // Start button handler
     const startBtn = document.getElementById('startBtn');
     if (startBtn) {
         startBtn.addEventListener('click', () => {
@@ -169,15 +177,8 @@ function initApplicationForm(destination) {
             }
         });
     }
+}
 
-        if (window.SupabaseStorage) {
-        window.SupabaseStorage.init();
-    }
-    
-} 
-/**
- * Setup privacy policy modal
- */
 function setupPrivacyPolicyModal() {
     const viewContract = document.getElementById('viewContract');
     const contractModal = document.getElementById('contractModal');
@@ -203,7 +204,6 @@ function setupPrivacyPolicyModal() {
         });
     }
     
-    // Close modal when clicking outside
     if (contractModal) {
         contractModal.addEventListener('click', (e) => {
             if (e.target === contractModal) {
@@ -212,7 +212,6 @@ function setupPrivacyPolicyModal() {
         });
     }
 }
-
 
 function createUploadSection(containerId, docs) {
     const container = document.getElementById(containerId);
@@ -234,9 +233,7 @@ function createUploadSection(containerId, docs) {
     });
     attachUploadHandlers();
 }
-/**
- * Initialize signature canvas
- */
+
 function initSignatureCanvas() {
     canvas = document.getElementById('signatureCanvas');
     if (!canvas) return;
@@ -319,10 +316,6 @@ function initSignatureCanvas() {
     }
 }
 
-
-/**
- * Setup step navigation
- */
 function setupStepNavigation() {
     const nextButtons = document.querySelectorAll('.nextBtn');
     const prevButtons = document.querySelectorAll('.prevBtn');
@@ -349,9 +342,6 @@ function setupStepNavigation() {
     });
 }
 
-/**
- * Validate current step
- */
 function validateCurrentStep() {
     switch(currentStep) {
         case 1: return validateStep1();
@@ -363,9 +353,6 @@ function validateCurrentStep() {
     }
 }
 
-/**
- * Validate step 1 - Confirmation
- */
 function validateStep1() {
     const confirmCertified = document.getElementById('confirmCertified');
     const confirmFinal = document.getElementById('confirmFinal');
@@ -391,9 +378,6 @@ function validateStep1() {
     return isValid;
 }
 
-/**
- * Validate step 2 - Personal Information
- */
 function validateStep2() {
     const fields = ['firstName', 'lastName', 'birthDate', 'bacDate', 'degree', 'phone', 'email', 'courses'];
     let isValid = true;
@@ -442,9 +426,6 @@ function validateStep2() {
     return isValid;
 }
 
-/**
- * Validate step 3 - Documents
- */
 function validateStep3() {
     const degree = document.getElementById('degree')?.value;
     const docList = applicationData.documentRequirements[degree === 'Master' ? 'master' : 'bachelor'];
@@ -464,9 +445,6 @@ function validateStep3() {
     return true;
 }
 
-/**
- * Validate step 4 - Payment
- */
 function validateStep4() {
     if (!selectedPaymentMethod) {
         showError('Please select a payment method.');
@@ -495,9 +473,6 @@ function validateStep4() {
     return true;
 }
 
-/**
- * Validate step 5 - Signature
- */
 function validateStep5() {
     const privacyChecked = document.getElementById('privacyPolicy');
     if (!privacyChecked || !privacyChecked.checked) {
@@ -513,9 +488,6 @@ function validateStep5() {
     return true;
 }
 
-/**
- * Save current step data
- */
 function saveCurrentStepData() {
     if (currentStep === 2) {
         applicationData.firstName = document.getElementById('firstName')?.value.trim();
@@ -533,9 +505,6 @@ function saveCurrentStepData() {
     }
 }
 
-/**
- * Update step display
- */
 function updateStepDisplay() {
     const steps = [null, 'step1', 'step2', 'step3', 'step4', 'step5'];
     
@@ -567,9 +536,6 @@ function updateStepDisplay() {
     if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-/**
- * Setup form field listeners
- */
 function setupFormListeners() {
     const applyingDegree = document.getElementById('degree');
     if (applyingDegree) {
@@ -602,20 +568,15 @@ function setupFormListeners() {
     });
 }
 
-/**
- * Update document requirements based on study level
- */
 function updateDocumentRequirements() {
     const applyingDegree = document.getElementById('degree')?.value;
     const bachelorDiv = document.getElementById('bachelorDocs');
     const masterDiv = document.getElementById('masterDocs');
     
-    // First, clear BOTH containers
     if (bachelorDiv) bachelorDiv.innerHTML = '';
     if (masterDiv) masterDiv.innerHTML = '';
     
     if (applyingDegree === 'Master') {
-        // Hide bachelor, show master
         if (bachelorDiv) bachelorDiv.classList.add('hidden');
         if (masterDiv) {
             masterDiv.classList.remove('hidden');
@@ -623,7 +584,6 @@ function updateDocumentRequirements() {
             createUploadSection('masterDocs', masterDocsList);
         }
     } else {
-        // Hide master, show bachelor
         if (masterDiv) masterDiv.classList.add('hidden');
         if (bachelorDiv) {
             bachelorDiv.classList.remove('hidden');
@@ -633,16 +593,10 @@ function updateDocumentRequirements() {
     }
 }
 
-/**
- * Setup document upload handlers
- */
 function setupDocumentUploads() {
     attachUploadHandlers();
 }
 
-/**
- * Attach upload handlers to file upload elements
- */
 function attachUploadHandlers() {
     document.querySelectorAll('.file-upload').forEach(upload => {
         const input = upload.querySelector('input[type="file"]');
@@ -682,9 +636,6 @@ function attachUploadHandlers() {
     });
 }
 
-/**
- * Remove uploaded document
- */
 window.removeDocument = function(docId, button) {
     delete selectedFiles[docId];
     const fileItem = button.closest('.file-item');
@@ -692,27 +643,12 @@ window.removeDocument = function(docId, button) {
     
     const upload = document.querySelector(`.file-upload[data-id="${docId}"]`);
     if (upload) {
-        const docName = upload.closest('.form-group')?.querySelector('label')?.innerText?.replace('*', '').trim() || 'document';
-        upload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i><p>Click to upload ${docName}</p><input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none">`;
-        const newInput = upload.querySelector('input');
-        if (newInput) {
-            newInput.setAttribute('data-id', docId);
-            newInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file && validateFile(file)) {
-                    selectedFiles[docId] = file;
-                    const fileList = upload.nextElementSibling;
-                    if (fileList) fileList.innerHTML = `<div class="file-item"><span><i class="fas fa-file"></i> ${file.name.substring(0, 30)}</span><button onclick="removeDocument('${docId}', this)"><i class="fas fa-trash"></i></button></div>`;
-                    upload.innerHTML = `<i class="fas fa-check-circle"></i><p>File ready</p><input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none">`;
-                }
-            });
-        }
+        upload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i><p>Click to upload</p><input type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none">`;
+        const fileList = upload.nextElementSibling;
+        if (fileList) fileList.innerHTML = '';
     }
 };
 
-/**
- * Validate file
- */
 function validateFile(file) {
     if (file.size > MAX_FILE_SIZE) {
         showError(`File "${file.name}" exceeds 5MB limit.`);
@@ -727,9 +663,6 @@ function validateFile(file) {
     return true;
 }
 
-/**
- * Setup payment handlers
- */
 function setupPaymentHandlers() {
     const paymentOptions = document.querySelectorAll('.payment-option');
     const payNowBtn = document.getElementById('payNowBtn');
@@ -777,9 +710,6 @@ function setupPaymentHandlers() {
     }
 }
 
-/**
- * Load destination-specific content
- */
 function loadDestinationContent(destination) {
     const bacLabel = document.querySelector('label[for="bacDate"]');
     if (bacLabel) {
@@ -792,70 +722,7 @@ function loadDestinationContent(destination) {
     }
 }
 
-/**
- * Upload files to Supabase Storage
- */
-async function uploadToSupabaseStorage(applicationNumber) {
-    const filesToUpload = [];
-    
-    for (const [docId, file] of Object.entries(selectedFiles)) {
-        filesToUpload.push({
-            file: file,
-            documentType: docId
-        });
-    }
-    
-    const receiptFile = document.getElementById('receiptFile')?.files[0];
-    if (receiptFile && paymentStatus === 'paid_pending') {
-        filesToUpload.push({
-            file: receiptFile,
-            documentType: 'payment_receipt'
-        });
-    }
-    
-    if (filesToUpload.length === 0) return {};
-    
-    if (!window.SupabaseStorage) {
-        throw new Error('Supabase Storage not available. Please check your connection.');
-    }
-    
-    const results = await window.SupabaseStorage.uploadMultiple(
-        filesToUpload,
-        applicationNumber,
-        (completed, total, docType, result) => {
-            console.log(`Uploaded ${docType}: ${completed}/${total}`);
-        }
-    );
-    
-    return results;
-}
-
-// ==================== EMAILJS EMAIL FUNCTION ====================
-async function sendConfirmationEmail(application, appNumber, deadline) {
-    const destinationName = application.destination === 'italy' ? 'Italy' : 'Campus France';
-    
-    const templateParams = {
-        to_email: application.email,
-        reply_to: application.email,  // ← CHANGE THIS - user's email, not yours
-        subject: 'Application Confirmation - Bougie Immigration',
-        firstName: application.first_name,
-        lastName: application.last_name,
-        applicationNumber: appNumber,
-        applicationStatus: 'Pending Review',
-        destination: destinationName,
-        yearOfStudies: application.year_of_study,
-        submissionDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-        paymentStatus: 'Pending',
-        paymentDeadline: deadline.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-        statusCheckUrl: 'https://bougie-five.vercel.app/status.html',
-        currentYear: new Date().getFullYear()
-    };
-    
-    await emailjs.send('service_rbx0k6d', 'template_m4pm26p', templateParams);
-}
-
- * Submit application
- */
+// ==================== SUBMIT APPLICATION ====================
 async function submitApplication() {
     if (!validateStep5()) return;
     
@@ -901,21 +768,7 @@ async function submitApplication() {
         applications.push(application);
         localStorage.setItem('bougie_applications', JSON.stringify(applications));
         
-        const destinationName = applicationData.destination === 'italy' ? 'Italy' : 'Campus France';
-        const emailHtml = `
-            <!DOCTYPE html><html><body style="font-family:Arial;padding:20px">
-            <h2>Application Confirmation - ${destinationName}</h2>
-            <p>Dear ${application.first_name} ${application.last_name},</p>
-            <p>Your application has been submitted successfully.</p>
-            <p><strong>Application Number:</strong> ${appNumber}</p>
-            <p><strong>Destination:</strong> ${destinationName}</p>
-            <p><strong>Payment Deadline:</strong> ${deadline.toLocaleDateString()}</p>
-            <p>You have 3 days to complete payment.</p>
-            <p>Thank you,<br>Bougie Immigration Team</p>
-            </body></html>
-        `;
-        
-        await sendEmail(application.email, `Application Confirmation - Bougie Immigration`, emailHtml);
+        // Send confirmation email via EmailJS
         await sendConfirmationEmail(application, appNumber, deadline);
         
         const successAppNumber = document.getElementById('successAppNumber');
@@ -936,17 +789,9 @@ async function submitApplication() {
     }
 }
 
-/**
- * Show error message
- */
 function showError(message) {
     alert(message);
 }
-
-// Export for global access
-window.initApplicationForm = initApplicationForm;
-window.submitApplication = submitApplication;
-window.removeDocument = removeDocument;
 
 function setupSuccessModal() {
     const successOkBtn = document.getElementById('successOkBtn');
@@ -968,3 +813,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.addEventListener('click', submitApplication);
     }
 });
+
+window.initApplicationForm = initApplicationForm;
+window.submitApplication = submitApplication;
+window.removeDocument = removeDocument;
