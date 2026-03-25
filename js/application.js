@@ -15,7 +15,52 @@ let signatureData = null;
 let canvas, ctx, drawing = false;
 let uploadResults = {};
 
+const CLOUDINARY_CLOUD_NAME = 'dtqokf3fl'; 
+const CLOUDINARY_UPLOAD_PRESET = 'bougie_uploads';
 
+async function uploadToCloudinary(file, documentType) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    
+    const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`,
+        {
+            method: 'POST',
+            body: formData
+        }
+    );
+    
+    const data = await response.json();
+    return data.secure_url; // Returns direct URL like https://res.cloudinary.com/.../file.jpg
+}
+
+async function uploadAllDocumentsToCloudinary(applicationNumber) {
+    const results = {};
+    
+    for (const [docId, file] of Object.entries(selectedFiles)) {
+        try {
+            const url = await uploadToCloudinary(file, docId);
+            results[docId] = url;
+            console.log(`Uploaded ${docId}: ${url}`);
+        } catch (error) {
+            console.error(`Failed to upload ${docId}:`, error);
+            results[docId] = { error: error.message };
+        }
+    }
+    
+    const receiptFile = document.getElementById('receiptFile')?.files[0];
+    if (receiptFile && paymentStatus === 'paid_pending') {
+        try {
+            const url = await uploadToCloudinary(receiptFile, 'payment_receipt');
+            results['payment_receipt'] = url;
+        } catch (error) {
+            results['payment_receipt'] = { error: error.message };
+        }
+    }
+    
+    return results;
+}
 // Document requirements based on destination and study level
 const DOCUMENT_REQUIREMENTS = {
     italy: {
@@ -830,7 +875,7 @@ async function submitApplication() {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading documents...';
     
     try {
-        const uploadResults = await uploadToSupabaseStorage(appNumber);
+        const uploadResults = await uploadAllDocumentsToCloudinary(appNumber);
         
         const application = {
             id: Date.now().toString(),
