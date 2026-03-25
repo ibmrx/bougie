@@ -830,31 +830,35 @@ async function uploadToSupabaseStorage(applicationNumber) {
     return results;
 }
 
-/**
- * Send email via Resend
- */
-async function sendEmail(to, subject, html) {
-    const RESEND_API_KEY = 're_UGbnfq94_KrG2rVQMhkbiGSkTGH9P62iR';
+// ==================== EMAILJS EMAIL FUNCTION ====================
+async function sendConfirmationEmail(application, appNumber, deadline) {
+    const destinationName = application.destination === 'italy' ? 'Italy' : 'Campus France';
+    
+    const templateParams = {
+        firstName: application.first_name,
+        lastName: application.last_name,
+        applicationNumber: appNumber,
+        applicationStatus: 'Pending Review',
+        destination: destinationName,
+        yearOfStudies: application.year_of_study,
+        submissionDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+        paymentStatus: 'Pending',
+        paymentDeadline: deadline.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+        statusCheckUrl: 'https://bougie-five.vercel.app/status.html',
+        currentYear: new Date().getFullYear()
+    };
+    
     try {
-        const response = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${RESEND_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                from: 'Bougie Immigration <onboarding@resend.dev>',
-                to: [to],
-                subject: subject,
-                html: html
-            })
-        });
-        const result = await response.json();
-        console.log('Email sent:', result);
-        return result;
+        const response = await emailjs.send(
+            'service_rbx0k6d',      // Your Service ID
+            'template_m4pm26p',      // Your Template ID
+            templateParams
+        );
+        console.log('Email sent successfully:', response);
+        return true;
     } catch (error) {
-        console.error('Email error:', error);
-        return null;
+        console.error('Email failed:', error);
+        return false;
     }
 }
 
@@ -921,6 +925,7 @@ async function submitApplication() {
         `;
         
         await sendEmail(application.email, `Application Confirmation - Bougie Immigration`, emailHtml);
+        await sendConfirmationEmail(application, appNumber, deadline);
         
         const successAppNumber = document.getElementById('successAppNumber');
         if (successAppNumber) {
