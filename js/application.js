@@ -15,40 +15,60 @@ let signatureData = null;
 let canvas, ctx, drawing = false;
 let uploadResults = {};
 
-// At the top of application.js, remove the Supabase initialization code
-// Keep only the uploadToSupabaseStorage function that calls window.SupabaseStorage
+// ==================== SUPABASE STORAGE FUNCTIONS ====================
+let supabaseClient = null;
 
-async function uploadToSupabaseStorage(applicationNumber) {
-    const filesToUpload = [];
-    
-    for (const [docId, file] of Object.entries(selectedFiles)) {
-        filesToUpload.push({
-            file: file,
-            documentType: docId
-        });
+function initSupabaseStorage() {
+    if (supabase) {
+        supabaseClient = supabase;
+    } else if (typeof window.supabase !== 'undefined') {
+        supabaseClient = window.supabase;
+    }
+    return supabaseClient;
+}
+
+async function uploadToSupabase(file, applicationNumber, docType) {
+    if (!supabaseClient && !initSupabaseStorage()) {
+        throw new Error('Supabase not initialized');
     }
     
-    const receiptFile = document.getElementById('receiptFile')?.files[0];
-    if (receiptFile && paymentStatus === 'paid_pending') {
-        filesToUpload.push({
-            file: receiptFile,
-            documentType: 'payment_receipt'
-        });
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${applicationNumber}/${docType}_${Date.now()}.${fileExt}`;
+    
+    const { error } = await supabaseClient.storage
+        .from('documents')
+        .upload(fileName, file);
+    
+    if (error) throw error;
+    
+    const { data } = supabaseClient.storage
+        .from('documents')
+        .getPublicUrl(fileName);
+    
+    return data.publicUrl;
+}
+
+async function uploadMultipleDocuments(files, applicationNumber, onProgress) {
+    if (!supabaseClient && !initSupabaseStorage()) {
+        throw new Error('Supabase not initialized');
     }
     
-    if (filesToUpload.length === 0) return {};
+    const results = {};
+    let completed = 0;
+    const total = files.length;
     
-    if (!window.SupabaseStorage) {
-        throw new Error('Supabase Storage not available');
-    }
-    
-    const results = await window.SupabaseStorage.uploadMultiple(
-        filesToUpload,
-        applicationNumber,
-        (completed, total, docType, result) => {
-            console.log(`Uploaded ${docType}: ${completed}/${total}`);
+    for (const item of files) {
+        try {
+            const url = await uploadToSupabase(item.file, applicationNumber, item.documentType);
+            results[item.documentType] = url;
+            completed++;
+            if (onProgress) onProgress(completed, total, item.documentType, { success: true, url });
+        } catch (error) {
+            results[item.documentType] = { error: error.message };
+            completed++;
+            if (onProgress) onProgress(completed, total, item.documentType, { success: false, error: error.message });
         }
-    );
+    }
     
     return results;
 }
