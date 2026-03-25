@@ -804,8 +804,6 @@ async function submitApplication() {
         if (applicationData.destination === 'campus') {
             application.tcf_status = document.getElementById('tcfStatus')?.value;
         }
-    
-        application.id = Date.now().toString();
 
         const saveResult = await saveToSheet(application);
         console.log('Save result:', saveResult);
