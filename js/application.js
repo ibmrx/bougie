@@ -132,13 +132,22 @@ function initApplicationForm(destination) {
     // Start button handler
     const startBtn = document.getElementById('startBtn');
 if (startBtn) {
-    startBtn.onclick = function() {
-        if (validateStep1()) {
-            currentStep = 2;
-            updateStepDisplay();
-        }
-    };
+    startBtn.addEventListener('click', () => {
+        console.log("Start clicked");
+
+        if (!validateStep1()) return;
+
+        // Hide step1
+        document.getElementById('step1').classList.add('hidden');
+
+        // Show step2
+        document.getElementById('step2').classList.remove('hidden');
+
+        currentStep = 2;
+        updateStepDisplay();
+    });
 }
+
 
 /**
  * Setup privacy policy modal
@@ -501,31 +510,21 @@ function saveCurrentStepData() {
  * Update step display
  */
 function updateStepDisplay() {
-    const steps = [null, 'step1', 'step2', 'step3', 'step4', 'step5'];
+    const steps = ['step1', 'step2', 'step3', 'step4', 'step5'];
     
-    for (let i = 1; i <= totalSteps; i++) {
-        const stepElement = document.querySelector(`.step[data-step="${i}"]`);
-        const formElement = document.getElementById(steps[i]);
-        
-        if (i === currentStep) {
-            if (stepElement) {
-                stepElement.classList.add('active');
-                stepElement.classList.remove('completed');
-            }
-            if (formElement) formElement.classList.remove('hidden');
-        } else if (i < currentStep) {
-            if (stepElement) {
-                stepElement.classList.add('completed');
-                stepElement.classList.remove('active');
-            }
-            if (formElement) formElement.classList.add('hidden');
-        } else {
-            if (stepElement) {
-                stepElement.classList.remove('active', 'completed');
-            }
-            if (formElement) formElement.classList.add('hidden');
-        }
+    for (let i = 0; i < totalSteps; i++) {
+    const stepElement = document.querySelector(`.step[data-step="${i+1}"]`);
+    const formElement = document.getElementById(steps[i]);
+
+    if (i + 1 === currentStep) {
+        stepElement?.classList.add('active');
+        formElement?.classList.remove('hidden');
+    } else {
+        stepElement?.classList.remove('active');
+        formElement?.classList.add('hidden');
     }
+}
+
     
     const container = document.querySelector('.container');
     if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
