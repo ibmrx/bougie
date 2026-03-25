@@ -183,21 +183,28 @@
         return true;
     }
 
-    // ==================== LOAD APPLICATIONS FROM SHEETDB ====================
-    async function loadApplications() {
-        showLoading(true);
-        try {
-            const response = await fetch(SHEETDB_URL);
-            const data = await response.json();
-            applications = data.map((item, idx) => ({ ...item, rowIndex: idx + 1 }));
-            applyFilters();
-        } catch (error) {
-            console.error('Error loading applications:', error);
-            showNotification('Failed to load applications', 'error');
-        } finally {
-            showLoading(false);
-        }
+   async function loadApplications() {
+    showLoading(true);
+    try {
+        const response = await fetch(SHEETDB_URL);
+        const data = await response.json();
+        
+        // Parse the documents field from JSON string to object
+        applications = data.map((item, idx) => ({
+            ...item,
+            rowIndex: idx + 1,
+            documents: item.documents ? (typeof item.documents === 'string' ? JSON.parse(item.documents) : item.documents) : {}
+        }));
+        
+        console.log('Loaded applications with parsed documents:', applications);
+        applyFilters();
+    } catch (error) {
+        console.error('Error loading applications:', error);
+        showNotification('Failed to load applications', 'error');
+    } finally {
+        showLoading(false);
     }
+}
 
     // ==================== FILTERS ====================
     function applyFilters() {
