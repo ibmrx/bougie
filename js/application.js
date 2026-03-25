@@ -722,16 +722,17 @@ function setupPaymentHandlers() {
         });
     });
     
-    // Pay Now button
+    // Pay Now button - shows upload widget
     if (payNowBtn) {
         payNowBtn.addEventListener('click', () => {
             paymentStatus = 'paid_pending';
             if (receiptUpload) receiptUpload.classList.remove('hidden');
-            if (paymentNextBtn) paymentNextBtn.disabled = false;
+            // Disable next button until receipt is uploaded
+            if (paymentNextBtn) paymentNextBtn.disabled = true;
         });
     }
     
-    // Pay Later button
+    // Pay Later button - no upload needed
     if (payLaterBtn) {
         payLaterBtn.addEventListener('click', () => {
             paymentStatus = 'pending';
@@ -740,39 +741,43 @@ function setupPaymentHandlers() {
         });
     }
     
-    // Receipt upload area
-    const receiptUploadArea = document.getElementById('receiptArea');
-    const receiptFile = document.getElementById('receiptFile');
+    // CLOUDINARY WIDGET FOR RECEIPT UPLOAD
+    const uploadBtn = document.getElementById('uploadReceiptBtn');
+    const receiptUrlInput = document.getElementById('receiptUrl');
+    const receiptPreview = document.getElementById('receiptPreview');
 
-    if (receiptUploadArea && receiptFile) {
-        // Click on the upload area triggers the file input
-        receiptUploadArea.addEventListener('click', (e) => {
-            e.stopPropagation();
-            receiptFile.click();
-        });
-        
-        // When a file is selected, validate and store it
-        receiptFile.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            // Validate file size (max 5MB)
-            if (file.size > MAX_FILE_SIZE) {
-                alert(`File "${file.name}" exceeds 5MB limit.`);
-                receiptFile.value = '';  // Clear the input
-                return;
-            }
-            
-            // Validate file type (same as other documents)
-            if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-                alert(`File "${file.name}" is not allowed. Please upload PDF, JPG, or PNG files.`);
-                receiptFile.value = '';
-                return;
-            }
-            
-            // Success: update UI and store the file
-            receiptUploadArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded successfully</p>';
-            applicationData.receiptFile = file;
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', () => {
+            const widget = cloudinary.createUploadWidget(
+                {
+                    cloudName: 'dtqokf3fl',
+                    uploadPreset: 'bougie_uploads',
+                    sources: ['local', 'camera', 'google_drive'],
+                    multiple: false,
+                    maxFileSize: 5 * 1024 * 1024,
+                    clientAllowedFormats: ['pdf', 'jpg', 'jpeg', 'png']
+                },
+                (error, result) => {
+                    if (!error && result && result.event === 'success') {
+                        const url = result.info.secure_url;
+                        receiptUrlInput.value = url;
+                        applicationData.receiptUrl = url;
+                        if (receiptPreview) {
+                            receiptPreview.innerHTML = `
+                                <div style="background: #e8f5e9; padding: 10px; border-radius: 8px; margin-top: 5px;">
+                                    <i class="fas fa-check-circle" style="color: #27ae60;"></i>
+                                    Receipt uploaded successfully
+                                    <br>
+                                    <a href="${url}" target="_blank" style="font-size: 12px;">View file</a>
+                                </div>
+                            `;
+                        }
+                        // Enable next button after upload
+                        if (paymentNextBtn) paymentNextBtn.disabled = false;
+                    }
+                }
+            );
+            widget.open();
         });
     }
 }
