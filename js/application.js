@@ -749,12 +749,25 @@ function setupPaymentHandlers() {
         });
         
         receiptFile.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file && validateFile(file)) {
-                receiptUploadArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded successfully</p>';
-                applicationData.receiptFile = file;
-            }
-        });
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Same validation as passport upload
+    if (file.size > MAX_FILE_SIZE) {
+        alert(`File "${file.name}" exceeds 5MB limit.`);
+        receiptFile.value = '';
+        return;
+    }
+    
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+        alert(`File "${file.name}" is not allowed. Please upload PDF, JPG, or PNG files.`);
+        receiptFile.value = '';
+        return;
+    }
+    
+    receiptUploadArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded successfully</p>';
+    applicationData.receiptFile = file;
+});
     }
 }
 
