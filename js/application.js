@@ -34,58 +34,6 @@ function initSupabase() {
 // Initialize immediately
 initSupabase();
 
-async function uploadToSupabase(file, applicationNumber, docType) {
-    if (!supabaseClient && !initSupabaseStorage()) {
-        throw new Error('Supabase not initialized');
-    }
-    
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${applicationNumber}/${docType}_${Date.now()}.${fileExt}`;
-    
-    const { error } = await supabaseClient.storage
-        .from('documents')
-        .upload(fileName, file);
-    
-    if (error) throw error;
-    
-    const { data } = supabaseClient.storage
-        .from('documents')
-        .getPublicUrl(fileName);
-    
-    return data.publicUrl;
-}
-
-async function uploadMultipleDocuments(files, applicationNumber, onProgress) {
-    if (!supabaseClient && !initSupabaseStorage()) {
-        throw new Error('Supabase not initialized');
-    }
-    
-    const results = {};
-    let completed = 0;
-    const total = files.length;
-    
-    for (const item of files) {
-        try {
-            const url = await uploadToSupabase(item.file, applicationNumber, item.documentType);
-            results[item.documentType] = url;
-            completed++;
-            if (onProgress) onProgress(completed, total, item.documentType, { success: true, url });
-        } catch (error) {
-            results[item.documentType] = { error: error.message };
-            completed++;
-            if (onProgress) onProgress(completed, total, item.documentType, { success: false, error: error.message });
-        }
-    }
-    
-    return results;
-}
-
-window.SupabaseStorage = {
-    init: initSupabaseStorage,
-    upload: uploadToSupabase,
-    uploadMultiple: uploadMultipleDocuments
-};
-
 // Document requirements based on destination and study level
 const DOCUMENT_REQUIREMENTS = {
     italy: {
@@ -191,12 +139,8 @@ function initApplicationForm(destination) {
             }
         });
     }
-
-        if (window.SupabaseStorage) {
-        window.SupabaseStorage.init();
-    }
-    
 } 
+
 /**
  * Setup privacy policy modal
  */
@@ -235,7 +179,6 @@ function setupPrivacyPolicyModal() {
     }
 }
 
-
 function createUploadSection(containerId, docs) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -256,6 +199,7 @@ function createUploadSection(containerId, docs) {
     });
     attachUploadHandlers();
 }
+
 /**
  * Initialize signature canvas
  */
@@ -340,7 +284,6 @@ function initSignatureCanvas() {
         });
     }
 }
-
 
 /**
  * Setup step navigation
@@ -879,7 +822,7 @@ async function sendEmail(to, subject, html) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                from: 'Bougie Immigration <onboarding@resend.dev>', // Keep this or use verified domain
+                from: 'Bougie Immigration <onboarding@resend.dev>',
                 to: [to],
                 subject: subject,
                 html: html
@@ -894,6 +837,9 @@ async function sendEmail(to, subject, html) {
     }
 }
 
+/**
+ * Load email template from file
+ */
 async function loadEmailTemplate(templateName, data) {
     const response = await fetch(`email-templates/${templateName}.html`);
     let html = await response.text();
@@ -955,17 +901,15 @@ async function submitApplication() {
         localStorage.setItem('bougie_applications', JSON.stringify(applications));
         
         const destinationName = applicationData.destination === 'italy' ? 'Italy' : 'Campus France';
-const emailHtml = await loadEmailTemplate('application-confirmation', {
-    firstName: application.first_name,
-    lastName: application.last_name,
-    applicationNumber: appNumber,
-    destination: 'Campus France',
-    paymentDeadline: deadline.toLocaleDateString()
-});
+        const emailHtml = await loadEmailTemplate('application-confirmation', {
+            firstName: application.first_name,
+            lastName: application.last_name,
+            applicationNumber: appNumber,
+            destination: destinationName,
+            paymentDeadline: deadline.toLocaleDateString()
+        });
 
-await sendEmail(application.email, 'Application Confirmation - Bougie Immigration', emailHtml);
-        
-        await sendEmail(application.email, `Application Confirmation - Bougie Immigration`, emailHtml);
+        await sendEmail(application.email, 'Application Confirmation - Bougie Immigration', emailHtml);
         
         const successAppNumber = document.getElementById('successAppNumber');
         if (successAppNumber) {
@@ -975,6 +919,13 @@ await sendEmail(application.email, 'Application Confirmation - Bougie Immigratio
         const successModal = document.getElementById('successModal');
         if (successModal) {
             successModal.style.display = 'flex';
+            
+            const successOkBtn = document.getElementById('successOkBtn');
+            if (successOkBtn) {
+                successOkBtn.onclick = () => {
+                    window.location.href = 'index.html';
+                };
+            }
         }
         
     } catch (error) {
@@ -1007,12 +958,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (submitBtn) {
         submitBtn.addEventListener('click', submitApplication);
     }
-
-    const successOkBtn = document.getElementById('successOkBtn');
-    if (successOkBtn) {
-        successOkBtn.onclick = () => {
-            window.location.href = 'index.html';
-        };
-    }
-    
 });
