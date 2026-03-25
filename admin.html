@@ -9,425 +9,71 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f4eddb;
-            color: #2c2b28;
-        }
-
-        /* Header */
-        .header {
-            background-color: #dcdad5;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-container {
-            max-width: 1600px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .logo img {
-            height: 45px;
-            width: auto;
-        }
-
-        .logo-text {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #2c2b28;
-        }
-
-        .logo-text span {
-            font-weight: 400;
-            color: #6b6a66;
-        }
-
-        .admin-badge {
-            background-color: #9b8e6e;
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .logout-btn {
-            background: none;
-            border: none;
-            color: #2c2b28;
-            cursor: pointer;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
-            background-color: rgba(0,0,0,0.05);
-            color: #e74c3c;
-        }
-
-        /* Main Container */
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        /* Stats Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            transition: transform 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .stat-title {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #9b8e6e;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #2c2b28;
-        }
-
-        /* Filters */
-        .filters-bar {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 1rem 1.5rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .filter-group {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .filter-select, .search-input {
-            padding: 0.5rem 1rem;
-            border: 1px solid #dcdad5;
-            border-radius: 12px;
-            font-family: inherit;
-            background-color: white;
-            cursor: pointer;
-        }
-
-        .search-input {
-            width: 250px;
-            cursor: text;
-        }
-
-        .btn-download {
-            background-color: #2c2b28;
-            color: #f4eddb;
-            border: none;
-            padding: 0.5rem 1.25rem;
-            border-radius: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .btn-download:hover {
-            background-color: #4a4945;
-        }
-
-        /* Table */
-        .table-container {
-            background: #ffffff;
-            border-radius: 20px;
-            overflow-x: auto;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .applications-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 800px;
-        }
-
-        .applications-table th {
-            text-align: left;
-            padding: 1rem;
-            background-color: #faf9f5;
-            font-weight: 600;
-            color: #2c2b28;
-            border-bottom: 2px solid #dcdad5;
-        }
-
-        .applications-table td {
-            padding: 1rem;
-            border-bottom: 1px solid #dcdad5;
-            vertical-align: middle;
-        }
-
-        .applications-table tr:hover {
-            background-color: #faf9f5;
-        }
-
-        /* Status Badges */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            padding: 0.25rem 0.75rem;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .status-pending {
-            background-color: #fef5e7;
-            color: #f39c12;
-        }
-
-        .status-approved {
-            background-color: #e8f5e9;
-            color: #27ae60;
-        }
-
-        .status-rejected {
-            background-color: #fee;
-            color: #e74c3c;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .btn-icon {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: #f4eddb; color: #2c2b28; }
+        .header { background-color: #dcdad5; padding: 1rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        .header-container { max-width: 1600px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .logo { display: flex; align-items: center; gap: 1rem; }
+        .logo img { height: 45px; width: auto; }
+        .logo-text { font-size: 1.2rem; font-weight: 700; color: #2c2b28; }
+        .logo-text span { font-weight: 400; color: #6b6a66; }
+        .admin-badge { background-color: #9b8e6e; color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .header-actions { display: flex; align-items: center; gap: 1.5rem; }
+        .logout-btn { background: none; border: none; color: #2c2b28; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 8px; transition: all 0.3s; }
+        .logout-btn:hover { background-color: rgba(0,0,0,0.05); color: #e74c3c; }
+        .container { max-width: 1600px; margin: 0 auto; padding: 2rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: #ffffff; border-radius: 20px; padding: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: transform 0.3s; }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: #9b8e6e; margin-bottom: 0.5rem; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: #2c2b28; }
+        .filters-bar { background: #ffffff; border-radius: 16px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; }
+        .filter-group { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .filter-select, .search-input { padding: 0.5rem 1rem; border: 1px solid #dcdad5; border-radius: 12px; font-family: inherit; background: white; cursor: pointer; }
+        .search-input { width: 250px; cursor: text; }
+        .btn-download { background-color: #2c2b28; color: #f4eddb; border: none; padding: 0.5rem 1.25rem; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-weight: 500; transition: all 0.3s; }
+        .btn-download:hover { background-color: #4a4945; }
+        .table-container { background: #ffffff; border-radius: 20px; overflow-x: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .applications-table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        .applications-table th { text-align: left; padding: 1rem; background-color: #faf9f5; font-weight: 600; border-bottom: 2px solid #dcdad5; }
+        .applications-table td { padding: 1rem; border-bottom: 1px solid #dcdad5; vertical-align: middle; }
+        .applications-table tr:hover { background-color: #faf9f5; }
+        .status-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; }
+        .status-pending { background-color: #fef5e7; color: #f39c12; }
+        .status-approved { background-color: #e8f5e9; color: #27ae60; }
+        .status-rejected { background-color: #fee; color: #e74c3c; }
+        .action-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .btn-icon { background: none; border: none; cursor: pointer; padding: 0.5rem; border-radius: 8px; transition: all 0.3s; font-size: 1rem; }
         .btn-view { color: #3498db; }
         .btn-view:hover { background-color: #e8f0fe; }
         .btn-approve { color: #27ae60; }
         .btn-approve:hover { background-color: #e8f5e9; }
         .btn-reject { color: #e74c3c; }
         .btn-reject:hover { background-color: #fee; }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: #ffffff;
-            border-radius: 24px;
-            max-width: 800px;
-            width: 90%;
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem;
-            border-bottom: 1px solid #dcdad5;
-        }
-
-        .modal-header h3 {
-            font-size: 1.25rem;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #6b6a66;
-        }
-
-        .modal-close:hover {
-            color: #e74c3c;
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        .modal-footer {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid #dcdad5;
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-        }
-
-        /* Detail Rows */
-        .detail-row {
-            display: flex;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #dcdad5;
-        }
-
-        .detail-label {
-            width: 160px;
-            font-weight: 600;
-            color: #6b6a66;
-        }
-
-        .detail-value {
-            flex: 1;
-        }
-
-        /* Documents List */
-        .documents-list {
-            margin-top: 1rem;
-        }
-
-        .doc-item {
-            background-color: #f4eddb;
-            padding: 0.75rem;
-            border-radius: 8px;
-            margin-bottom: 0.75rem;
-        }
-
-        .doc-item img {
-            max-width: 100%;
-            max-height: 150px;
-            margin-top: 0.5rem;
-            border-radius: 8px;
-        }
-
-        /* Loading & Empty State */
-        .loading {
-            text-align: center;
-            padding: 3rem;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #dcdad5;
-            border-top-color: #2c2b28;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: #6b6a66;
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: #dcdad5;
-        }
-
-        /* Notification */
-        .notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 10000;
-            animation: slideIn 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .container { padding: 1rem; }
-            .filters-bar { flex-direction: column; align-items: stretch; }
-            .filter-group { flex-direction: column; }
-            .search-input { width: 100%; }
-            .detail-row { flex-direction: column; }
-            .detail-label { width: 100%; margin-bottom: 0.25rem; }
-        }
+        .btn-delete { color: #e74c3c; }
+        .btn-delete:hover { background-color: #fee; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: #fff; border-radius: 24px; max-width: 800px; width: 90%; max-height: 85vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid #dcdad5; }
+        .modal-header h3 { font-size: 1.25rem; }
+        .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6b6a66; }
+        .modal-close:hover { color: #e74c3c; }
+        .modal-body { padding: 1.5rem; }
+        .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #dcdad5; display: flex; justify-content: flex-end; gap: 1rem; }
+        .detail-row { display: flex; padding: 0.75rem 0; border-bottom: 1px solid #dcdad5; }
+        .detail-label { width: 160px; font-weight: 600; color: #6b6a66; }
+        .detail-value { flex: 1; }
+        .documents-list { margin-top: 1rem; }
+        .doc-item { background-color: #f4eddb; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.75rem; }
+        .doc-item img { max-width: 100%; max-height: 150px; margin-top: 0.5rem; border-radius: 8px; }
+        .loading { text-align: center; padding: 3rem; }
+        .spinner { width: 40px; height: 40px; border: 3px solid #dcdad5; border-top-color: #2c2b28; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .empty-state { text-align: center; padding: 3rem; color: #6b6a66; }
+        .empty-state i { font-size: 3rem; margin-bottom: 1rem; color: #dcdad5; }
+        .notification { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; display: flex; align-items: center; gap: 10px; z-index: 10000; animation: slideIn 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @media (max-width: 768px) { .container { padding: 1rem; } .filters-bar { flex-direction: column; align-items: stretch; } .filter-group { flex-direction: column; } .search-input { width: 100%; } .detail-row { flex-direction: column; } .detail-label { width: 100%; margin-bottom: 0.25rem; } }
     </style>
 </head>
 <body>
@@ -446,7 +92,6 @@
     </header>
 
     <div class="container">
-        <!-- Stats Cards -->
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-title">Total Applications</div><div class="stat-value" id="totalCount">0</div></div>
             <div class="stat-card"><div class="stat-title">Pending</div><div class="stat-value" id="pendingCount">0</div></div>
@@ -454,7 +99,6 @@
             <div class="stat-card"><div class="stat-title">Rejected</div><div class="stat-value" id="rejectedCount">0</div></div>
         </div>
 
-        <!-- Filters -->
         <div class="filters-bar">
             <div class="filter-group">
                 <select id="statusFilter" class="filter-select"><option value="all">All Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
@@ -464,13 +108,12 @@
             <button id="downloadAllBtn" class="btn-download"><i class="fas fa-download"></i> Export Data (JSON)</button>
         </div>
 
-        <!-- Applications Table -->
         <div class="table-container">
             <div id="loadingState" class="loading"><div class="spinner"></div><p>Loading applications...</p></div>
             <div id="tableContent" style="display: none;">
                 <table class="applications-table">
                     <thead>
-                        <tr><th>Application #</th><th>Full Name</th><th>Baccalaureate</th><th>Phone</th><th>Email</th><th>Destination</th><th>Status</th><th>Actions</th></tr>
+                        <tr><th>Application #</th><th>Full Name</th><th>Baccalaureate</th><th>Phone</th><th>Email</th><th>Destination</th><th>Status</th><th>Actions</th>……
                     </thead>
                     <tbody id="applicationsTableBody"></tbody>
                 </table>
@@ -479,7 +122,6 @@
         </div>
     </div>
 
-    <!-- Detail Modal -->
     <div id="detailModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -496,13 +138,11 @@
     </div>
 
     <script>
-        // ==================== STATE ====================
         let applications = [];
         let filteredApplications = [];
         let currentFilters = { status: 'all', destination: 'all', search: '' };
         let currentModalApp = null;
 
-        // ==================== DOM ELEMENTS ====================
         const elements = {
             totalCount: document.getElementById('totalCount'),
             pendingCount: document.getElementById('pendingCount'),
@@ -524,7 +164,6 @@
             adminName: document.getElementById('adminName')
         };
 
-        // ==================== AUTHENTICATION ====================
         function checkAuth() {
             const isLoggedIn = sessionStorage.getItem('admin_logged_in');
             if (!isLoggedIn || isLoggedIn !== 'true') {
@@ -536,7 +175,17 @@
             return true;
         }
 
-        // ==================== LOAD APPLICATIONS ====================
+        function deleteApplication(applicationId) {
+            const app = applications.find(a => a.id === applicationId);
+            if (!app) return;
+            if (confirm(`Are you sure you want to DELETE application ${app.application_number}? This action cannot be undone.`)) {
+                applications = applications.filter(a => a.id !== applicationId);
+                localStorage.setItem('bougie_applications', JSON.stringify(applications));
+                applyFilters();
+                showNotification(`Application ${app.application_number} deleted.`, 'warning');
+            }
+        }
+
         function loadApplications() {
             showLoading(true);
             try {
@@ -555,7 +204,6 @@
             localStorage.setItem('bougie_applications', JSON.stringify(applications));
         }
 
-        // ==================== FILTERS ====================
         function applyFilters() {
             filteredApplications = applications.filter(app => {
                 const matchesStatus = currentFilters.status === 'all' || app.application_status === currentFilters.status;
@@ -583,7 +231,6 @@
             if (elements.rejectedCount) elements.rejectedCount.textContent = rejected;
         }
 
-        // ==================== HELPER FUNCTIONS ====================
         function formatDate(dateString) {
             if (!dateString) return 'N/A';
             try {
@@ -626,16 +273,13 @@
             return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
 
-        // ==================== RENDER TABLE ====================
         function renderTable() {
             if (!elements.applicationsTableBody) return;
-            
             if (filteredApplications.length === 0) {
                 elements.applicationsTableBody.innerHTML = '';
                 if (elements.emptyState) elements.emptyState.style.display = 'block';
                 return;
             }
-            
             if (elements.emptyState) elements.emptyState.style.display = 'none';
             
             elements.applicationsTableBody.innerHTML = filteredApplications.map(app => `
@@ -654,13 +298,13 @@
                                 <button class="btn-icon btn-approve" onclick="approveApplication('${app.id}')" title="Approve"><i class="fas fa-check"></i></button>
                                 <button class="btn-icon btn-reject" onclick="rejectApplication('${app.id}')" title="Reject"><i class="fas fa-times"></i></button>
                             ` : ''}
+                            <button class="btn-icon btn-delete" onclick="deleteApplication('${app.id}')" title="Delete"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>
                 </tr>
             `).join('');
         }
 
-        // ==================== VIEW DETAILS ====================
         function viewApplication(id) {
             const app = applications.find(a => a.id === id);
             if (!app) return;
@@ -719,16 +363,13 @@
                     elements.modalRejectBtn.style.display = 'none';
                 }
             }
-            
             if (elements.detailModal) elements.detailModal.style.display = 'flex';
         }
 
-        // ==================== APPROVE / REJECT ====================
         async function approveApplication(id) {
             const app = applications.find(a => a.id === id);
             if (!app) return;
             if (!confirm(`Approve application ${app.application_number}? Email will be sent to ${app.email}.`)) return;
-            
             app.application_status = 'approved';
             app.decision_date = new Date().toISOString();
             saveApplications();
@@ -743,7 +384,6 @@
             if (!app) return;
             const reason = prompt('Please provide a reason for rejection:');
             if (!reason) return;
-            
             app.application_status = 'rejected';
             app.admin_notes = reason;
             app.decision_date = new Date().toISOString();
@@ -761,7 +401,6 @@
             const html = status === 'approved' 
                 ? `<h2>Application Approved!</h2><p>Dear ${app.first_name},</p><p>Congratulations! Your application has been approved.</p><p><strong>Application Number:</strong> ${app.application_number}</p><p><strong>Destination:</strong> ${destination}</p>`
                 : `<h2>Application Status Update</h2><p>Dear ${app.first_name},</p><p>Your application was not approved.</p><p><strong>Reason:</strong> ${escapeHtml(reason)}</p>`;
-            
             try {
                 await fetch('https://api.resend.com/emails', {
                     method: 'POST',
@@ -771,7 +410,6 @@
             } catch (error) { console.error('Email error:', error); }
         }
 
-        // ==================== EXPORT ====================
         function exportData() {
             const dataStr = JSON.stringify(applications, null, 2);
             const blob = new Blob([dataStr], { type: 'application/json' });
@@ -784,7 +422,6 @@
             showNotification('Export completed', 'success');
         }
 
-        // ==================== UI HELPERS ====================
         function showLoading(show) {
             if (elements.loadingState) elements.loadingState.style.display = show ? 'flex' : 'none';
             if (elements.tableContent) elements.tableContent.style.display = show ? 'none' : 'block';
@@ -805,7 +442,6 @@
         function closeModal() { if (elements.detailModal) elements.detailModal.style.display = 'none'; }
         function logout() { sessionStorage.clear(); window.location.href = 'login.html'; }
 
-        // ==================== EVENT LISTENERS ====================
         if (elements.statusFilter) elements.statusFilter.addEventListener('change', (e) => { currentFilters.status = e.target.value; applyFilters(); });
         if (elements.destinationFilter) elements.destinationFilter.addEventListener('change', (e) => { currentFilters.destination = e.target.value; applyFilters(); });
         if (elements.searchInput) elements.searchInput.addEventListener('input', (e) => { currentFilters.search = e.target.value; applyFilters(); });
@@ -815,9 +451,9 @@
         window.viewApplication = viewApplication;
         window.approveApplication = approveApplication;
         window.rejectApplication = rejectApplication;
+        window.deleteApplication = deleteApplication;
         window.closeModal = closeModal;
 
-        // ==================== INIT ====================
         if (checkAuth()) loadApplications();
     </script>
 </body>
