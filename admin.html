@@ -178,57 +178,30 @@
         return true;
     }
 
-   async function deleteApplication(index) {
-    const app = filteredApplications[index];
-    if (!app) return;
-    
-    // Find the actual app in the main applications array
-    const realIndex = applications.findIndex(a => a.application_number === app.application_number);
-    
-    if (confirm(`Are you sure you want to DELETE application ${app.application_number}? This action cannot be undone.`)) {
-        try {
-            // Delete from SheetDB using the row number
-            const response = await fetch(`https://sheetdb.io/api/v1/bfop7u9vgn5lp/${realIndex + 1}`, {
-                method: 'DELETE'
-            });
-            
-            if (response.ok) {
-                // Remove from local arrays
-                applications.splice(realIndex, 1);
-                loadApplications(); // Reload to refresh filtered list
-                showNotification(`Application ${app.application_number} deleted.`, 'warning');
-                closeModal();
-            } else {
-                throw new Error('Delete failed');
-            }
-        } catch (error) {
-            console.error('Delete error:', error);
-            showNotification('Failed to delete application', 'error');
+    function deleteApplication(applicationId) {
+        const app = applications.find(a => a.id === applicationId);
+        if (!app) return;
+        if (confirm(`Are you sure you want to DELETE application ${app.application_number}? This action cannot be undone.`)) {
+            applications = applications.filter(a => a.id !== applicationId);
+            localStorage.setItem('bougie_applications', JSON.stringify(applications));
+            applyFilters();
+            showNotification(`Application ${app.application_number} deleted.`, 'warning');
         }
     }
-}
-        
-     async function loadApplications() {
-    showLoading(true);
-    try {
-        const response = await fetch('https://sheetdb.io/api/v1/bfop7u9vgn5lp');
-        const data = await response.json();
-        
-        // Add rowIndex to each record (SheetDB rows start at 1)
-        applications = data.map((item, idx) => ({
-            ...item,
-            rowIndex: idx + 1
-        }));
-        
-        console.log('Loaded applications:', applications);
-        applyFilters();
-    } catch (error) {
-        console.error('Error loading applications:', error);
-        showNotification('Failed to load applications', 'error');
-    } finally {
-        showLoading(false);
+
+    function loadApplications() {
+        showLoading(true);
+        try {
+            const stored = localStorage.getItem('bougie_applications');
+            applications = stored ? JSON.parse(stored) : [];
+            applyFilters();
+        } catch (error) {
+            console.error('Error loading applications:', error);
+            showNotification('Failed to load applications', 'error');
+        } finally {
+            showLoading(false);
+        }
     }
-}
 
     function saveApplications() {
         localStorage.setItem('bougie_applications', JSON.stringify(applications));
@@ -303,37 +276,37 @@
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-   function renderTable() {
-    if (!elements.applicationsTableBody) return;
-    if (filteredApplications.length === 0) {
-        elements.applicationsTableBody.innerHTML = '';
-        if (elements.emptyState) elements.emptyState.style.display = 'block';
-        return;
+    function renderTable() {
+        if (!elements.applicationsTableBody) return;
+        if (filteredApplications.length === 0) {
+            elements.applicationsTableBody.innerHTML = '';
+            if (elements.emptyState) elements.emptyState.style.display = 'block';
+            return;
+        }
+        if (elements.emptyState) elements.emptyState.style.display = 'none';
+        
+        elements.applicationsTableBody.innerHTML = filteredApplications.map(app => `
+            <tr>
+                <td><code style="font-size:0.8rem">${escapeHtml(app.application_number || 'N/A')}</code></td>
+                <td><strong>${escapeHtml(app.first_name || '')} ${escapeHtml(app.last_name || '')}</strong></td>
+                <td>${formatMonthYear(app.bac_date)}</td>
+                <td>${escapeHtml(app.phone || 'N/A')}</td>
+                <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis">${escapeHtml(app.email || 'N/A')}</td>
+                <td>${getDestinationDisplay(app.destination)}</td>
+                <td>${getStatusBadge(app.application_status)}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-icon btn-view" onclick="viewApplication('${app.id}')" title="View Details"><i class="fas fa-eye"></i></button>
+                        ${app.application_status === 'pending' ? `
+                            <button class="btn-icon btn-approve" onclick="approveApplication('${app.id}')" title="Approve"><i class="fas fa-check"></i></button>
+                            <button class="btn-icon btn-reject" onclick="rejectApplication('${app.id}')" title="Reject"><i class="fas fa-times"></i></button>
+                        ` : ''}
+                        <button class="btn-icon btn-delete" onclick="deleteApplication('${app.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+                    </div>
+                </td>
+             </tr>
+        `).join('');
     }
-    if (elements.emptyState) elements.emptyState.style.display = 'none';
-    
-    elements.applicationsTableBody.innerHTML = filteredApplications.map((app, index) => `
-        <tr>
-            <td><code>${escapeHtml(app.application_number || 'N/A')}</code>}
-            <td><strong>${escapeHtml(app.first_name || '')} ${escapeHtml(app.last_name || '')}</strong>}
-            <td>${formatMonthYear(app.bac_date)}}
-            <td>${escapeHtml(app.phone || 'N/A')}}
-            <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis">${escapeHtml(app.email || 'N/A')} },
-            <td>${getDestinationDisplay(app.destination)} },
-            <td>${getStatusBadge(app.application_status)} },
-            <td>
-                <div class="action-buttons">
-                    <button class="btn-icon btn-view" onclick="viewApplication(${index})" title="View Details"><i class="fas fa-eye"></i></button>
-                    ${app.application_status === 'pending' ? `
-                        <button class="btn-icon btn-approve" onclick="approveApplication(${index})" title="Approve"><i class="fas fa-check"></i></button>
-                        <button class="btn-icon btn-reject" onclick="rejectApplication(${index})" title="Reject"><i class="fas fa-times"></i></button>
-                    ` : ''}
-                    <button class="btn-icon btn-delete" onclick="deleteApplication(${index})" title="Delete"><i class="fas fa-trash"></i></button>
-                </div>
-             },
-         ,
-    `).join('');
-}
 
     // ==================== EMAILJS FUNCTIONS ====================
     async function sendApprovalEmail(app) {
@@ -394,184 +367,109 @@
     }
 
     // ==================== VIEW APPLICATION DETAILS ====================
-
-    // ==================== VIEW APPLICATION ====================
-function viewApplication(index) {
-    const app = filteredApplications[index];
-    if (!app) return;
-    currentModalApp = app;
-    
-    let documentsHtml = '';
-    if (app.documents && Object.keys(app.documents).length > 0) {
-        documentsHtml = '<div class="documents-list"><div class="detail-label" style="margin-bottom: 0.5rem;">Uploaded Documents</div>';
-        for (const [docType, docUrl] of Object.entries(app.documents)) {
-            if (typeof docUrl === 'string' && docUrl.startsWith('http')) {
-                const isImage = docUrl.match(/\.(jpg|jpeg|png|gif|webp)/i);
-                const isPdf = docUrl.match(/\.pdf$/i);
-                
-                documentsHtml += `
-                    <div class="doc-item">
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                            <span><i class="fas fa-file"></i> ${formatDocumentName(docType)}</span>
-                            <div>
-                                <a href="${docUrl}" target="_blank" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-external-link-alt"></i> View</a>
-                                <a href="${docUrl}" download class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-download"></i> Download</a>
-                            </div>
-                        </div>`;
-                
-                if (isImage) {
-                    documentsHtml += `<img src="${docUrl}" style="max-width: 100%; max-height: 150px; margin-top: 0.5rem; border-radius: 8px;" />`;
-                } else if (isPdf) {
-                    documentsHtml += `<iframe src="${docUrl}" style="width: 100%; height: 200px; margin-top: 0.5rem; border: 1px solid #dcdad5; border-radius: 8px;"></iframe>`;
+    function viewApplication(id) {
+        const app = applications.find(a => a.id === id);
+        if (!app) return;
+        currentModalApp = app;
+        
+        let documentsHtml = '';
+        if (app.documents && Object.keys(app.documents).length > 0) {
+            documentsHtml = '<div class="documents-list"><div class="detail-label" style="margin-bottom: 0.5rem;">Uploaded Documents</div>';
+            for (const [docType, docUrl] of Object.entries(app.documents)) {
+                if (typeof docUrl === 'string' && docUrl.startsWith('http')) {
+                    const isImage = docUrl.match(/\.(jpg|jpeg|png|gif|webp)/i);
+                    const isPdf = docUrl.match(/\.pdf$/i);
+                    
+                    documentsHtml += `
+                        <div class="doc-item">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                                <span><i class="fas fa-file"></i> ${formatDocumentName(docType)}</span>
+                                <div>
+                                    <a href="${docUrl}" target="_blank" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-external-link-alt"></i> View</a>
+                                    <a href="${docUrl}" download class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-download"></i> Download</a>
+                                </div>
+                            </div>`;
+                    
+                    if (isImage) {
+                        documentsHtml += `<img src="${docUrl}" style="max-width: 100%; max-height: 150px; margin-top: 0.5rem; border-radius: 8px;" />`;
+                    } else if (isPdf) {
+                        documentsHtml += `<iframe src="${docUrl}" style="width: 100%; height: 200px; margin-top: 0.5rem; border: 1px solid #dcdad5; border-radius: 8px;"></iframe>`;
+                    }
+                    
+                    documentsHtml += `</div>`;
                 }
-                
-                documentsHtml += `</div>`;
             }
+            documentsHtml += '</div>';
         }
-        documentsHtml += '</div>';
-    } else {
-        documentsHtml = '<div class="documents-list"><div class="detail-label">Uploaded Documents</div><p>No documents uploaded</p></div>';
-    }
-    
-    if (elements.modalBody) {
-        elements.modalBody.innerHTML = `
-            <div class="detail-row"><div class="detail-label">Application Number</div><div class="detail-value"><code>${escapeHtml(app.application_number)}</code></div></div>
-            <div class="detail-row"><div class="detail-label">Full Name</div><div class="detail-value">${escapeHtml(app.first_name)} ${escapeHtml(app.last_name)}</div></div>
-            <div class="detail-row"><div class="detail-label">Birth Date</div><div class="detail-value">${formatDate(app.birth_date)}</div></div>
-            <div class="detail-row"><div class="detail-label">Email</div><div class="detail-value">${escapeHtml(app.email)}</div></div>
-            <div class="detail-row"><div class="detail-label">Phone</div><div class="detail-value">${escapeHtml(app.phone)}</div></div>
-            <div class="detail-row"><div class="detail-label">Baccalaureate</div><div class="detail-value">${formatMonthYear(app.bac_date)}</div></div>
-            <div class="detail-row"><div class="detail-label">Applying Degree</div><div class="detail-value">${escapeHtml(app.year_of_study)}</div></div>
-            <div class="detail-row"><div class="detail-label">Destination</div><div class="detail-value">${getDestinationDisplay(app.destination)}</div></div>
-            <div class="detail-row"><div class="detail-label">Courses</div><div class="detail-value">${escapeHtml(app.courses)}</div></div>
-            <div class="detail-row"><div class="detail-label">Payment Status</div><div class="detail-value"><span class="status-badge ${app.payment_status === 'paid' ? 'status-approved' : 'status-pending'}">${app.payment_status === 'paid' ? 'Paid' : 'Pending'}</span></div></div>
-            <div class="detail-row"><div class="detail-label">Submitted</div><div class="detail-value">${formatDate(app.created_at)}</div></div>
-            ${app.tcf_status ? `<div class="detail-row"><div class="detail-label">TCF Status</div><div class="detail-value">${escapeHtml(app.tcf_status)}</div></div>` : ''}
-            ${app.admin_notes ? `<div class="detail-row"><div class="detail-label">Admin Notes</div><div class="detail-value">${escapeHtml(app.admin_notes)}</div></div>` : ''}
-            ${documentsHtml}
-        `;
-    }
-    
-    if (elements.modalApproveBtn && elements.modalRejectBtn) {
-        if (app.application_status === 'pending') {
-            elements.modalApproveBtn.style.display = 'inline-flex';
-            elements.modalRejectBtn.style.display = 'inline-flex';
-            elements.modalApproveBtn.onclick = () => approveApplication(index);
-            elements.modalRejectBtn.onclick = () => rejectApplication(index);
-        } else {
-            elements.modalApproveBtn.style.display = 'none';
-            elements.modalRejectBtn.style.display = 'none';
+        
+        if (elements.modalBody) {
+            elements.modalBody.innerHTML = `
+                <div class="detail-row"><div class="detail-label">Application Number</div><div class="detail-value"><code>${escapeHtml(app.application_number)}</code></div></div>
+                <div class="detail-row"><div class="detail-label">Full Name</div><div class="detail-value">${escapeHtml(app.first_name)} ${escapeHtml(app.last_name)}</div></div>
+                <div class="detail-row"><div class="detail-label">Birth Date</div><div class="detail-value">${formatDate(app.birth_date)}</div></div>
+                <div class="detail-row"><div class="detail-label">Email</div><div class="detail-value">${escapeHtml(app.email)}</div></div>
+                <div class="detail-row"><div class="detail-label">Phone</div><div class="detail-value">${escapeHtml(app.phone)}</div></div>
+                <div class="detail-row"><div class="detail-label">Baccalaureate</div><div class="detail-value">${formatMonthYear(app.bac_date)}</div></div>
+                <div class="detail-row"><div class="detail-label">Applying Degree</div><div class="detail-value">${escapeHtml(app.year_of_study)}</div></div>
+                <div class="detail-row"><div class="detail-label">Destination</div><div class="detail-value">${getDestinationDisplay(app.destination)}</div></div>
+                <div class="detail-row"><div class="detail-label">Courses</div><div class="detail-value">${escapeHtml(app.courses)}</div></div>
+                <div class="detail-row"><div class="detail-label">Payment Status</div><div class="detail-value"><span class="status-badge ${app.payment_status === 'paid' ? 'status-approved' : 'status-pending'}">${app.payment_status === 'paid' ? 'Paid' : 'Pending'}</span></div></div>
+                <div class="detail-row"><div class="detail-label">Submitted</div><div class="detail-value">${formatDate(app.created_at)}</div></div>
+                ${app.tcf_status ? `<div class="detail-row"><div class="detail-label">TCF Status</div><div class="detail-value">${escapeHtml(app.tcf_status)}</div></div>` : ''}
+                ${app.admin_notes ? `<div class="detail-row"><div class="detail-label">Admin Notes</div><div class="detail-value">${escapeHtml(app.admin_notes)}</div></div>` : ''}
+                ${documentsHtml}
+            `;
         }
-    }
-    if (elements.detailModal) elements.detailModal.style.display = 'flex';
-}
-
-// ==================== APPROVE APPLICATION ====================
-async function approveApplication(index) {
-    const app = filteredApplications[index];
-    if (!app) {
-        alert('Application not found');
-        return;
-    }
-    
-    if (!confirm(`Approve application ${app.application_number}? Email will be sent to ${app.email}.`)) return;
-
-    try {
-        // Use the actual row number from the data (SheetDB adds an 'id' field)
-        const rowId = app.id || (index + 1);
         
-        const response = await fetch(`https://sheetdb.io/api/v1/bfop7u9vgn5lp/${rowId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ application_status: 'approved' })
-        });
-        
-        const result = await response.json();
-        console.log('Approve result:', result);
-        
-        if (response.ok) {
-            showNotification(`Application ${app.application_number} approved. Email sent.`, 'success');
-            // Reload to refresh
-            loadApplications();
-            closeModal();
-        } else {
-            alert('Update failed: ' + JSON.stringify(result));
-        }
-    } catch (error) {
-        console.error('Approve error:', error);
-        alert('Failed to approve: ' + error.message);
-    }
-}
-
-// ==================== REJECT APPLICATION ====================
-async function rejectApplication(index) {
-    const app = filteredApplications[index];
-    if (!app) {
-        alert('Application not found');
-        return;
-    }
-    
-    const reason = prompt('Please provide a reason for rejection:');
-    if (!reason) return;
-
-    try {
-        const rowId = app.id || (index + 1);
-        
-        const response = await fetch(`https://sheetdb.io/api/v1/bfop7u9vgn5lp/${rowId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                application_status: 'rejected',
-                admin_notes: reason 
-            })
-        });
-        
-        const result = await response.json();
-        console.log('Reject result:', result);
-        
-        if (response.ok) {
-            showNotification(`Application ${app.application_number} rejected. Email sent.`, 'warning');
-            loadApplications();
-            closeModal();
-        } else {
-            alert('Update failed: ' + JSON.stringify(result));
-        }
-    } catch (error) {
-        console.error('Reject error:', error);
-        alert('Failed to reject: ' + error.message);
-    }
-}
-
-// ==================== DELETE APPLICATION ====================
-async function deleteApplication(index) {
-    const app = filteredApplications[index];
-    if (!app) {
-        alert('Application not found');
-        return;
-    }
-    
-    if (confirm(`Are you sure you want to DELETE application ${app.application_number}? This action cannot be undone.`)) {
-        try {
-            const rowId = app.id || (index + 1);
-            
-            const response = await fetch(`https://sheetdb.io/api/v1/bfop7u9vgn5lp/${rowId}`, {
-                method: 'DELETE'
-            });
-            
-            if (response.ok) {
-                showNotification(`Application ${app.application_number} deleted.`, 'warning');
-                loadApplications();
-                closeModal();
+        if (elements.modalApproveBtn && elements.modalRejectBtn) {
+            if (app.application_status === 'pending') {
+                elements.modalApproveBtn.style.display = 'inline-flex';
+                elements.modalRejectBtn.style.display = 'inline-flex';
+                elements.modalApproveBtn.onclick = () => approveApplication(app.id);
+                elements.modalRejectBtn.onclick = () => rejectApplication(app.id);
             } else {
-                alert('Delete failed');
+                elements.modalApproveBtn.style.display = 'none';
+                elements.modalRejectBtn.style.display = 'none';
             }
-        } catch (error) {
-            console.error('Delete error:', error);
-            alert('Failed to delete: ' + error.message);
         }
+        if (elements.detailModal) elements.detailModal.style.display = 'flex';
     }
-}
-    // ==================== APPROVE / REJECT ====================        
+
+    // ==================== APPROVE / REJECT ====================
+    async function approveApplication(id) {
+        const app = applications.find(a => a.id === id);
+        if (!app) return;
+        if (!confirm(`Approve application ${app.application_number}? Email will be sent to ${app.email}.`)) return;
+        
+        app.application_status = 'approved';
+        app.decision_date = new Date().toISOString();
+        saveApplications();
+        
+        await sendApprovalEmail(app);
+        
+        showNotification(`Application ${app.application_number} approved. Email sent.`, 'success');
+        loadApplications();
+        closeModal();
+    }
+
+    async function rejectApplication(id) {
+        const app = applications.find(a => a.id === id);
+        if (!app) return;
+        const reason = prompt('Please provide a reason for rejection:');
+        if (!reason) return;
+        
+        app.application_status = 'rejected';
+        app.admin_notes = reason;
+        app.decision_date = new Date().toISOString();
+        saveApplications();
+        
+        await sendRejectionEmail(app, reason);
+        
+        showNotification(`Application ${app.application_number} rejected. Email sent.`, 'warning');
+        loadApplications();
+        closeModal();
+    }
+
     function exportData() {
         const dataStr = JSON.stringify(applications, null, 2);
         const blob = new Blob([dataStr], { type: 'application/json' });
