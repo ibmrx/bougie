@@ -15,69 +15,6 @@ let signatureData = null;
 let canvas, ctx, drawing = false;
 let uploadResults = {};
 
-// ==================== SUPABASE STORAGE FUNCTIONS ====================
-let supabaseClient = null;
-
-function initSupabaseStorage() {
-    if (supabase) {
-        supabaseClient = supabase;
-    } else if (typeof window.supabase !== 'undefined') {
-        supabaseClient = window.supabase;
-    }
-    return supabaseClient;
-}
-
-async function uploadToSupabase(file, applicationNumber, docType) {
-    if (!supabaseClient && !initSupabaseStorage()) {
-        throw new Error('Supabase not initialized');
-    }
-    
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${applicationNumber}/${docType}_${Date.now()}.${fileExt}`;
-    
-    const { error } = await supabaseClient.storage
-        .from('documents')
-        .upload(fileName, file);
-    
-    if (error) throw error;
-    
-    const { data } = supabaseClient.storage
-        .from('documents')
-        .getPublicUrl(fileName);
-    
-    return data.publicUrl;
-}
-
-async function uploadMultipleDocuments(files, applicationNumber, onProgress) {
-    if (!supabaseClient && !initSupabaseStorage()) {
-        throw new Error('Supabase not initialized');
-    }
-    
-    const results = {};
-    let completed = 0;
-    const total = files.length;
-    
-    for (const item of files) {
-        try {
-            const url = await uploadToSupabase(item.file, applicationNumber, item.documentType);
-            results[item.documentType] = url;
-            completed++;
-            if (onProgress) onProgress(completed, total, item.documentType, { success: true, url });
-        } catch (error) {
-            results[item.documentType] = { error: error.message };
-            completed++;
-            if (onProgress) onProgress(completed, total, item.documentType, { success: false, error: error.message });
-        }
-    }
-    
-    return results;
-}
-
-window.SupabaseStorage = {
-    init: initSupabaseStorage,
-    upload: uploadToSupabase,
-    uploadMultiple: uploadMultipleDocuments
-};
 
 // Document requirements based on destination and study level
 const DOCUMENT_REQUIREMENTS = {
