@@ -368,72 +368,78 @@
 
     // ==================== VIEW APPLICATION DETAILS ====================
     function viewApplication(id) {
-        const app = applications.find(a => a.id === id);
-        if (!app) return;
-        currentModalApp = app;
-        
-        let documentsHtml = '';
-        if (app.documents && Object.keys(app.documents).length > 0) {
-            documentsHtml = '<div class="documents-list"><div class="detail-label" style="margin-bottom: 0.5rem;">Uploaded Documents</div>';
-            for (const [docType, docUrl] of Object.entries(app.documents)) {
-                if (typeof docUrl === 'string' && docUrl.startsWith('http')) {
-                    const isImage = docUrl.match(/\.(jpg|jpeg|png|gif|webp)/i);
-                    const isPdf = docUrl.match(/\.pdf$/i);
-                    
-                    documentsHtml += `
-                        <div class="doc-item">
-                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                                <span><i class="fas fa-file"></i> ${formatDocumentName(docType)}</span>
-                                <div>
-                                    <a href="${docUrl}" target="_blank" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-external-link-alt"></i> View</a>
-                                    <a href="${docUrl}" download class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-download"></i> Download</a>
-                                </div>
-                            </div>`;
-                    
-                    if (isImage) {
-                        documentsHtml += `<img src="${docUrl}" style="max-width: 100%; max-height: 150px; margin-top: 0.5rem; border-radius: 8px;" />`;
-                    } else if (isPdf) {
-                        documentsHtml += `<iframe src="${docUrl}" style="width: 100%; height: 200px; margin-top: 0.5rem; border: 1px solid #dcdad5; border-radius: 8px;"></iframe>`;
-                    }
-                    
-                    documentsHtml += `</div>`;
+    const app = applications.find(a => a.id === id);
+    if (!app) return;
+    currentModalApp = app;
+    
+    // Build documents HTML
+    let documentsHtml = '';
+    if (app.documents && Object.keys(app.documents).length > 0) {
+        documentsHtml = '<div class="documents-list"><div class="detail-label" style="margin-bottom: 0.5rem;">Uploaded Documents</div>';
+        for (const [docType, docUrl] of Object.entries(app.documents)) {
+            if (typeof docUrl === 'string' && docUrl.startsWith('http')) {
+                const isImage = docUrl.match(/\.(jpg|jpeg|png|gif|webp)/i);
+                const isPdf = docUrl.match(/\.pdf$/i);
+                
+                documentsHtml += `
+                    <div class="doc-item">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                            <span><i class="fas fa-file"></i> ${formatDocumentName(docType)}</span>
+                            <div>
+                                <a href="${docUrl}" target="_blank" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-external-link-alt"></i> View</a>
+                                <a href="${docUrl}" download class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"><i class="fas fa-download"></i> Download</a>
+                            </div>
+                        </div>`;
+                
+                if (isImage) {
+                    documentsHtml += `<img src="${docUrl}" style="max-width: 100%; max-height: 150px; margin-top: 0.5rem; border-radius: 8px;" />`;
+                } else if (isPdf) {
+                    documentsHtml += `<iframe src="${docUrl}" style="width: 100%; height: 200px; margin-top: 0.5rem; border: 1px solid #dcdad5; border-radius: 8px;"></iframe>`;
                 }
-            }
-            documentsHtml += '</div>';
-        }
-        
-        if (elements.modalBody) {
-            elements.modalBody.innerHTML = `
-                <div class="detail-row"><div class="detail-label">Application Number</div><div class="detail-value"><code>${escapeHtml(app.application_number)}</code></div></div>
-                <div class="detail-row"><div class="detail-label">Full Name</div><div class="detail-value">${escapeHtml(app.first_name)} ${escapeHtml(app.last_name)}</div></div>
-                <div class="detail-row"><div class="detail-label">Birth Date</div><div class="detail-value">${formatDate(app.birth_date)}</div></div>
-                <div class="detail-row"><div class="detail-label">Email</div><div class="detail-value">${escapeHtml(app.email)}</div></div>
-                <div class="detail-row"><div class="detail-label">Phone</div><div class="detail-value">${escapeHtml(app.phone)}</div></div>
-                <div class="detail-row"><div class="detail-label">Baccalaureate</div><div class="detail-value">${formatMonthYear(app.bac_date)}</div></div>
-                <div class="detail-row"><div class="detail-label">Applying Degree</div><div class="detail-value">${escapeHtml(app.year_of_study)}</div></div>
-                <div class="detail-row"><div class="detail-label">Destination</div><div class="detail-value">${getDestinationDisplay(app.destination)}</div></div>
-                <div class="detail-row"><div class="detail-label">Courses</div><div class="detail-value">${escapeHtml(app.courses)}</div></div>
-                <div class="detail-row"><div class="detail-label">Payment Status</div><div class="detail-value"><span class="status-badge ${app.payment_status === 'paid' ? 'status-approved' : 'status-pending'}">${app.payment_status === 'paid' ? 'Paid' : 'Pending'}</span></div></div>
-                <div class="detail-row"><div class="detail-label">Submitted</div><div class="detail-value">${formatDate(app.created_at)}</div></div>
-                ${app.tcf_status ? `<div class="detail-row"><div class="detail-label">TCF Status</div><div class="detail-value">${escapeHtml(app.tcf_status)}</div></div>` : ''}
-                ${app.admin_notes ? `<div class="detail-row"><div class="detail-label">Admin Notes</div><div class="detail-value">${escapeHtml(app.admin_notes)}</div></div>` : ''}
-                ${documentsHtml}
-            `;
-        }
-        
-        if (elements.modalApproveBtn && elements.modalRejectBtn) {
-            if (app.application_status === 'pending') {
-                elements.modalApproveBtn.style.display = 'inline-flex';
-                elements.modalRejectBtn.style.display = 'inline-flex';
-                elements.modalApproveBtn.onclick = () => approveApplication(app.id);
-                elements.modalRejectBtn.onclick = () => rejectApplication(app.id);
-            } else {
-                elements.modalApproveBtn.style.display = 'none';
-                elements.modalRejectBtn.style.display = 'none';
+                
+                documentsHtml += `</div>`;
             }
         }
-        if (elements.detailModal) elements.detailModal.style.display = 'flex';
+        documentsHtml += '</div>';
+    } else {
+        documentsHtml = '<div class="documents-list"><div class="detail-label">Uploaded Documents</div><p>No documents uploaded</p></div>';
     }
+    
+    // Build modal body
+    if (elements.modalBody) {
+        elements.modalBody.innerHTML = `
+            <div class="detail-row"><div class="detail-label">Application Number</div><div class="detail-value"><code>${escapeHtml(app.application_number)}</code></div></div>
+            <div class="detail-row"><div class="detail-label">Full Name</div><div class="detail-value">${escapeHtml(app.first_name)} ${escapeHtml(app.last_name)}</div></div>
+            <div class="detail-row"><div class="detail-label">Birth Date</div><div class="detail-value">${formatDate(app.birth_date)}</div></div>
+            <div class="detail-row"><div class="detail-label">Email</div><div class="detail-value">${escapeHtml(app.email)}</div></div>
+            <div class="detail-row"><div class="detail-label">Phone</div><div class="detail-value">${escapeHtml(app.phone)}</div></div>
+            <div class="detail-row"><div class="detail-label">Baccalaureate</div><div class="detail-value">${formatMonthYear(app.bac_date)}</div></div>
+            <div class="detail-row"><div class="detail-label">Applying Degree</div><div class="detail-value">${escapeHtml(app.year_of_study)}</div></div>
+            <div class="detail-row"><div class="detail-label">Destination</div><div class="detail-value">${getDestinationDisplay(app.destination)}</div></div>
+            <div class="detail-row"><div class="detail-label">Courses</div><div class="detail-value">${escapeHtml(app.courses)}</div></div>
+            <div class="detail-row"><div class="detail-label">Payment Status</div><div class="detail-value"><span class="status-badge ${app.payment_status === 'paid' ? 'status-approved' : 'status-pending'}">${app.payment_status === 'paid' ? 'Paid' : 'Pending'}</span></div></div>
+            <div class="detail-row"><div class="detail-label">Submitted</div><div class="detail-value">${formatDate(app.created_at)}</div></div>
+            ${app.tcf_status ? `<div class="detail-row"><div class="detail-label">TCF Status</div><div class="detail-value">${escapeHtml(app.tcf_status)}</div></div>` : ''}
+            ${app.admin_notes ? `<div class="detail-row"><div class="detail-label">Admin Notes</div><div class="detail-value">${escapeHtml(app.admin_notes)}</div></div>` : ''}
+            ${documentsHtml}
+        `;
+    }
+    
+    // Update modal buttons
+    if (elements.modalApproveBtn && elements.modalRejectBtn) {
+        if (app.application_status === 'pending') {
+            elements.modalApproveBtn.style.display = 'inline-flex';
+            elements.modalRejectBtn.style.display = 'inline-flex';
+            elements.modalApproveBtn.onclick = () => approveApplication(app.id);
+            elements.modalRejectBtn.onclick = () => rejectApplication(app.id);
+        } else {
+            elements.modalApproveBtn.style.display = 'none';
+            elements.modalRejectBtn.style.display = 'none';
+        }
+    }
+    
+    if (elements.detailModal) elements.detailModal.style.display = 'flex';
+}
 
     // ==================== APPROVE / REJECT ====================
     async function approveApplication(id) {
