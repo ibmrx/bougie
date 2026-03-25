@@ -91,7 +91,7 @@ async function uploadAllDocumentsToCloudinary(applicationNumber) {
     }
     
     const receiptFile = document.getElementById('receiptFile')?.files[0];
-    if (receiptFile && paymentStatus === 'paid_pending') {
+    if (receiptFile && paymentStatus === 'paid') {
         try {
             const url = await uploadToCloudinary(receiptFile, 'payment_receipt');
             results['payment_receipt'] = url;
