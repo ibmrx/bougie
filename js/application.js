@@ -15,69 +15,73 @@ let signatureData = null;
 let canvas, ctx, drawing = false;
 let uploadResults = {};
 
-// ==================== SUPABASE STORAGE FUNCTIONS ====================
-let supabaseClient = null;
+const SUPABASE_URL = 'https://qpprzcckolmdyabnmgol.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwcHJ6Y2Nrb2xtZHlhYm5tZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjA5MTYsImV4cCI6MjA4OTkzNjkxNn0.Pp9fTdklyomxmG6wsb8FBzyhLXaXEx983ofdaiPG_So';
 
-function initSupabaseStorage() {
-    if (supabase) {
-        supabaseClient = supabase;
+let supabase = null;
+
+function initSupabase() {
+    if (typeof supabaseJs !== 'undefined') {
+        supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } else if (typeof window.supabase !== 'undefined') {
-        supabaseClient = window.supabase;
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
-    return supabaseClient;
+    return supabase;
 }
+initSupabase();
 
-async function uploadToSupabase(file, applicationNumber, docType) {
-    if (!supabaseClient && !initSupabaseStorage()) {
-        throw new Error('Supabase not initialized');
+async function uploadFileToSupabase(file, applicationNumber, docType) {
+    if (!supabase) {
+        initSupabase();
+        if (!supabase) throw new Error('Supabase not initialized');
     }
     
     const fileExt = file.name.split('.').pop();
     const fileName = `${applicationNumber}/${docType}_${Date.now()}.${fileExt}`;
     
-    const { error } = await supabaseClient.storage
+    const { data, error } = await supabase.storage
         .from('documents')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+        });
     
     if (error) throw error;
     
-    const { data } = supabaseClient.storage
+    const { data: urlData } = supabase.storage
         .from('documents')
         .getPublicUrl(fileName);
     
-    return data.publicUrl;
+    return urlData.publicUrl;
 }
 
-async function uploadMultipleDocuments(files, applicationNumber, onProgress) {
-    if (!supabaseClient && !initSupabaseStorage()) {
-        throw new Error('Supabase not initialized');
+async function uploadAllDocumentsToSupabase(applicationNumber) {
+    const results = {};
+    const filesToUpload = Object.entries(selectedFiles);
+    
+    for (const [docId, file] of filesToUpload) {
+        try {
+            const url = await uploadFileToSupabase(file, applicationNumber, docId);
+            results[docId] = url;
+            console.log(`Uploaded ${docId}: ${url}`);
+        } catch (error) {
+            console.error(`Failed to upload ${docId}:`, error);
+            results[docId] = { error: error.message };
+        }
     }
     
-    const results = {};
-    let completed = 0;
-    const total = files.length;
-    
-    for (const item of files) {
+    const receiptFile = document.getElementById('receiptFile')?.files[0];
+    if (receiptFile && paymentStatus === 'paid_pending') {
         try {
-            const url = await uploadToSupabase(item.file, applicationNumber, item.documentType);
-            results[item.documentType] = url;
-            completed++;
-            if (onProgress) onProgress(completed, total, item.documentType, { success: true, url });
+            const url = await uploadFileToSupabase(receiptFile, applicationNumber, 'payment_receipt');
+            results['payment_receipt'] = url;
         } catch (error) {
-            results[item.documentType] = { error: error.message };
-            completed++;
-            if (onProgress) onProgress(completed, total, item.documentType, { success: false, error: error.message });
+            results['payment_receipt'] = { error: error.message };
         }
     }
     
     return results;
 }
-
-window.SupabaseStorage = {
-    init: initSupabaseStorage,
-    upload: uploadToSupabase,
-    uploadMultiple: uploadMultipleDocuments
-};
 
 // Document requirements based on destination and study level
 const DOCUMENT_REQUIREMENTS = {
@@ -894,8 +898,7 @@ async function submitApplication() {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading documents...';
     
     try {
-        const uploadResults = await uploadToSupabaseStorage(appNumber);
-        
+        const uploadResults = await uploadAllDocumentsToSupabase(appNumber);
         const application = {
             id: Date.now().toString(),
             application_number: appNumber,
