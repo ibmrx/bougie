@@ -178,17 +178,31 @@
         return true;
     }
 
-    function deleteApplication(applicationId) {
+    async function deleteApplication(applicationId) {
         const app = applications.find(a => a.id === applicationId);
         if (!app) return;
         if (confirm(`Are you sure you want to DELETE application ${app.application_number}? This action cannot be undone.`)) {
-            applications = applications.filter(a => a.id !== applicationId);
-            localStorage.setItem('bougie_applications', JSON.stringify(applications));
-            applyFilters();
-            showNotification(`Application ${app.application_number} deleted.`, 'warning');
+            try {
+                // Delete from SheetDB by row id (the index in the sheet)
+                const response = await fetch(`https://sheetdb.io/api/v1/bfop7u9vgn5lp/id/${applicationId}`, {
+                    method: 'DELETE'
+                });
+            
+                if (response.ok) {
+                    // Remove from local array
+                    applications = applications.filter(a => a.id !== applicationId);
+                    applyFilters();
+                    showNotification(`Application ${app.application_number} deleted.`, 'warning');
+                } else {
+                    throw new Error('Delete failed');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showNotification('Failed to delete application', 'error');
+            }
         }
     }
-
+        
     async function loadApplications() {
         showLoading(true);
         try {
@@ -440,16 +454,27 @@
         const app = applications.find(a => a.id === id);
         if (!app) return;
         if (!confirm(`Approve application ${app.application_number}? Email will be sent to ${app.email}.`)) return;
+    
+        try {
+            // Update status in SheetDB
+            await fetch(`https://sheetdb.io/api/v1/bfop7u9vgn5lp/id/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ application_status: 'approved' })
+            });
         
-        app.application_status = 'approved';
-        app.decision_date = new Date().toISOString();
-        saveApplications();
+            // Update local array
+            app.application_status = 'approved';
         
-        await sendApprovalEmail(app);
+            await sendApprovalEmail(app);
         
-        showNotification(`Application ${app.application_number} approved. Email sent.`, 'success');
-        loadApplications();
-        closeModal();
+            showNotification(`Application ${app.application_number} approved. Email sent.`, 'success');
+            loadApplications(); // Reload from sheet
+            closeModal();
+        } catch (error) {
+            console.error('Approve error:', error);
+            showNotification('Failed to approve application', 'error');
+        }
     }
 
     async function rejectApplication(id) {
@@ -457,19 +482,32 @@
         if (!app) return;
         const reason = prompt('Please provide a reason for rejection:');
         if (!reason) return;
+    
+        try {
+            // Update status in SheetDB
+            await fetch(`https://sheetdb.io/api/v1/bfop7u9vgn5lp/id/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    application_status: 'rejected',
+                    admin_notes: reason 
+                })
+            });
         
-        app.application_status = 'rejected';
-        app.admin_notes = reason;
-        app.decision_date = new Date().toISOString();
-        saveApplications();
+            // Update local array
+            app.application_status = 'rejected';
+            app.admin_notes = reason;
         
-        await sendRejectionEmail(app, reason);
+            await sendRejectionEmail(app, reason);
         
-        showNotification(`Application ${app.application_number} rejected. Email sent.`, 'warning');
-        loadApplications();
-        closeModal();
+            showNotification(`Application ${app.application_number} rejected. Email sent.`, 'warning');
+            loadApplications(); // Reload from sheet
+            closeModal();
+        } catch (error) {
+            console.error('Reject error:', error);
+            showNotification('Failed to reject application', 'error');
+        }
     }
-
     function exportData() {
         const dataStr = JSON.stringify(applications, null, 2);
         const blob = new Blob([dataStr], { type: 'application/json' });
