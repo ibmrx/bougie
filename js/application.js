@@ -91,7 +91,7 @@ async function uploadAllDocumentsToCloudinary(applicationNumber) {
     }
     
     const receiptFile = document.getElementById('receiptFile')?.files[0];
-    if (receiptFile && paymentStatus === 'paid') {
+    if (receiptFile && paymentStatus === 'paid_pending') {
         try {
             const url = await uploadToCloudinary(receiptFile, 'payment_receipt');
             results['payment_receipt'] = url;
@@ -713,7 +713,7 @@ function setupPaymentHandlers() {
     // Pay Now button - shows upload widget
     if (payNowBtn) {
         payNowBtn.addEventListener('click', () => {
-            paymentStatus = 'paid_pending';
+            paymentStatus = 'paid';
             if (receiptUpload) receiptUpload.classList.remove('hidden');
             // Disable next button until receipt is uploaded
             if (paymentNextBtn) paymentNextBtn.disabled = true;
