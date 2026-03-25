@@ -406,7 +406,7 @@
 
             <div class="search-form">
                 <div class="input-group">
-                    <input type="text" id="applicationNumber" placeholder="Enter your application number (e.g., IT-2024-X7K3M2 or CF-2024-A3B5C7)" autocomplete="off">
+                    <input type="text" id="applicationNumber" placeholder="Enter your application number (e.g., IT-2026-X7K3M2 or CF-2026-A3B5C7)" autocomplete="off">
                     <button id="searchBtn" class="search-btn"><i class="fas fa-search"></i> Check Status</button>
                 </div>
             </div>
@@ -475,6 +475,9 @@
     </div>
 
     <script>
+        // ==================== SHEETDB API ====================
+        const SHEETDB_URL = 'https://sheetdb.io/api/v1/bfop7u9vgn5lp';
+
         // DOM Elements
         const elements = {
             applicationNumber: document.getElementById('applicationNumber'),
@@ -551,6 +554,18 @@
             }
         }
 
+        function parseDocuments(documents) {
+            if (!documents) return {};
+            if (typeof documents === 'string') {
+                try {
+                    return JSON.parse(documents);
+                } catch (e) {
+                    return {};
+                }
+            }
+            return documents;
+        }
+
         function buildTimeline(application) {
             const timelineItems = [];
             
@@ -622,6 +637,9 @@
         }
 
         function displayApplication(application) {
+            // Parse documents if needed (not used in display, but stored)
+            application.documents = parseDocuments(application.documents);
+            
             // Status badge
             const statusClass = getStatusClass(application.application_status);
             const statusIcon = getStatusIcon(application.application_status);
@@ -694,7 +712,7 @@
             }
         }
 
-        function searchApplication() {
+        async function searchApplication() {
             const appNumber = elements.applicationNumber.value.trim().toUpperCase();
             
             if (!appNumber) {
@@ -710,18 +728,13 @@
             hideError();
             
             try {
-                // Read from localStorage
-                const stored = localStorage.getItem('bougie_applications');
-                let applications = [];
-                if (stored) {
-                    applications = JSON.parse(stored);
-                }
+                // Fetch from SheetDB using search endpoint
+                const response = await fetch(`${SHEETDB_URL}/search?application_number=${appNumber}`);
+                const data = await response.json();
                 
-                // Find application by number
-                const application = applications.find(app => app.application_number === appNumber);
-                
-                if (application) {
-                    displayApplication(application);
+                // SheetDB returns an array of matching rows
+                if (data && data.length > 0) {
+                    displayApplication(data[0]);
                 } else {
                     showError(`Application number "${appNumber}" not found. Please check and try again.`);
                 }
