@@ -741,9 +741,7 @@ function setupPaymentHandlers() {
     const receiptFile = document.getElementById('receiptFile');
 
     if (receiptUploadArea && receiptFile) {
-        receiptUploadArea.addEventListener('click', (e) => {
-            e.stopPropagation();
-            receiptFile.click();
+        receiptUploadArea.clickHandler = (e) => { e.stopPropagation(); receiptFile.click();
         });
         
         receiptFile.addEventListener('change', (e) => {
