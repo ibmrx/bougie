@@ -13,6 +13,43 @@ let signatureData = null;
 let canvas, ctx, drawing = false;
 let uploadResults = {};
 
+//sheet
+// ==================== SHEETDB API ====================
+const SHEETDB_URL = 'https://sheetdb.io/api/v1/bfop7u9vgn5lp';
+
+async function saveToSheet(application) {
+    const response = await fetch(SHEETDB_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(application)
+    });
+    const result = await response.json();
+    console.log('Saved to Google Sheet:', result);
+    return result;
+}
+
+async function loadFromSheet() {
+    const response = await fetch(SHEETDB_URL);
+    const data = await response.json();
+    return data;
+}
+
+async function updateSheetRow(rowId, updates) {
+    const response = await fetch(`${SHEETDB_URL}/id/${rowId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+    });
+    return response.json();
+}
+
+async function deleteSheetRow(rowId) {
+    const response = await fetch(`${SHEETDB_URL}/id/${rowId}`, {
+        method: 'DELETE'
+    });
+    return response.json();
+}
+
 const CLOUDINARY_CLOUD_NAME = 'dtqokf3fl'; 
 const CLOUDINARY_UPLOAD_PRESET = 'bougie_uploads';
 
