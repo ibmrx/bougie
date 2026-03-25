@@ -165,7 +165,7 @@ const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image
 
 // ==================== EMAILJS EMAIL FUNCTION ====================
 async function sendConfirmationEmail(application, appNumber, deadline) {
-    const destinationName = application.destination === 'italy' ? 'Italy' : 'Campus France';
+    const destinationName = application.destination === 'italy' ? 'Italy' : 'France';
     
     const templateParams = {
         to_email: application.email,
