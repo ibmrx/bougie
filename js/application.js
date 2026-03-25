@@ -971,4 +971,3 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.addEventListener('click', submitApplication);
     }
 });
-like this?
