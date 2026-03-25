@@ -302,21 +302,19 @@
         
         return `
             <tr>
-                <td><code>${escapeHtml(app.application_number || 'N/A')}</code>}
-                <td><strong>${escapeHtml(app.first_name || '')} ${escapeHtml(app.last_name || '')}</strong>}
-                <td>${formatDate(app.birth_date)}}
-                <td>${formatMonthYear(app.bac_date)}}
-                <td>${escapeHtml(app.phone || 'N/A')}}
-                <td>${paymentBadge}}
-                <td>${getStatusBadge(app.application_status)}}
+                <td><code>${escapeHtml(app.application_number || 'N/A')}</code></td>
+                <td><strong>${escapeHtml(app.first_name || '')} ${escapeHtml(app.last_name || '')}</strong></td>
+                <td>${formatDate(app.birth_date)}</td>
+                <td>${formatMonthYear(app.bac_date)}</td>
+                <td>${escapeHtml(app.phone || 'N/A')}</td>
+                <td>${paymentBadge}</td>
+                <td>${getStatusBadge(app.application_status)}</td>
                 <td>
                     <div class="action-buttons">
                         <button class="btn-icon btn-view" onclick="viewApplication(${index})" title="View Details"><i class="fas fa-eye"></i></button>
                         <button class="btn-icon btn-approve" onclick="approveApplication(${index})" title="Approve"><i class="fas fa-check"></i></button>
                         <button class="btn-icon btn-reject" onclick="rejectApplication(${index})" title="Reject"><i class="fas fa-times"></i></button>
                     </div>
-                },
-             },
         `;
     }).join('');
 }
