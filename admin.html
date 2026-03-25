@@ -286,6 +286,16 @@ function formatDate(dateString) {
     } catch { return dateString; }
 }
 
+let autoRefreshInterval = null;
+
+function startAutoRefresh() {
+    if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+    autoRefreshInterval = setInterval(() => {
+        console.log('Auto-refreshing applications...');
+        loadApplications();
+    }, 30000); // Refreshes every 30 seconds
+}
+        
 function formatMonthYear(dateString) {
     if (!dateString) return 'N/A';
     try {
