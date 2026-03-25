@@ -816,6 +816,7 @@ async function submitApplication() {
             documents: uploadResults,
             signature: signatureData,
             created_at: now.toISOString(),
+            payment_receipt: applicationData.receiptUrl || null 
             payment_deadline: deadline.toISOString()
         };
         
