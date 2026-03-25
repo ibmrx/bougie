@@ -394,7 +394,8 @@
     }
 
     // ==================== VIEW APPLICATION DETAILS ====================
-// ==================== VIEW APPLICATION DETAILS ====================
+
+    // ==================== VIEW APPLICATION ====================
 function viewApplication(index) {
     const app = filteredApplications[index];
     if (!app) return;
@@ -468,12 +469,18 @@ function viewApplication(index) {
 // ==================== APPROVE APPLICATION ====================
 async function approveApplication(index) {
     const app = filteredApplications[index];
-    if (!app) return;
+    if (!app) {
+        alert('Application not found');
+        return;
+    }
     
     if (!confirm(`Approve application ${app.application_number}? Email will be sent to ${app.email}.`)) return;
 
     try {
-        const response = await fetch(`https://sheetdb.io/api/v1/bfop7u9vgn5lp/${app.rowIndex}`, {
+        // Use the actual row number from the data (SheetDB adds an 'id' field)
+        const rowId = app.id || (index + 1);
+        
+        const response = await fetch(`https://sheetdb.io/api/v1/bfop7u9vgn5lp/${rowId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ application_status: 'approved' })
@@ -483,34 +490,34 @@ async function approveApplication(index) {
         console.log('Approve result:', result);
         
         if (response.ok) {
-            app.application_status = 'approved';
-            const mainApp = applications.find(a => a.application_number === app.application_number);
-            if (mainApp) mainApp.application_status = 'approved';
-            
-            await sendApprovalEmail(app);
-            
             showNotification(`Application ${app.application_number} approved. Email sent.`, 'success');
+            // Reload to refresh
             loadApplications();
             closeModal();
         } else {
-            throw new Error('Update failed');
+            alert('Update failed: ' + JSON.stringify(result));
         }
     } catch (error) {
         console.error('Approve error:', error);
-        showNotification('Failed to approve application', 'error');
+        alert('Failed to approve: ' + error.message);
     }
 }
 
 // ==================== REJECT APPLICATION ====================
 async function rejectApplication(index) {
     const app = filteredApplications[index];
-    if (!app) return;
+    if (!app) {
+        alert('Application not found');
+        return;
+    }
     
     const reason = prompt('Please provide a reason for rejection:');
     if (!reason) return;
 
     try {
-        const response = await fetch(`https://sheetdb.io/api/v1/bfop7u9vgn5lp/${app.rowIndex}`, {
+        const rowId = app.id || (index + 1);
+        
+        const response = await fetch(`https://sheetdb.io/api/v1/bfop7u9vgn5lp/${rowId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -523,36 +530,31 @@ async function rejectApplication(index) {
         console.log('Reject result:', result);
         
         if (response.ok) {
-            app.application_status = 'rejected';
-            app.admin_notes = reason;
-            const mainApp = applications.find(a => a.application_number === app.application_number);
-            if (mainApp) {
-                mainApp.application_status = 'rejected';
-                mainApp.admin_notes = reason;
-            }
-            
-            await sendRejectionEmail(app, reason);
-            
             showNotification(`Application ${app.application_number} rejected. Email sent.`, 'warning');
             loadApplications();
             closeModal();
         } else {
-            throw new Error('Update failed');
+            alert('Update failed: ' + JSON.stringify(result));
         }
     } catch (error) {
         console.error('Reject error:', error);
-        showNotification('Failed to reject application', 'error');
+        alert('Failed to reject: ' + error.message);
     }
 }
 
 // ==================== DELETE APPLICATION ====================
 async function deleteApplication(index) {
     const app = filteredApplications[index];
-    if (!app) return;
+    if (!app) {
+        alert('Application not found');
+        return;
+    }
     
     if (confirm(`Are you sure you want to DELETE application ${app.application_number}? This action cannot be undone.`)) {
         try {
-            const response = await fetch(`https://sheetdb.io/api/v1/bfop7u9vgn5lp/${app.rowIndex}`, {
+            const rowId = app.id || (index + 1);
+            
+            const response = await fetch(`https://sheetdb.io/api/v1/bfop7u9vgn5lp/${rowId}`, {
                 method: 'DELETE'
             });
             
@@ -561,11 +563,11 @@ async function deleteApplication(index) {
                 loadApplications();
                 closeModal();
             } else {
-                throw new Error('Delete failed');
+                alert('Delete failed');
             }
         } catch (error) {
             console.error('Delete error:', error);
-            showNotification('Failed to delete application', 'error');
+            alert('Failed to delete: ' + error.message);
         }
     }
 }
