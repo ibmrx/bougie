@@ -15,68 +15,41 @@ let signatureData = null;
 let canvas, ctx, drawing = false;
 let uploadResults = {};
 
-// ==================== SUPABASE STORAGE FUNCTIONS ====================
-let supabaseClient = null;
+const SUPABASE_URL = 'https://qpprzcckolmdyabnmgol.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwcHJ6Y2Nrb2xtZHlhYm5tZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjA5MTYsImV4cCI6MjA4OTkzNjkxNn0.Pp9fTdklyomxmG6wsb8FBzyhLXaXEx983ofdaiPG_So';
 
-function initSupabaseStorage() {
-    if (supabase) {
-        supabaseClient = supabase;
+let supabase = null;
+
+function initSupabase() {
+    if (typeof supabaseJs !== 'undefined') {
+        supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } else if (typeof window.supabase !== 'undefined') {
-        supabaseClient = window.supabase;
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
-    return supabaseClient;
+    return supabase;
 }
+initSupabase();
 
 async function uploadToSupabase(file, applicationNumber, docType) {
-    if (!supabaseClient && !initSupabaseStorage()) {
-        throw new Error('Supabase not initialized');
+    if (!supabase) {
+        initSupabase();
+        if (!supabase) throw new Error('Supabase not initialized');
     }
     
     const fileExt = file.name.split('.').pop();
     const fileName = `${applicationNumber}/${docType}_${Date.now()}.${fileExt}`;
     
-    const { error } = await supabaseClient.storage
+    const { error } = await supabase.storage
         .from('documents')
         .upload(fileName, file);
     
     if (error) throw error;
     
-    const { data } = supabaseClient.storage
+    const { data } = supabase.storage
         .from('documents')
         .getPublicUrl(fileName);
     
     return data.publicUrl;
-}
-
-async function uploadMultipleDocuments(files, applicationNumber, onProgress) {
-    if (!supabaseClient && !initSupabaseStorage()) {
-        throw new Error('Supabase not initialized');
-    }
-    
-    const results = {};
-    let completed = 0;
-    const total = files.length;
-    
-    for (const item of files) {
-        try {
-            const url = await uploadToSupabase(item.file, applicationNumber, item.documentType);
-            results[item.documentType] = url;
-            completed++;
-            if (onProgress) onProgress(completed, total, item.documentType, { success: true, url });
-        } catch (error) {
-            results[item.documentType] = { error: error.message };
-            completed++;
-            if (onProgress) onProgress(completed, total, item.documentType, { success: false, error: error.message });
-        }
-    }
-    
-    return results;
-}
-
-window.SupabaseStorage = {
-    init: initSupabaseStorage,
-    upload: uploadToSupabase,
-    uploadMultiple: uploadMultipleDocuments
 };
 
 // Document requirements based on destination and study level
@@ -833,17 +806,18 @@ async function uploadToSupabaseStorage(applicationNumber) {
     
     if (filesToUpload.length === 0) return {};
     
-    if (!window.SupabaseStorage) {
-        throw new Error('Supabase Storage not available. Please check your connection.');
-    }
-    
-    const results = await window.SupabaseStorage.uploadMultiple(
-        filesToUpload,
-        applicationNumber,
-        (completed, total, docType, result) => {
-            console.log(`Uploaded ${docType}: ${completed}/${total}`);
+    // Upload each file directly using uploadToSupabase
+    const results = {};
+    for (const item of filesToUpload) {
+        try {
+            const url = await uploadToSupabase(item.file, applicationNumber, item.documentType);
+            results[item.documentType] = url;
+            console.log(`Uploaded ${item.documentType}: ${url}`);
+        } catch (error) {
+            console.error(`Failed to upload ${item.documentType}:`, error);
+            results[item.documentType] = { error: error.message };
         }
-    );
+    }
     
     return results;
 }
