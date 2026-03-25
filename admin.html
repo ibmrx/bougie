@@ -12,7 +12,6 @@
 <script>
     emailjs.init('7nXKeWjyHF-Mu-s2u');
 </script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background-color: #f4eddb; color: #2c2b28; }
@@ -168,23 +167,6 @@
         adminName: document.getElementById('adminName')
     };
 
-    // supabase
-    const SUPABASE_URL = 'https://rqrtzslypimcxdovqfoj.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxcnR6c2x5cGltY3hkb3ZxZm9qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0Mzk4MzYsImV4cCI6MjA5MDAxNTgzNn0.TfuW-nC-j_fx9-pkYDJplxoTrT88g5QyQPe7fKGq5_A';
-
-    let supabase = null;
-
-    function initSupabase() {
-        if (typeof supabaseJs !== 'undefined') {
-            supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } else if (typeof window.supabase !== 'undefined') {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        }
-        return supabase;
-    }
-    initSupabase();
-        //supabase done
-        
     function checkAuth() {
         const isLoggedIn = sessionStorage.getItem('admin_logged_in');
         if (!isLoggedIn || isLoggedIn !== 'true') {
@@ -196,51 +178,26 @@
         return true;
     }
 
-    async function deleteApplication(applicationId) {
+    function deleteApplication(applicationId) {
         const app = applications.find(a => a.id === applicationId);
         if (!app) return;
-    
         if (confirm(`Are you sure you want to DELETE application ${app.application_number}? This action cannot be undone.`)) {
-            try {
-                if (!supabase) initSupabase();
-            
-                const { error } = await supabase
-                    .from('applications')
-                    .delete()
-                    .eq('id', applicationId);
-            
-                if (error) throw error;
-            
-                // Remove from local array
-                applications = applications.filter(a => a.id !== applicationId);
-                applyFilters();
-            
-                showNotification(`Application ${app.application_number} deleted.`, 'warning');
-            } catch (error) {
-                console.error('Delete error:', error);
-                showNotification('Failed to delete application', 'error');
-            }
+            applications = applications.filter(a => a.id !== applicationId);
+            localStorage.setItem('bougie_applications', JSON.stringify(applications));
+            applyFilters();
+            showNotification(`Application ${app.application_number} deleted.`, 'warning');
         }
     }
-    //supabase
-    async function loadApplications() {
+
+    function loadApplications() {
         showLoading(true);
         try {
-            if (!supabase) initSupabase();
-        
-            const { data, error } = await supabase
-                .from('applications')
-                .select('*')
-                .order('created_at', { ascending: false });
-        
-            if (error) throw error;
-        
-            applications = data || [];
+            const stored = localStorage.getItem('bougie_applications');
+            applications = stored ? JSON.parse(stored) : [];
             applyFilters();
-        
         } catch (error) {
             console.error('Error loading applications:', error);
-            showNotification('Failed to load applications from database', 'error');
+            showNotification('Failed to load applications', 'error');
         } finally {
             showLoading(false);
         }
@@ -478,40 +435,21 @@
         if (elements.detailModal) elements.detailModal.style.display = 'flex';
     }
 
-    // supabase ==================== APPROVE / REJECT ====================
+    // ==================== APPROVE / REJECT ====================
     async function approveApplication(id) {
         const app = applications.find(a => a.id === id);
         if (!app) return;
         if (!confirm(`Approve application ${app.application_number}? Email will be sent to ${app.email}.`)) return;
-    
-        try {
-            if (!supabase) initSupabase();
         
-            const { error } = await supabase
-                .from('applications')
-                .update({
-                    application_status: 'approved',
-                    decision_date: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', id);
+        app.application_status = 'approved';
+        app.decision_date = new Date().toISOString();
+        saveApplications();
         
-            if (error) throw error;
+        await sendApprovalEmail(app);
         
-            // Update local array
-            app.application_status = 'approved';
-            app.decision_date = new Date().toISOString();
-        
-            await sendApprovalEmail(app);
-        
-            showNotification(`Application ${app.application_number} approved. Email sent.`, 'success');
-            loadApplications(); // Reload from database
-            closeModal();
-        
-        } catch (error) {
-            console.error('Approve error:', error);
-            showNotification('Failed to approve application', 'error');
-        }
+        showNotification(`Application ${app.application_number} approved. Email sent.`, 'success');
+        loadApplications();
+        closeModal();
     }
 
     async function rejectApplication(id) {
@@ -519,37 +457,17 @@
         if (!app) return;
         const reason = prompt('Please provide a reason for rejection:');
         if (!reason) return;
-    
-        try {
-            if (!supabase) initSupabase();
         
-            const { error } = await supabase
-                .from('applications')
-                .update({
-                    application_status: 'rejected',
-                    admin_notes: reason,
-                    decision_date: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', id);
+        app.application_status = 'rejected';
+        app.admin_notes = reason;
+        app.decision_date = new Date().toISOString();
+        saveApplications();
         
-            if (error) throw error;
+        await sendRejectionEmail(app, reason);
         
-            // Update local array
-            app.application_status = 'rejected';
-            app.admin_notes = reason;
-            app.decision_date = new Date().toISOString();
-        
-            await sendRejectionEmail(app, reason);
-        
-            showNotification(`Application ${app.application_number} rejected. Email sent.`, 'warning');
-            loadApplications(); // Reload from database
-            closeModal();
-        
-        } catch (error) {
-            console.error('Reject error:', error);
-            showNotification('Failed to reject application', 'error');
-        }
+        showNotification(`Application ${app.application_number} rejected. Email sent.`, 'warning');
+        loadApplications();
+        closeModal();
     }
 
     function exportData() {
