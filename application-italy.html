@@ -229,33 +229,5 @@
         </div>
     </div>
     <script src="js/application.js"></script>
-    <script>
-// Wait for DOM to be fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-    const check1 = document.getElementById('confirmCertified');
-    const check2 = document.getElementById('confirmFinal');
-    const startBtn = document.getElementById('startBtn');
-    
-    function updateButton() {
-        startBtn.disabled = !(check1.checked && check2.checked);
-    }
-    
-    function goToStep2() {
-        if (check1.checked && check2.checked) {
-            document.getElementById('step1').classList.add('hidden');
-            document.getElementById('step2').classList.remove('hidden');
-            document.querySelector('.step[data-step="1"]').classList.remove('active');
-            document.querySelector('.step[data-step="1"]').classList.add('completed');
-            document.querySelector('.step[data-step="2"]').classList.add('active');
-        }
-    }
-    
-    check1.addEventListener('change', updateButton);
-    check2.addEventListener('change', updateButton);
-    startBtn.addEventListener('click', goToStep2);
-    
-    updateButton();
-});
-</script>
 </body>
 </html>
