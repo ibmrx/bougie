@@ -15,15 +15,23 @@ let uploadResults = {};
 
 //sheet
 // ==================== SHEETDB API ====================
+// ==================== SHEETDB API ====================
 const SHEETDB_URL = 'https://sheetdb.io/api/v1/bfop7u9vgn5lp';
 
 async function saveToSheet(application) {
-    const response = await fetch(SHEETDB_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(application)
-    });
-    return await response.json();
+    try {
+        const response = await fetch(SHEETDB_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(application)
+        });
+        const result = await response.json();
+        console.log('Saved to Google Sheet:', result);
+        return result;
+    } catch (error) {
+        console.error('SheetDB save error:', error);
+        throw error;
+    }
 }
 
 async function loadFromSheet() {
@@ -799,19 +807,9 @@ async function submitApplication() {
     
         application.id = Date.now().toString();
 
-        const SHEETDB_URL = 'https://sheetdb.io/api/v1/bfop7u9vgn5lp';
+        const saveResult = await saveToSheet(application);
         console.log('Save result:', saveResult);
 
-        
-        const response = await fetch(SHEETDB_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(application)
-        });
-        
-        const result = await response.json();
-        console.log('Saved to Google Sheet:', result);
-        
         // Send confirmation email via EmailJS
         await sendConfirmationEmail(application, appNumber, deadline);
         
