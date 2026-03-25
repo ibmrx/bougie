@@ -741,22 +741,21 @@ function setupPaymentHandlers() {
     const receiptFile = document.getElementById('receiptFile');
 
     if (receiptUploadArea && receiptFile) {
-    // Copy the working pattern from passport upload
-    receiptUploadArea.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (e.target !== receiptFile) {
-            receiptFile.click();
-        }
-    });
-}
-    
-    receiptFile.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file && validateFile(file)) {
-            receiptUploadArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded successfully</p>';
-            applicationData.receiptFile = file;
-        }
-    });
+        receiptUploadArea.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (e.target !== receiptFile) {
+                receiptFile.click();
+            }
+        });
+        
+        receiptFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file && validateFile(file)) {
+                receiptUploadArea.innerHTML = '<i class="fas fa-check-circle"></i><p>Receipt uploaded successfully</p>';
+                applicationData.receiptFile = file;
+            }
+        });
+    }
 }
 
 function loadDestinationContent(destination) {
