@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script>
     emailjs.init('7nXKeWjyHF-Mu-s2u');
@@ -181,8 +182,15 @@
                 <button id="payLaterBtn" class="btn btn-secondary">Pay Later - Contact Agency</button>
             </div>
             <div id="receiptUpload" class="hidden">
-                <div class="file-upload" id="receiptArea"><i class="fas fa-cloud-upload-alt"></i><p>Click to upload payment receipt</p><input type="file" id="receiptFile" accept=".pdf,.jpg,.jpeg" style="display:none"></div>
-            </div>
+               <div class="form-group">
+                   <label>Payment Proof <span class="required">*</span></label>
+                   <button type="button" id="uploadReceiptBtn" class="btn btn-primary" style="width: 100%;">
+                       <i class="fas fa-cloud-upload-alt"></i> Upload Payment Receipt
+                   </button>
+                   <div id="receiptPreview" style="margin-top: 10px;"></div>
+                   <input type="hidden" id="receiptUrl" name="receiptUrl">
+               </div>
+           </div>
             <div class="bank-details">
                 <p><strong>CCP:</strong> 40253214 Clé 56</p>
                 <p><strong>Baridimob:</strong> 00799999004025321435</p>
