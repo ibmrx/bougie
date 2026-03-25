@@ -814,39 +814,40 @@ function loadDestinationContent(destination) {
  * Upload files to Supabase Storage
  */
 async function uploadToSupabaseStorage(applicationNumber) {
-    const filesToUpload = [];
+    // Instead of uploading to Supabase, store files locally
+    const results = {};
     
     for (const [docId, file] of Object.entries(selectedFiles)) {
-        filesToUpload.push({
-            file: file,
-            documentType: docId
-        });
+        // Store file info locally
+        results[docId] = {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            // Store as base64 for viewing
+            data: await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            })
+        };
     }
     
     const receiptFile = document.getElementById('receiptFile')?.files[0];
     if (receiptFile && paymentStatus === 'paid_pending') {
-        filesToUpload.push({
-            file: receiptFile,
-            documentType: 'payment_receipt'
-        });
+        results['payment_receipt'] = {
+            name: receiptFile.name,
+            type: receiptFile.type,
+            size: receiptFile.size,
+            data: await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(receiptFile);
+            })
+        };
     }
-    
-    if (filesToUpload.length === 0) return {};
-    
-    if (!window.SupabaseStorage) {
-        throw new Error('Supabase Storage not available. Please check your connection.');
-    }
-    
-    const results = await window.SupabaseStorage.uploadMultiple(
-        filesToUpload,
-        applicationNumber,
-        (completed, total, docType, result) => {
-            console.log(`Uploaded ${docType}: ${completed}/${total}`);
-        }
-    );
     
     return results;
-}
+}   
 
 /**
  * Send email via Resend
