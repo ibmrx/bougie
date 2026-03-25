@@ -243,22 +243,42 @@
     }
 
     // ==================== HELPER FUNCTIONS ====================
-    function formatDate(dateString) {
-        if (!dateString) return 'N/A';
-        try {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-        } catch { return dateString; }
-    }
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    try {
+        // If it's an Excel serial number (number like 46106)
+        if (typeof dateString === 'number' || /^\d+$/.test(dateString)) {
+            const excelDate = parseInt(dateString);
+            const date = new Date((excelDate - 25569) * 86400000);
+            if (!isNaN(date.getTime())) {
+                return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            }
+        }
+        
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch { return dateString; }
+}
 
-    function formatMonthYear(dateString) {
-        if (!dateString) return 'N/A';
-        try {
-            const [year, month] = dateString.split('-');
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            return `${months[parseInt(month)-1]} ${year}`;
-        } catch { return dateString; }
-    }
+function formatMonthYear(dateString) {
+    if (!dateString) return 'N/A';
+    try {
+        // If it's an Excel serial number
+        if (typeof dateString === 'number' || /^\d+$/.test(dateString)) {
+            const excelDate = parseInt(dateString);
+            const date = new Date((excelDate - 25569) * 86400000);
+            if (!isNaN(date.getTime())) {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${months[date.getMonth()]} ${date.getFullYear()}`;
+            }
+        }
+        
+        const [year, month] = dateString.split('-');
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return `${months[parseInt(month)-1]} ${year}`;
+    } catch { return dateString; }
+}
 
     function getDestinationDisplay(destination) {
         if (destination === 'italy') return 'Italy';
