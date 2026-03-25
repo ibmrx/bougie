@@ -77,6 +77,30 @@
         .empty-state i { font-size: 3rem; margin-bottom: 1rem; color: #dcdad5; }
         .notification { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; display: flex; align-items: center; gap: 10px; z-index: 10000; animation: slideIn 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        /* Mobile Optimization */
+@media (max-width: 768px) {
+    .btn, button { min-height: 48px; font-size: 1rem; }
+    .button-group { flex-direction: column; }
+    .form-group input, .form-group select, .form-group textarea { font-size: 16px; }
+    .checkbox-group label { font-size: 0.95rem; }
+    .checkbox-group input { width: 20px; height: 20px; }
+    .step { display: flex; align-items: center; gap: 0.75rem; text-align: left; }
+    .step-number { margin: 0; width: 32px; height: 32px; }
+    .payment-options { grid-template-columns: 1fr; }
+    .modal-content { width: 95%; }
+    .container { padding: 0 1rem 2rem; }
+    .form-title { font-size: 1.25rem; }
+    .status-header h1 { font-size: 1.5rem; }
+    .info-grid { grid-template-columns: 1fr; }
+    .input-group { flex-direction: column; }
+    .search-btn { justify-content: center; }
+}
+
+@media (max-width: 480px) {
+    .form-card, .status-card { padding: 1rem; }
+    .logo img { height: 35px; }
+    .logo-text { font-size: 1rem; }
+}
         @media (max-width: 768px) { .container { padding: 1rem; } .filters-bar { flex-direction: column; align-items: stretch; } .filter-group { flex-direction: column; } .search-input { width: 100%; } .detail-row { flex-direction: column; } .detail-label { width: 100%; margin-bottom: 0.25rem; } }
     </style>
 </head>
